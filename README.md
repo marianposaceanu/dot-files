@@ -10,28 +10,7 @@ Contains my dot-files for easy usage across different OSs.
 
 - VIM Config files and bundles
 - VIM alternative icons in /assets/vim_icons
-
-#### included bundles:
-
-theme | syntax | specific | ruby | sublime-text
---- | --- | --- | --- | ---
-[Base16](https://github.com/chriskempson/base16-vim) | --- | --- | --- | ---
-[Tomorrow](https://github.com/chriskempson/vim-tomorrow-theme) | --- | --- | --- | --- 
-[Wombat](https://github.com/cschlueter/vim-wombat) | --- | --- | --- | --- 
---- | [CoffeeScript](https://github.com/kchmck/vim-coffee-script) | --- | --- | --- | --- 
---- | [Enhanced Javascript](https://github.com/jelera/vim-javascript-syntax) | --- | --- | --- | --- 
---- | [Markdown](https://github.com/tpope/vim-markdown) | --- | --- | --- | --- 
---- | --- | [Commentary](https://github.com/tpope/vim-commentary) | --- | --- 
---- | --- | [Ctrl+P](https://github.com/kien/ctrlp.vim) | --- | --- 
---- | --- | [Fugitive](https://github.com/tpope/vim-fugitive) | --- | --- 
---- | --- | [Supertab](https://github.com/ervandew/supertab) | --- | --- 
---- | --- | [Surround](https://github.com/tpope/vim-surround) | --- | --- 
---- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | --- 
---- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | --- 
---- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | --- 
---- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | --- 
---- | --- |  --- |  --- | [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
-
+ 
 #### usage
 
     $ git clone git://github.com/dakull/dot-files.git
@@ -56,6 +35,27 @@ theme | syntax | specific | ruby | sublime-text
 
     $ ln -s .vim/_vimrc .vimrc
     $ ln -s .vim/_gvimrc .gvimrc
+
+#### included bundles:
+
+theme | syntax | specific | ruby | sublime-text
+--- | --- | --- | --- | ---
+[Base16](https://github.com/chriskempson/base16-vim) | --- | --- | --- | ---
+[Tomorrow](https://github.com/chriskempson/vim-tomorrow-theme) | --- | --- | --- | --- 
+[Wombat](https://github.com/cschlueter/vim-wombat) | --- | --- | --- | --- 
+--- | [CoffeeScript](https://github.com/kchmck/vim-coffee-script) | --- | --- | --- | --- 
+--- | [Enhanced Javascript](https://github.com/jelera/vim-javascript-syntax) | --- | --- | --- | --- 
+--- | [Markdown](https://github.com/tpope/vim-markdown) | --- | --- | --- | --- 
+--- | --- | [Commentary](https://github.com/tpope/vim-commentary) | --- | --- 
+--- | --- | [Ctrl+P](https://github.com/kien/ctrlp.vim) | --- | --- 
+--- | --- | [Fugitive](https://github.com/tpope/vim-fugitive) | --- | --- 
+--- | --- | [Supertab](https://github.com/ervandew/supertab) | --- | --- 
+--- | --- | [Surround](https://github.com/tpope/vim-surround) | --- | --- 
+--- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | --- 
+--- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | --- 
+--- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | --- 
+--- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | --- 
+--- | --- |  --- |  --- | [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
     
 #### credits
 
