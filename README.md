@@ -37,7 +37,7 @@ Contains my dot-files for easy usage across different OSs.
 
 #### usage
 
-    $ git clone $GITPATH
+    $ git clone git://github.com/dakull/dot-files.git
 
 #### update the bundles
 
