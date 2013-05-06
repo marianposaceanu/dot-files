@@ -38,7 +38,7 @@ map <silent> <F1> :NERDTreeToggle %:p:h<CR>
 
 " Theme
 set background=dark
-colorscheme Tomorrow-Night
+colorscheme base16-railscasts
 
 set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 

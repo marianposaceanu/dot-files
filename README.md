@@ -26,6 +26,7 @@ Contains my dot-files for easy usage across different OSs.
  - [Surround.vim](https://github.com/tpope/vim-surround)
  - [Tabular](https://github.com/godlygeek/tabular)
  - [The NERD Tree](https://github.com/scrooloose/nerdtree)
+ - [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
 
 #### usage
 
