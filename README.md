@@ -9,38 +9,57 @@ Contains my dot-files for easy usage across different OSs.
 #### contains
 
 - VIM Config files and bundles
+- VIM alternative icons in /assets/vim_icons
 
 #### included bundles:
 
 - _theme_
- - [Base16 Theme](https://github.com/chriskempson/base16-vim)
- - [Tomorrow Theme](https://github.com/chriskempson/vim-tomorrow-theme)
- - [Wombat Theme](https://github.com/cschlueter/vim-wombat)
+ - [Base16](https://github.com/chriskempson/base16-vim)
+ - [Tomorrow](https://github.com/chriskempson/vim-tomorrow-theme)
+ - [Wombat](https://github.com/cschlueter/vim-wombat)
 - _syntax_
- - [CoffeeScript syntax](https://github.com/kchmck/vim-coffee-script)
- - [JS Syntax](https://github.com/jelera/vim-javascript-syntax)
- - [MD Syntax](https://github.com/tpope/vim-markdown)
+ - [CoffeeScript](https://github.com/kchmck/vim-coffee-script)
+ - [Enhanced Javascript](https://github.com/jelera/vim-javascript-syntax)
+ - [Markdown](https://github.com/tpope/vim-markdown)
 - _specific_
- - [Bundler.vim](https://github.com/tpope/vim-bundler)
- - [Commentary.vim](https://github.com/tpope/vim-commentary)
+ - [Commentary](https://github.com/tpope/vim-commentary)
  - [Ctrl+P](https://github.com/kien/ctrlp.vim)
- - [Fugitive.vim](https://github.com/tpope/vim-fugitive)
- - [Rails.vim](https://github.com/tpope/vim-rails)
+ - [Fugitive](https://github.com/tpope/vim-fugitive)
  - [Supertab](https://github.com/ervandew/supertab)
- - [Surround.vim](https://github.com/tpope/vim-surround)
+ - [Surround](https://github.com/tpope/vim-surround)
  - [Tabular](https://github.com/godlygeek/tabular)
  - [The NERD Tree](https://github.com/scrooloose/nerdtree)
+- _ruby_
+ - [Bundler](https://github.com/tpope/vim-bundler) 
+ - [Rails](https://github.com/tpope/vim-rails)
+- _sublime-text related_
  - [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
 
 #### usage
 
-    $ git clone $GITPATH
+    $ git clone git://github.com/dakull/dot-files.git
 
 #### update the bundles
 
     $ git submodule init
     $ git submodule update
+    
+#### windows symbolic links
+        
+##### for config files    
 
+    > mklink /h "\Program Files (x86)\Vim\_gvimrc" "\[path-to-dot-files]\dot-files\.vim\_gvimrc"
+    > mklink /h "\Program Files (x86)\Vim\_vimrc" "\[path-to-dot-files]\dot-files\.vim\_vimrc"
+
+##### for bundle folder
+
+    > mklink /j "\Program Files (x86)\Vim\vim73\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle" 
+    
+#### *nix symbolic links    
+
+    $ ln -s .vim/_vimrc .vimrc
+    $ ln -s .vim/_gvimrc .gvimrc
+    
 #### credits
 
 - [inspired by Chris Hunt own dot files](https://github.com/chrishunt/dot-files#installation)
