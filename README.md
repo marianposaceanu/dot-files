@@ -9,6 +9,7 @@ Contains my dot-files for easy usage across different OSs.
 #### contains
 
 - VIM Config files and bundles
+- VIM alternative icons in /assets/vim_icons
 
 #### included bundles:
 
