@@ -64,3 +64,4 @@ Contains my dot-files for easy usage across different OSs.
 
 - [inspired by Chris Hunt own dot files](https://github.com/chrishunt/dot-files#installation)
 - [nice tip](http://pagesofinterest.net/blog/2013/05/switching-to-vim-1-start-at-the-beginning/)
+- [mklink reference](http://technet.microsoft.com/en-us/library/cc753194%28v=ws.10%29.aspx)
