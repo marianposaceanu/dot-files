@@ -16,7 +16,7 @@
 [submodule ".vim/bundle/vim-wombat"]
 	path = .vim/bundle/vim-wombat
 	url = https://github.com/cschlueter/vim-wombat
-[submodule "vim-tomorrow-theme"]
+[submodule ".vim/bundle/vim-tomorrow-theme"]
 	path = .vim/bundle/vim-tomorrow-theme
 	url = https://github.com/chriskempson/vim-tomorrow-theme
 [submodule ".vim/bundle/vim-ctrlp"]
@@ -34,12 +34,12 @@
 [submodule ".vim/bundle/vim-commentary"]
 	path = .vim/bundle/vim-commentary
 	url = https://github.com/tpope/vim-commentary
-[submodule ".vim\\bundle\\vim-tabular"]
-	path = .vim\\bundle\\vim-tabular
+[submodule ".vim/bundle/vim-tabular"]
+	path = .vim/bundle/vim-tabular
 	url = git://github.com/godlygeek/tabular.git
-[submodule ".vim\\bundle\\base16-vim"]
-	path = .vim\\bundle\\base16-vim
+[submodule ".vim/bundle/base16-vim"]
+	path = .vim/bundle/base16-vim
 	url = https://github.com/chriskempson/base16-vim
-[submodule ".vim\\bundle\\vim-javascript-syntax"]
-	path = .vim\\bundle\\vim-javascript-syntax
+[submodule ".vim/bundle/vim-javascript-syntax"]
+	path = .vim/bundle/vim-javascript-syntax
 	url = https://github.com/jelera/vim-javascript-syntax
