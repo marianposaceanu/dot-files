@@ -44,3 +44,13 @@ set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 
 autocmd BufNewFile,BufRead Gemfile set filetype=ruby
 nnoremap <F3> :set hlsearch!<CR>
+
+" Bye bye arrow keys
+map <up> <nop>
+map <down> <nop>
+map <left> <nop>
+map <right> <nop>
+imap <up> <nop>
+imap <down> <nop>
+imap <left> <nop>
+imap <right> <nop>
