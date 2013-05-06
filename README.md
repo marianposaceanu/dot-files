@@ -2,6 +2,10 @@
 
 Contains my dot-files for easy usage across different OSs.
 
+#### theme preview
+
+![Theme Preview](assets/preview.gif?raw=true)
+
 #### contains
 
 - VIM Config files and bundles
