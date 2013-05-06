@@ -44,20 +44,22 @@ Contains my dot-files for easy usage across different OSs.
     $ git submodule init
     $ git submodule update
     
-#### windows symbolic links :
-    
-    # for config files
-    
-    mklink /h "\Program Files (x86)\Vim\_gvimrc" "\[path-to-dot-files]\dot-files\.vim\_gvimrc"
-    mklink /h "\Program Files (x86)\Vim\_vimrc" "\[path-to-dot-files]\dot-files\.vim\_vimrc"
-    
-    # for bundle folder
-    
-    mklink /j "\Program Files (x86)\Vim\vim73\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle" 
-    
+#### windows symbolic links
+        
+##### for config files    
 
-mklink /h "C:\Program Files (x86)\Vim\_vimrc" "C:\Users\conta_000\Dropbox\Sync\dot-files\.vim\_vimrc"
+    > mklink /h "\Program Files (x86)\Vim\_gvimrc" "\[path-to-dot-files]\dot-files\.vim\_gvimrc"
+    > mklink /h "\Program Files (x86)\Vim\_vimrc" "\[path-to-dot-files]\dot-files\.vim\_vimrc"
 
+##### for bundle folder
+
+    > mklink /j "\Program Files (x86)\Vim\vim73\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle" 
+    
+#### *nix symbolic links    
+
+    $ ln -s .vim/_vimrc .vimrc
+    $ ln -s .vim/_gvimrc .gvimrc
+    
 #### credits
 
 - [inspired by Chris Hunt own dot files](https://github.com/chrishunt/dot-files#installation)
