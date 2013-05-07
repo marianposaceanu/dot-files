@@ -6,3 +6,9 @@ endif
 set guioptions-=m  "remove menu bar
 set guioptions-=T  "remove toolbar
 set guioptions-=r  "remove right-hand scroll bar
+
+" Use UTF-8 everywhere.
+set encoding=utf-8
+
+" Window dimensions.
+set lines=30 columns=100

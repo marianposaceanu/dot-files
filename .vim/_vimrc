@@ -4,7 +4,6 @@ set nocompatible
 call pathogen#infect()
 call pathogen#helptags()
 
-set statusline=%<\ %n:%f\ %m%r%y%=%-35.(line:\ %l\ of\ %L,\ col:\ %c%V\ (%P)%)
 filetype plugin indent on
 
 syntax on
@@ -20,6 +19,28 @@ set shiftwidth=2
 set tabstop=2
 set softtabstop=2
 set autochdir
+
+
+set backspace=indent,eol,start    " Intuitive backspacing.
+set ignorecase                    " Case-insensitive searching.
+set smartcase                     " But case-sensitive if expression contains a capital letter.
+set incsearch                     " Highlight matches as you type.
+set hlsearch                      " Highlight matches.
+set wrap                          " Turn on line wrapping.
+set scrolloff=3                   " Show 3 lines of context around the cursor.
+set nobackup                      " Don't make a backup before overwriting a file.
+set nowritebackup                 " And again.
+set directory=$HOME/.vim/tmp//,.  " Keep swap files in one location
+
+"set shiftwidth=2                 " And again, related.
+set tabstop=2                    " Global tab width.
+set expandtab                    " Use spaces instead of tabs
+
+set laststatus=2                  " Show the status line all the time
+" Useful status information at bottom of screen
+" set statusline=%<\ %n:%f\ %m%r%y%=%-35.(line:\ %l\ of\ %L,\ col:\ %c%V\ (%P)%)
+set statusline=[%n]\ %<%.99f\ %h%w%m%r%y\ %{exists('*CapsLockStatusline')?CapsLockStatusline():''}%=%-16(\ %l,%c-%v\ %)%P
+
 
 " Nerdtree
 autocmd vimenter * NERDTree
@@ -42,6 +63,7 @@ colorscheme base16-default
 
 set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 
+" Toogle search highlighting
 autocmd BufNewFile,BufRead Gemfile set filetype=ruby
 nnoremap <F3> :set hlsearch!<CR>
 
@@ -54,3 +76,14 @@ imap <up> <nop>
 imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
+
+" Tab mappings.
+map <leader>tt :tabnew<cr>
+map <leader>te :tabedit
+map <leader>tc :tabclose<cr>
+map <leader>to :tabonly<cr>
+map <leader>tn :tabnext<cr>
+map <leader>tp :tabprevious<cr>
+map <leader>tf :tabfirst<cr>
+map <leader>tl :tablast<cr>
+map <leader>tm :tabmove
