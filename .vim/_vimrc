@@ -89,3 +89,7 @@ map <leader>tp :tabprevious<cr>
 map <leader>tf :tabfirst<cr>
 map <leader>tl :tablast<cr>
 map <leader>tm :tabmove
+
+
+" spell checking and automatic wrapping at the recommended 72 columns
+autocmd Filetype gitcommit setlocal spell textwidth=72
