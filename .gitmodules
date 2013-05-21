@@ -49,3 +49,6 @@
 [submodule ".vim\\bundle\\vim-powerline"]
 	path = .vim\\bundle\\vim-powerline
 	url = git://github.com/Lokaltog/vim-powerline.git
+[submodule ".vim/typefaces/consolas-powerline"]
+	path = .vim/typefaces/consolas-powerline
+	url = https://github.com/eugeneching/consolas-powerline-vim
