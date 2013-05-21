@@ -53,6 +53,7 @@ theme | syntax | specific | ruby | sublime-text
 --- | --- | [Surround](https://github.com/tpope/vim-surround) | --- | --- 
 --- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | --- 
 --- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | --- 
+--- | --- | [Powerline](https://github.com/Lokaltog/vim-powerline) | --- | ---
 --- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | --- 
 --- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | --- 
 --- | --- |  --- |  --- | [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
@@ -63,3 +64,5 @@ theme | syntax | specific | ruby | sublime-text
 - [nice tip](http://pagesofinterest.net/blog/2013/05/switching-to-vim-1-start-at-the-beginning/)
 - [mklink reference](http://technet.microsoft.com/en-us/library/cc753194%28v=ws.10%29.aspx)
 - [learning vim](https://gist.github.com/dakull/5554601)
+- [patched Consolas font](https://github.com/eugeneching/consolas-powerline-vim)
+- [patched Menlo, Inconsolata and Mensch fonts](https://gist.github.com/qrush/1595572)
