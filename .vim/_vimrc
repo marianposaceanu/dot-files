@@ -6,6 +6,7 @@ call pathogen#helptags()
 
 filetype plugin indent on
 
+" general stuff
 syntax on
 set number
 set hlsearch
@@ -19,30 +20,30 @@ set shiftwidth=2
 set tabstop=2
 set softtabstop=2
 set autochdir
-
-
 set backspace=indent,eol,start    " Intuitive backspacing.
 set ignorecase                    " Case-insensitive searching.
 set smartcase                     " But case-sensitive if expression contains a capital letter.
 set incsearch                     " Highlight matches as you type.
 set hlsearch                      " Highlight matches.
 set wrap                          " Turn on line wrapping.
+set linebreak                     " ^
 set scrolloff=3                   " Show 3 lines of context around the cursor.
 set nobackup                      " Don't make a backup before overwriting a file.
 set nowritebackup                 " And again.
 set directory=$HOME/.vim/tmp//,.  " Keep swap files in one location
-
 "set shiftwidth=2                 " And again, related.
 set tabstop=2                     " Global tab width.
 set expandtab                     " Use spaces instead of tabs
-
 set laststatus=2                  " Show the status line all the time
+
+" Powerline awesome patched typeface
+let g:Powerline_symbols="fancy"
+
 " Useful status information at bottom of screen
+" no need for this -> we're using Powerline
 " set statusline=%<\ %n:%f\ %m%r%y%=%-35.(line:\ %l\ of\ %L,\ col:\ %c%V\ (%P)%)
 " set statusline=[%n]\ %<%.99f\ %h%w%m%r%y\ %{exists('*CapsLockStatusline')?CapsLockStatusline():''}%=%-16(\ %l,%c-%v\ %)%P
-
-set statusline=\[%t%m]\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [LINE=%04l,COL=%04v]
-
+" set statusline=\[%t%m]\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [LINE=%04l,COL=%04v]
 
 " Nerdtree
 autocmd vimenter * NERDTree
@@ -57,7 +58,6 @@ let g:nerdtree_tabs_open_on_gui_startup=0
 
 " Nerdtree toogle key
 map <silent> <F1> :NERDTreeToggle %:p:h<CR>
-
 
 " Theme
 set background=dark

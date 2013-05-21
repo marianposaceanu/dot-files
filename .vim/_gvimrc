@@ -1,6 +1,8 @@
 " Use Consolas as default font on win32 platform
 if has("gui_win32") || has("gui_win32s")
-  set guifont=Consolas:h14
+  " set guifont=Consolas:h14
+  " let's use the awesome Powerline edition
+  set guifont=Consolas\ for\ Powerline\ FixedD:h14
 endif
 
 set guioptions-=m  "remove menu bar
