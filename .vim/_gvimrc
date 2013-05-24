@@ -14,3 +14,8 @@ set encoding=utf-8
 
 " Window dimensions.
 set lines=30 columns=100
+
+" Windows support for Ctrl+[C,V]
+nmap <C-V> "+gP
+imap <C-V> <ESC><C-V>i
+vmap <C-C> "+y

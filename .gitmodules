@@ -46,8 +46,8 @@
 [submodule ".vim/bundle/vim-multiple-cursors"]
 	path = .vim/bundle/vim-multiple-cursors
 	url = https://github.com/terryma/vim-multiple-cursors
-[submodule ".vim\\bundle\\vim-powerline"]
-	path = .vim\\bundle\\vim-powerline
+[submodule ".vim/bundle/vim-powerline"]
+	path = .vim/bundle/vim-powerline
 	url = git://github.com/Lokaltog/vim-powerline.git
 [submodule ".vim/typefaces/consolas-powerline"]
 	path = .vim/typefaces/consolas-powerline
