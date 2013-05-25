@@ -93,3 +93,6 @@ map <leader>tm :tabmove
 
 " spell checking and automatic wrapping at the recommended 72 columns
 autocmd Filetype gitcommit setlocal spell textwidth=72
+
+" treat *.ru files with ruby syntax highlighting
+au BufRead,BufNewFile *.ru setfiletype ruby
