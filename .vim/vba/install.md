@@ -1,0 +1,1 @@
+Open the vba file with vim, and type the :source %
