@@ -10,7 +10,7 @@ Contains my dot-files for easy usage across different OSs.
 
 - VIM Config files and bundles
 - VIM alternative icons in /assets/vim_icons
- 
+
 #### usage
 
     $ git clone git://github.com/dakull/dot-files.git
@@ -19,19 +19,19 @@ Contains my dot-files for easy usage across different OSs.
 
     $ git submodule init
     $ git submodule update
-    
+
 #### windows symbolic links
-        
-##### for config files    
+
+##### for config files
 
     > mklink /h "\Program Files (x86)\Vim\_gvimrc" "\[path-to-dot-files]\dot-files\.vim\_gvimrc"
     > mklink /h "\Program Files (x86)\Vim\_vimrc" "\[path-to-dot-files]\dot-files\.vim\_vimrc"
 
 ##### for bundle folder
 
-    > mklink /j "\Program Files (x86)\Vim\vim73\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle" 
-    
-#### *nix symbolic links    
+    > mklink /j "\Program Files (x86)\Vim\vim73\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle"
+
+#### *nix symbolic links
 
     $ ln -s .vim/_vimrc .vimrc
     $ ln -s .vim/_gvimrc .gvimrc
@@ -41,23 +41,23 @@ Contains my dot-files for easy usage across different OSs.
 theme | syntax | specific | ruby | sublime-text
 --- | --- | --- | --- | ---
 [Base16](https://github.com/chriskempson/base16-vim) | --- | --- | --- | ---
-[Tomorrow](https://github.com/chriskempson/vim-tomorrow-theme) | --- | --- | --- | --- 
-[Wombat](https://github.com/cschlueter/vim-wombat) | --- | --- | --- | --- 
---- | [CoffeeScript](https://github.com/kchmck/vim-coffee-script) | --- | --- | --- | --- 
---- | [Enhanced Javascript](https://github.com/jelera/vim-javascript-syntax) | --- | --- | --- | --- 
---- | [Markdown](https://github.com/tpope/vim-markdown) | --- | --- | --- | --- 
---- | --- | [Commentary](https://github.com/tpope/vim-commentary) | --- | --- 
---- | --- | [Ctrl+P](https://github.com/kien/ctrlp.vim) | --- | --- 
---- | --- | [Fugitive](https://github.com/tpope/vim-fugitive) | --- | --- 
---- | --- | [Supertab](https://github.com/ervandew/supertab) | --- | --- 
---- | --- | [Surround](https://github.com/tpope/vim-surround) | --- | --- 
---- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | --- 
---- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | --- 
+[Tomorrow](https://github.com/chriskempson/vim-tomorrow-theme) | --- | --- | --- | ---
+[Wombat](https://github.com/cschlueter/vim-wombat) | --- | --- | --- | ---
+--- | [CoffeeScript](https://github.com/kchmck/vim-coffee-script) | --- | --- | --- | ---
+--- | [Enhanced Javascript](https://github.com/jelera/vim-javascript-syntax) | --- | --- | --- | ---
+--- | [Markdown](https://github.com/tpope/vim-markdown) | --- | --- | --- | ---
+--- | --- | [Commentary](https://github.com/tpope/vim-commentary) | --- | ---
+--- | --- | [Ctrl+P](https://github.com/kien/ctrlp.vim) | --- | ---
+--- | --- | [Fugitive](https://github.com/tpope/vim-fugitive) | --- | ---
+--- | --- | [Supertab](https://github.com/ervandew/supertab) | --- | ---
+--- | --- | [Surround](https://github.com/tpope/vim-surround) | --- | ---
+--- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | ---
+--- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | ---
 --- | --- | [Powerline](https://github.com/Lokaltog/vim-powerline) | --- | ---
---- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | --- 
---- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | --- 
+--- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | ---
+--- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | ---
 --- | --- |  --- |  --- | [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
-    
+
 #### credits
 
 - [inspired by Chris Hunt own dot files](https://github.com/chrishunt/dot-files#installation)
@@ -66,3 +66,8 @@ theme | syntax | specific | ruby | sublime-text
 - [learning vim](https://gist.github.com/dakull/5554601)
 - [patched Consolas font](https://github.com/eugeneching/consolas-powerline-vim)
 - [patched Menlo, Inconsolata and Mensch fonts](https://gist.github.com/qrush/1595572)
+
+#### screencasts
+
+- [the awesome vimcasts.org](http://vimcasts.org)
+- [using Tabular](http://vimcasts.org/episodes/aligning-text-with-tabular-vim/)
