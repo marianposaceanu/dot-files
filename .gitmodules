@@ -52,3 +52,6 @@
 [submodule ".vim/typefaces/consolas-powerline"]
 	path = .vim/typefaces/consolas-powerline
 	url = https://github.com/eugeneching/consolas-powerline-vim
+[submodule ".vim/bundle/golden-ratio"]
+	path = .vim/bundle/golden-ratio
+	url = git://github.com/roman/golden-ratio.git

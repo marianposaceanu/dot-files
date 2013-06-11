@@ -54,6 +54,7 @@ theme | syntax | specific | ruby | sublime-text
 --- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | ---
 --- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | ---
 --- | --- | [Powerline](https://github.com/Lokaltog/vim-powerline) | --- | ---
+--- | --- | [Golden Ratio](https://github.com/roman/golden-ratio) | --- | ---
 --- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | ---
 --- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | ---
 --- | --- |  --- |  --- | [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
