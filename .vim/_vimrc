@@ -46,7 +46,7 @@ let g:Powerline_symbols="fancy"
 " set statusline=\[%t%m]\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [LINE=%04l,COL=%04v]
 
 " Nerdtree
-autocmd vimenter * NERDTree
+" autocmd vimenter * NERDTree
 let NERDTreeShowBookmarks=1
 let NERDTreeChDirMode=0
 let NERDTreeQuitOnOpen=1
