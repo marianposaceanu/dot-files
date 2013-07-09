@@ -1,18 +1,33 @@
 " Use Consolas as default font on win32 platform
 if has("gui_win32") || has("gui_win32s")
-  " let's use the awesome Powerline edition
-  " set guifont=Consolas\ for\ Powerline\ FixedD:h14
   set guifont=Consolas:h14
+  " set guifont=Anonymous\ Pro\ for\ Powerline:h14
+  " set guifont=DejaVu\ Sans\ Mono\ for\ Powerline:h14
+  " set guifont=Liberation\ Mono\ for\ Powerline:h14
+  " set guifont=Menlo\ for\ Powerline:h14
+  " set guifont=Source\ Code\ Pro\ for\ Powerline:h12
+  " set guifont=Ubuntu\ Mono\ derivative\ Powerline:h14
 endif
 
 set guioptions-=m  "remove menu bar
 set guioptions-=T  "remove toolbar
 set guioptions-=r  "remove right-hand scroll bar
 
-" Window dimensions.
-set lines=30 columns=100
-
 " Windows support for Ctrl+[C,V]
 nmap <C-V> "+gP
 imap <C-V> <ESC><C-V>i
 vmap <C-C> "+y
+
+if has("gui_running") && has("gui_win32")
+  " set lines=999 columns=999
+  au GUIEnter * simalt ~x
+else
+  " This is console Vim.
+  if exists("+lines")
+    set lines=50
+  endif
+  if exists("+columns")
+    set columns=100
+  endif
+endif
+
