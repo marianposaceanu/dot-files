@@ -67,7 +67,10 @@ theme | syntax | specific | ruby | sublime-text
 - [mklink reference](http://technet.microsoft.com/en-us/library/cc753194%28v=ws.10%29.aspx)
 - [learning vim](https://gist.github.com/dakull/5554601)
 - [patched Consolas font](https://github.com/eugeneching/consolas-powerline-vim)
+- [alternate patched Consolas font](https://github.com/nicolalamacchia/powerline-consolas)
 - [patched Menlo, Inconsolata and Mensch fonts](https://gist.github.com/qrush/1595572)
+- [all the Powerline font](https://github.com/Lokaltog/powerline-fonts)
+- [Powerline font patcher](https://github.com/fatih/subvim/tree/master/vim/base/vim-powerline/fontpatcher)
 
 #### screencasts
 
