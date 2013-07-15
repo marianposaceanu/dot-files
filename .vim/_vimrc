@@ -65,7 +65,9 @@ map <silent> <F1> :NERDTreeToggle %:p:h<CR>
 
 " Theme
 set background=dark
-colorscheme base16-default
+" colorscheme base16-default
+colorscheme solarized
+
 
 set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 
