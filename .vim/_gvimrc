@@ -31,3 +31,6 @@ else
   endif
 endif
 
+
+" ag support
+let g:agprg="C:/ag/ag.exe  --column"
