@@ -56,6 +56,7 @@ theme | syntax | specific | ruby | sublime-text
 --- | --- | [Powerline](https://github.com/Lokaltog/vim-powerline) | --- | ---
 --- | --- | [Airline](https://github.com/bling/vim-airline) | --- | ---
 --- | --- | [Golden Ratio](https://github.com/roman/golden-ratio) | --- | ---
+--- | --- | [ag](https://github.com/rking/ag.vim) | --- | ---
 --- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | ---
 --- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | ---
 --- | --- |  --- |  --- | [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
@@ -71,6 +72,7 @@ theme | syntax | specific | ruby | sublime-text
 - [patched Menlo, Inconsolata and Mensch fonts](https://gist.github.com/qrush/1595572)
 - [all the Powerline font](https://github.com/Lokaltog/powerline-fonts)
 - [Powerline font patcher](https://github.com/fatih/subvim/tree/master/vim/base/vim-powerline/fontpatcher)
+- [precompiled ag for win platform](http://jaxbot.me/articles/ag_the_silver_searcher_for_windows_6_8_2013)
 
 #### screencasts
 
