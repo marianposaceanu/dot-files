@@ -57,3 +57,6 @@
 [submodule ".vim\\bundle\\vim-ag"]
 	path = .vim\\bundle\\vim-ag
 	url = https://github.com/rking/ag.vim.git
+[submodule ".vim\\bundle\\vim-rooter"]
+	path = .vim\\bundle\\vim-rooter
+	url = https://github.com/airblade/vim-rooter.git
