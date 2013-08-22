@@ -120,3 +120,10 @@ let g:DeleteTrailingWhitespace = 1
 " map <leader>e :edit %%
 " map <leader>v :view %%
 
+" proper fix for swp files
+if has('win32') || has('win16')
+  set dir=c:\\tmp
+else
+  set dir=~/tmp
+endif
+
