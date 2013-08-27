@@ -10,12 +10,10 @@ syntax on
 
 " Theme
 set background=dark
-" via https://github.com/chriskempson/base16-vim
-" preview via http://chriskempson.github.io/base16
-colorscheme base16-default
-" colorscheme base16-eighties
-" colorscheme base16-railscasts
-" colorscheme base16-tomorrow
+colorscheme base16-default        " preview http://chriskempson.github.io/base16
+                                  " base16-eighties
+                                  " base16-railscasts
+                                  " base16-tomorrow
 
 " general stuff
 set number
@@ -26,31 +24,37 @@ set autoindent
 set history=1000
 set cursorline
 set expandtab
-set shiftwidth=2
-set tabstop=2
-set softtabstop=2
 set autochdir
 set backspace=indent,eol,start    " Intuitive backspacing.
 set ignorecase                    " Case-insensitive searching.
-set smartcase                     " But case-sensitive if expression contains a capital letter.
+set smartcase                     " But case-sensitive if expression contains a
+                                  "  capital letter.
 set incsearch                     " Highlight matches as you type.
 set hlsearch                      " Highlight matches.
 set wrap                          " Turn on line wrapping.
 set linebreak                     " ^
 set scrolloff=3                   " Show 3 lines of context around the cursor.
-set nobackup                      " Don't make a backup before overwriting a file.
-set nowritebackup                 " And again.
-set directory=$HOME/.vim/tmp//,.  " Keep swap files in one location
-"set shiftwidth=2                 " And again, related.
-set tabstop=2                     " Global tab width.
-set expandtab                     " Use spaces instead of tabs
 set laststatus=2                  " Show the status line all the time
 set encoding=utf-8                " Use UTF-8 everywhere.
 set ttimeoutlen=50                " fix for slow after INSERT exit mode
 
+if has('win32')                   " save swp files into tmp
+  set dir=c:\\tmp
+else
+  set dir=~/tmp
+endif
+set nobackup                      " Don't make a backup.
+set nowritebackup                 " And again.
+
+set expandtab                     " Use spaces instead of tabs
+set tabstop=2                     " Global tab width.
+set shiftwidth=2                  " And again, related.
+set softtabstop=2                 " This makes the backspace key treat the two
+                                  "  spaces like a tab (so one backspace goes
+                                  "  back a full 2 spaces).
+
 " Airline settings
 " let g:airline_powerline_fonts=1
-" Theme
 let g:airline_theme="simple"
 let g:airline_left_sep = '»'
 let g:airline_right_sep = '«'
@@ -66,15 +70,12 @@ let NERDTreeChDirMode=0
 let NERDTreeQuitOnOpen=1
 let NERDTreeMouseMode=2
 let NERDTreeShowHidden=1
-let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git','\.hg','\.svn','\.bzr']
+let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git','\.hg','\.bzr']
 let NERDTreeKeepTreeInNewTab=1
 let g:nerdtree_tabs_open_on_gui_startup=0
-
-" Nerdtree toogle key
 map <silent> <F1> :NERDTreeToggle %:p:h<CR>
 
-
-
+" I have no idea what this does
 set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 
 " Toogle search highlighting
@@ -91,19 +92,8 @@ imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
 
-" Tab mappings.
-map <leader>tt :tabnew<cr>
-map <leader>te :tabedit
-map <leader>tc :tabclose<cr>
-map <leader>to :tabonly<cr>
-map <leader>tn :tabnext<cr>
-map <leader>tp :tabprevious<cr>
-map <leader>tf :tabfirst<cr>
-map <leader>tl :tablast<cr>
-map <leader>tm :tabmove
-
-
 " spell checking and automatic wrapping at the recommended 72 columns
+" for gitcommits
 autocmd Filetype gitcommit setlocal spell textwidth=72
 
 " treat *.ru files with ruby syntax highlighting
@@ -114,16 +104,3 @@ let g:ShowTrailingWhitespace = 1
 
 " auto delete trailling whitespace
 let g:DeleteTrailingWhitespace = 1
-
-" Map e and v to open files in the same directory as the current file
-" cnoremap %% <C-R>=expand('%:h').'/'<cr>
-" map <leader>e :edit %%
-" map <leader>v :view %%
-
-" proper fix for swp files
-if has('win32') || has('win16')
-  set dir=c:\\tmp
-else
-  set dir=~/tmp
-endif
-
