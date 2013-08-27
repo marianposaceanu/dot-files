@@ -53,14 +53,12 @@ theme | syntax | specific | ruby | sublime-text
 --- | --- | [Surround](https://github.com/tpope/vim-surround) | --- | ---
 --- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | ---
 --- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | ---
---- | --- | [Powerline](https://github.com/Lokaltog/vim-powerline) | --- | ---
 --- | --- | [Airline](https://github.com/bling/vim-airline) | --- | ---
 --- | --- | [Golden Ratio](https://github.com/roman/golden-ratio) | --- | ---
---- | --- | [ag](https://github.com/rking/ag.vim) | --- | ---
+--- | --- | [Ag](https://github.com/rking/ag.vim) | --- | ---
 --- | --- | [Rooter](https://github.com/airblade/vim-rooter) | --- | ---
 --- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | ---
 --- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | ---
---- | --- |  --- |  --- | [Multiple Cursors](https://github.com/terryma/vim-multiple-cursors)
 
 #### credits
 
