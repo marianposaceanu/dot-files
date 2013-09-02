@@ -82,6 +82,12 @@ set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 autocmd BufNewFile,BufRead Gemfile set filetype=ruby
 nnoremap <F3> :set hlsearch!<CR>
 
+" Toogle alternate shortcut for BuffExplorer
+"  explore/next/previous: Alt-F12, F12, Shift-F12.
+nnoremap <silent> <M-F12> :BufExplorer<CR>
+nnoremap <silent> <F12> :bn<CR>
+nnoremap <silent> <S-F12> :bp<CR>
+
 " Bye bye arrow keys
 map <up> <nop>
 map <down> <nop>
