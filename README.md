@@ -33,9 +33,9 @@ Contains my dot-files for easy usage across different OSs.
 
 #### *nix symbolic links
 
-    $ ln -s ~/Dropbox/Sync/dot-files/.vim/_vimrc ~/.vimrc
-    $ ln -s ~/Dropbox/Sync/dot-files/.vim/_gvimrc ~/.gvimrc
-    $ ln -s ~/Dropbox/Sync/dot-files/.vim ~
+    $ ln -s ~/dot-files/.vim/_vimrc ~/.vimrc
+    $ ln -s ~/dot-files/.vim/_gvimrc ~/.gvimrc
+    $ ln -s ~/dot-files/.vim ~
 
 #### included bundles:
 
