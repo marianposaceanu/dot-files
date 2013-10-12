@@ -56,6 +56,7 @@ theme | syntax | specific | ruby | sublime-text
 --- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | ---
 --- | --- | [Airline](https://github.com/bling/vim-airline) | --- | ---
 --- | --- | [Golden Ratio](https://github.com/roman/golden-ratio) | --- | ---
+--- | --- | [Ack](https://github.com/mileszs/ack.vim) | --- | ---
 --- | --- | [Ag](https://github.com/rking/ag.vim) | --- | ---
 --- | --- | [Rooter](https://github.com/airblade/vim-rooter) | --- | ---
 --- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | ---
@@ -78,3 +79,8 @@ theme | syntax | specific | ruby | sublime-text
 
 - [the awesome vimcasts.org](http://vimcasts.org)
 - [using Tabular](http://vimcasts.org/episodes/aligning-text-with-tabular-vim/)
+
+#### Ack tips for Win platform
+
+- [install Ack on win](http://stackoverflow.com/questions/1023710/how-can-i-install-and-use-ack-library-on-windows)
+- [Perl for MS Windows](http://strawberryperl.com)
