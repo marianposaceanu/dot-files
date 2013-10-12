@@ -51,9 +51,6 @@
 [submodule ".vim/bundle/vim-airline"]
 	path = .vim/bundle/vim-airline
 	url = https://github.com/bling/vim-airline
-[submodule ".vim/bundle/vim-ag"]
-  path = .vim/bundle/vim-ag
-  url = https://github.com/rking/ag.vim.git
 [submodule ".vim/bundle/vim-rooter"]
 	path = .vim/bundle/vim-rooter
 	url = https://github.com/airblade/vim-rooter.git
