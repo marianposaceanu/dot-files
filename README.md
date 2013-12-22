@@ -61,6 +61,7 @@ theme | syntax | specific | ruby
 --- | --- | [Ag](https://github.com/rking/ag.vim) | ---
 --- | --- | [Rooter](https://github.com/airblade/vim-rooter) | ---
 --- | --- | [Repeat](https://github.com/tpope/vim-repeat) | ---
+--- | --- | [WebApi](https://github.com/mattn/webapi-vim) | ---
 --- | --- | [Gist](https://github.com/mattn/gist-vim) | ---
 --- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler)
 --- | --- |  --- | [Rails](https://github.com/tpope/vim-rails)
