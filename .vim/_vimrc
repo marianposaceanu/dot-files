@@ -125,3 +125,11 @@ else
         \ echo '----- Complexity -----' && flog % &&
         \ echo '----- Duplication -----' && flay %<cr>
 end
+
+" open gist after it's been created
+let g:gist_open_browser_after_post = 1
+
+" map Ack
+map <leader>a :Ack!<space>
+" search for word under cursor with Ack
+map <leader>A :Ack! "<C-r>=expand('<cword>')<CR>"
