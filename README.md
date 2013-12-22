@@ -52,7 +52,7 @@ theme | syntax | specific | ruby | sublime-text
 --- | --- | [Fugitive](https://github.com/tpope/vim-fugitive) | --- | ---
 --- | --- | [Supertab](https://github.com/ervandew/supertab) | --- | ---
 --- | --- | [Surround](https://github.com/tpope/vim-surround) | --- | ---
---- | --- | [endwise](https://github.com/tpope/vim-endwise) | --- | ---
+--- | --- | [Endwise](https://github.com/tpope/vim-endwise) | --- | ---
 --- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | ---
 --- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | ---
 --- | --- | [Airline](https://github.com/bling/vim-airline) | --- | ---
@@ -60,6 +60,7 @@ theme | syntax | specific | ruby | sublime-text
 --- | --- | [Ack](https://github.com/mileszs/ack.vim) | --- | ---
 --- | --- | [Ag](https://github.com/rking/ag.vim) | --- | ---
 --- | --- | [Rooter](https://github.com/airblade/vim-rooter) | --- | ---
+--- | --- | [Repeat](https://github.com/tpope/vim-repeat) | --- | ---
 --- | --- |  --- | [Bundler](https://github.com/tpope/vim-bundler) | ---
 --- | --- |  --- | [Rails](https://github.com/tpope/vim-rails) | ---
 
