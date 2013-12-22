@@ -52,6 +52,7 @@ theme | syntax | specific | ruby | sublime-text
 --- | --- | [Fugitive](https://github.com/tpope/vim-fugitive) | --- | ---
 --- | --- | [Supertab](https://github.com/ervandew/supertab) | --- | ---
 --- | --- | [Surround](https://github.com/tpope/vim-surround) | --- | ---
+--- | --- | [endwise](https://github.com/tpope/vim-endwise) | --- | ---
 --- | --- | [Tabular](https://github.com/godlygeek/tabular) | --- | ---
 --- | --- | [The NERD Tree](https://github.com/scrooloose/nerdtree) | --- | ---
 --- | --- | [Airline](https://github.com/bling/vim-airline) | --- | ---
