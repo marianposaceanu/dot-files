@@ -69,3 +69,6 @@
 [submodule ".vim/bundle/vim-webapi"]
 	path = .vim/bundle/vim-webapi
 	url = https://github.com/mattn/webapi-vim.git
+[submodule ".vim/bundle/xterm-color-table"]
+	path = .vim/bundle/xterm-color-table
+	url = https://github.com/chrishunt/xterm-color-table.vim.git
