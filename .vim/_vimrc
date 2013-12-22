@@ -110,3 +110,7 @@ let g:ShowTrailingWhitespace = 1
 
 " auto delete trailling whitespace
 let g:DeleteTrailingWhitespace = 1
+
+" Sorting words (not lines) in VIM
+" via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
+vnoremap <F2> d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
