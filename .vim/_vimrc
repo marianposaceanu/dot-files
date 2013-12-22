@@ -10,7 +10,7 @@ syntax on
 
 " Theme
 set background=dark
-colorscheme base16-default        " preview http://chriskempson.github.io/base16
+colorscheme base16-railscasts     " preview http://chriskempson.github.io/base16
                                   " base16-eighties
                                   " base16-railscasts
                                   " base16-tomorrow
@@ -114,3 +114,14 @@ let g:DeleteTrailingWhitespace = 1
 " Sorting words (not lines) in VIM
 " via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
 vnoremap <F2> d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
+
+" check code complexity and duplication for current file
+if has("gui_win32")
+  map <leader>x :!cls &&
+        \ echo '----- Complexity -----' && flog % &&
+        \ echo '----- Duplication -----' && flay %<cr>
+else
+  map <leader>x :!clear &&
+        \ echo '----- Complexity -----' && flog % &&
+        \ echo '----- Duplication -----' && flay %<cr>
+end
