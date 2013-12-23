@@ -38,11 +38,6 @@ set laststatus=2                  " Show the status line all the time
 set encoding=utf-8                " Use UTF-8 everywhere.
 set ttimeoutlen=50                " fix for slow after INSERT exit mode
 
-if has('win32')                   " save swp files into tmp
-  set dir=c:\\tmp
-else
-  set dir=~/tmp
-endif
 set nobackup                      " Don't make a backup.
 set nowritebackup                 " And again.
 
@@ -53,8 +48,14 @@ set softtabstop=2                 " This makes the backspace key treat the two
                                   "  spaces like a tab (so one backspace goes
                                   "  back a full 2 spaces).
 
+if has('win32')                   " save swp files into tmp
+  set dir=c:\\tmp
+else
+  set dir=~/tmp
+endif
+
 " Airline settings
-" let g:airline_powerline_fonts=1
+"  let g:airline_powerline_fonts=1
 let g:airline_theme="simple"
 let g:airline_left_sep = '»'
 let g:airline_right_sep = '«'
@@ -64,7 +65,7 @@ let g:airline_paste_symbol = 'Þ'
 
 
 " Nerdtree
-" autocmd vimenter * NERDTree
+"  autocmd vimenter * NERDTree
 let NERDTreeShowBookmarks=1
 let NERDTreeChDirMode=0
 let NERDTreeQuitOnOpen=1
@@ -82,6 +83,10 @@ set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 autocmd BufNewFile,BufRead Gemfile set filetype=ruby
 nnoremap <F3> :set hlsearch!<CR>
 
+" Toggle spell check with <F5>
+map <F5> :setlocal spell! spelllang=en_us<cr>
+imap <F5> <ESC>:setlocal spell! spelllang=en_us<cr>
+
 " Toogle alternate shortcut for BuffExplorer
 "  explore/next/previous: Alt-F12, F12, Shift-F12.
 nnoremap <silent> <M-F12> :BufExplorer<CR>
@@ -98,43 +103,32 @@ imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
 
-" spell checking and automatic wrapping at the recommended 72 columns
-" for gitcommits
+" Spell checking and automatic wrapping at the recommended 72 columns
+"  for gitcommits
 autocmd Filetype gitcommit setlocal spell textwidth=72
 
-" treat *.ru files with ruby syntax highlighting
+" Treat *.ru files with ruby syntax highlighting
 au BufRead,BufNewFile *.ru setfiletype ruby
 
-" show whitespace
+" Show whitespace
 let g:ShowTrailingWhitespace = 1
 
-" auto delete trailling whitespace
+" Auto delete trailling whitespace
 let g:DeleteTrailingWhitespace = 1
 
 " Sorting words (not lines) in VIM
-" via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
+"  via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
 vnoremap <F2> d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
 
-" check code complexity and duplication for current file
-if has("gui_win32")
-  map <leader>x :!cls &&
-        \ echo '----- Complexity -----' && flog % &&
-        \ echo '----- Duplication -----' && flay %<cr>
-else
-  map <leader>x :!clear &&
-        \ echo '----- Complexity -----' && flog % &&
-        \ echo '----- Duplication -----' && flay %<cr>
-end
-
-" open gist after it's been created
+" Open gist after it's been created
 let g:gist_open_browser_after_post = 1
 
-" map Ack
+" Map Ack
 map <leader>a :Ack!<space>
-" search for word under cursor with Ack
+" Search for word under cursor with ack
 map <leader>A :Ack! "<C-r>=expand('<cword>')<CR>"
 
-" rename current file, via Gary Bernhardt
+" Rename current file, via Gary Bernhardt
 function! RenameFile()
   let old_name = expand('%')
   let new_name = input('New file name: ', expand('%'))
@@ -146,4 +140,13 @@ function! RenameFile()
 endfunction
 map <leader>n :call RenameFile()<cr>
 
-
+" Check code complexity and duplication for current file
+if has("gui_win32")
+  map <leader>x :!cls &&
+        \ echo '----- Complexity -----' && flog % &&
+        \ echo '----- Duplication -----' && flay %<cr>
+else
+  map <leader>x :!clear &&
+        \ echo '----- Complexity -----' && flog % &&
+        \ echo '----- Duplication -----' && flay %<cr>
+end
