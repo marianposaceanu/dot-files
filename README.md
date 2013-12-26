@@ -13,29 +13,28 @@ Contains my dot-files for easy usage across different OSs.
 
 #### usage
 
-    $ git clone git://github.com/dakull/dot-files.git
+    git clone git://github.com/dakull/dot-files.git
 
 #### update the bundles
 
-    $ git submodule init
-    $ git submodule update
+    git submodule update --init
 
 #### windows symbolic links
 
 ##### for config files
 
-    > mklink /h "c:\Program Files (x86)\Vim\.gvimrc" "\[path-to-dot-files]\dot-files\.vim\.gvimrc"
-    > mklink /h "c:\Program Files (x86)\Vim\.vimrc" "\[path-to-dot-files]\dot-files\.vim\.vimrc"
+    mklink /h "c:\Program Files (x86)\Vim\.gvimrc" "\dot-files\.vim\.gvimrc"
+    mklink /h "c:\Program Files (x86)\Vim\.vimrc" "\dot-files\.vim\.vimrc"
 
 ##### for bundle folder
 
-    > mklink /j "\Program Files (x86)\Vim\vim73\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle"
+    mklink /j "\Program Files (x86)\Vim\vim73\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle"
 
 #### *nix symbolic links
 
-    $ ln -s ~/dot-files/.vim/.vimrc ~/.vimrc
-    $ ln -s ~/dot-files/.vim/.gvimrc ~/.gvimrc
-    $ ln -s ~/dot-files/.vim ~
+    ln -s ~/dot-files/.vimrc ~/.vimrc
+    ln -s ~/dot-files/.gvimrc ~/.gvimrc
+    ln -s ~/dot-files/.vim ~
 
 #### included bundles:
 
