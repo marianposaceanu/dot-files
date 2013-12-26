@@ -9,7 +9,7 @@
 	url = https://github.com/kchmck/vim-coffee-script.git
 [submodule ".vim/bundle/vim-fugitive"]
 	path = .vim/bundle/vim-fugitive
-	url = git@github.com:tpope/vim-fugitive.git
+	url = https://github.com/tpope/vim-fugitive.git
 [submodule ".vim/bundle/vim-surround"]
 	path = .vim/bundle/vim-surround
 	url = https://github.com/tpope/vim-surround.git
@@ -21,14 +21,14 @@
 	url = https://github.com/chriskempson/vim-tomorrow-theme
 [submodule ".vim/bundle/vim-ctrlp"]
 	path = .vim/bundle/vim-ctrlp
-	url = git://github.com/kien/ctrlp.vim.git
+	url = https://github.com/kien/ctrlp.vim.git
 	ignore = dirty
 [submodule ".vim/bundle/vim-markdown"]
 	path = .vim/bundle/vim-markdown
 	url = https://github.com/tpope/vim-markdown.git
 [submodule ".vim/bundle/vim-bundler"]
 	path = .vim/bundle/vim-bundler
-	url = git://github.com/tpope/vim-bundler.git
+	url = https://github.com/tpope/vim-bundler.git
 	ignore = dirty
 [submodule ".vim/bundle/vim-rails"]
 	path = .vim/bundle/vim-rails
@@ -38,7 +38,7 @@
 	url = https://github.com/tpope/vim-commentary
 [submodule ".vim/bundle/vim-tabular"]
 	path = .vim/bundle/vim-tabular
-	url = git://github.com/godlygeek/tabular.git
+	url = https://github.com/godlygeek/tabular.git
 [submodule ".vim/bundle/base16-vim"]
 	path = .vim/bundle/base16-vim
 	url = https://github.com/chriskempson/base16-vim
@@ -47,7 +47,7 @@
 	url = https://github.com/jelera/vim-javascript-syntax
 [submodule ".vim/bundle/golden-ratio"]
 	path = .vim/bundle/golden-ratio
-	url = git://github.com/roman/golden-ratio.git
+	url = https://github.com/roman/golden-ratio.git
 [submodule ".vim/bundle/vim-airline"]
 	path = .vim/bundle/vim-airline
 	url = https://github.com/bling/vim-airline
@@ -59,7 +59,7 @@
 	url = https://github.com/mileszs/ack.vim.git
 [submodule ".vim/bundle/vim-endwise"]
 	path = .vim/bundle/vim-endwise
-	url = git://github.com/tpope/vim-endwise.git
+	url = https://github.com/tpope/vim-endwise.git
 [submodule ".vim/bundle/vim-repeat"]
 	path = .vim/bundle/vim-repeat
 	url = https://github.com/tpope/vim-repeat
