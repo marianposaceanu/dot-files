@@ -24,8 +24,8 @@ Contains my dot-files for easy usage across different OSs.
 
 ##### for config files
 
-    > mklink /h "\Program Files (x86)\Vim\_gvimrc" "\[path-to-dot-files]\dot-files\.vim\_gvimrc"
-    > mklink /h "\Program Files (x86)\Vim\_vimrc" "\[path-to-dot-files]\dot-files\.vim\_vimrc"
+    > mklink /h "c:\Program Files (x86)\Vim\.gvimrc" "\[path-to-dot-files]\dot-files\.vim\.gvimrc"
+    > mklink /h "c:\Program Files (x86)\Vim\.vimrc" "\[path-to-dot-files]\dot-files\.vim\.vimrc"
 
 ##### for bundle folder
 
@@ -33,8 +33,8 @@ Contains my dot-files for easy usage across different OSs.
 
 #### *nix symbolic links
 
-    $ ln -s ~/dot-files/.vim/_vimrc ~/.vimrc
-    $ ln -s ~/dot-files/.vim/_gvimrc ~/.gvimrc
+    $ ln -s ~/dot-files/.vim/.vimrc ~/.vimrc
+    $ ln -s ~/dot-files/.vim/.gvimrc ~/.gvimrc
     $ ln -s ~/dot-files/.vim ~
 
 #### included bundles:
