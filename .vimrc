@@ -150,3 +150,15 @@ else
         \ echo '----- Complexity -----' && flog % &&
         \ echo '----- Duplication -----' && flay %<cr>
 end
+
+" This will fix color for Putty
+if &term == "xterm"
+  set t_Co=256
+  colorscheme Tomorrow-Night-Eighties
+  " Airline symbols
+  let g:airline_left_sep = '<'
+  let g:airline_right_sep = '>'
+  let g:airline_linecolumn_prefix = ''
+  let g:airline_paste_symbol = ''
+  let g:airline_paste_symbol = ''
+endif
