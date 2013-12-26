@@ -1,5 +1,9 @@
 # Some simple bootstraing to keep in mind
 
+## After cloning the repo
+
+    git submodule update --init
+
 ## Initial Git config
 
     git config --global core.editor vim
