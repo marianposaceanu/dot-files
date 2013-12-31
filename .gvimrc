@@ -1,9 +1,7 @@
 if has("gui_gtk2")
   set guifont=Consolas\ 14
-elseif has("gui_macvim")
-  set guifont=Consolas:h14
-elseif has("gui_win32")
-  set guifont=Consolas:h14
+elseif has("gui_macvim") || has("gui_win32")
+  set guifont=Source\ Code\ Pro:h14
 end
 
 set guioptions-=m  "remove menu bar
@@ -17,8 +15,7 @@ imap <C-V> <ESC><C-V>i
 vmap <C-C> "+y
 
 if has("gui_running") && has("gui_win32")
-  " set lines=999 columns=999
-  au GUIEnter * simalt ~x
+  au GUIEnter * simalt ~x " full screen
 else
   " This is console Vim.
   if exists("+lines")
@@ -34,5 +31,5 @@ endif
 let g:agprg="C:/ag/ag.exe  --column"
 
 highlight OverLength ctermbg=red ctermfg=white guibg=#592929
-match OverLength /\%81v.\+/
 
+match OverLength /\%81v.\+/

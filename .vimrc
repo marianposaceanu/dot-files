@@ -10,10 +10,7 @@ syntax on
 
 " Theme
 set background=dark
-colorscheme base16-railscasts     " preview http://chriskempson.github.io/base16
-                                  " base16-eighties
-                                  " base16-railscasts
-                                  " base16-tomorrow
+colorscheme base16-ocean          " preview http://chriskempson.github.io/base16
 
 " general stuff
 set number
@@ -63,9 +60,7 @@ let g:airline_linecolumn_prefix = '¶ '
 let g:airline_paste_symbol = 'ρ'
 let g:airline_paste_symbol = 'Þ'
 
-
 " Nerdtree
-"  autocmd vimenter * NERDTree
 let NERDTreeShowBookmarks=1
 let NERDTreeChDirMode=0
 let NERDTreeQuitOnOpen=1
@@ -75,9 +70,6 @@ let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git','\.hg','\.bzr']
 let NERDTreeKeepTreeInNewTab=1
 let g:nerdtree_tabs_open_on_gui_startup=0
 map <silent> <F1> :NERDTreeToggle %:p:h<CR>
-
-" I have no idea what this does
-set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 
 " Toogle search highlighting
 autocmd BufNewFile,BufRead Gemfile set filetype=ruby
