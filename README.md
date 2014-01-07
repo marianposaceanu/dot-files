@@ -25,10 +25,11 @@ Contains my dot-files for easy usage across different OSs.
 
     mklink /h "c:\Program Files (x86)\Vim\.gvimrc" "\dot-files\.vim\.gvimrc"
     mklink /h "c:\Program Files (x86)\Vim\.vimrc" "\dot-files\.vim\.vimrc"
+    mklink /h "c:\Users\conta_000\.gitconfig" .gitconfig
 
 ##### for bundle folder
 
-    mklink /j "\Program Files (x86)\Vim\vim73\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle"
+    mklink /j "\Program Files (x86)\Vim\vim74\bundle" "\[path-to-dot-files]\dot-files\.vim\bundle"
 
 #### *nix symbolic links
 
