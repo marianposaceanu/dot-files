@@ -13,6 +13,7 @@ set background=dark
 colorscheme base16-ocean          " preview http://chriskempson.github.io/base16
 
 " general stuff
+set synmaxcol=90                  " fixes slow highlighting
 set number
 set hlsearch
 set showmatch
@@ -72,7 +73,6 @@ let g:nerdtree_tabs_open_on_gui_startup=0
 map <silent> <F1> :NERDTreeToggle %:p:h<CR>
 
 " Toogle search highlighting
-autocmd BufNewFile,BufRead Gemfile set filetype=ruby
 nnoremap <F3> :set hlsearch!<CR>
 
 " Toggle spell check with <F5>
@@ -95,22 +95,11 @@ imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
 
-" Spell checking and automatic wrapping at the recommended 72 columns
-"  for gitcommits
-autocmd Filetype gitcommit setlocal spell textwidth=72
-
-" Treat *.ru files with ruby syntax highlighting
-au BufRead,BufNewFile *.ru setfiletype ruby
-
 " Show whitespace
 let g:ShowTrailingWhitespace = 1
 
 " Auto delete trailling whitespace
 let g:DeleteTrailingWhitespace = 1
-
-" Sorting words (not lines) in VIM
-"  via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
-vnoremap <F2> d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
 
 " Open gist after it's been created
 let g:gist_open_browser_after_post = 1
@@ -119,6 +108,10 @@ let g:gist_open_browser_after_post = 1
 map <leader>a :Ack!<space>
 " Search for word under cursor with ack
 map <leader>A :Ack! "<C-r>=expand('<cword>')<CR>"
+
+" Sorting words (not lines) in VIM
+"  via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
+vnoremap <F2> d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
 
 " Rename current file, via Gary Bernhardt
 function! RenameFile()
@@ -154,3 +147,11 @@ if &term == "xterm"
   let g:airline_paste_symbol = ''
   let g:airline_paste_symbol = ''
 endif
+
+" Treat *.ru files with ruby syntax highlighting
+au BufNewFile,BufRead Gemfile set filetype=ruby
+au BufNewFile,BufRead *.ru set filetype ruby
+
+" Spell checking and automatic wrapping at the recommended 72 columns
+"  for gitcommits
+autocmd Filetype gitcommit setlocal spell textwidth=72
