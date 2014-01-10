@@ -25,11 +25,3 @@ else
     set columns=100
   endif
 endif
-
-
-" ag support
-let g:agprg="C:/ag/ag.exe  --column"
-
-highlight OverLength ctermbg=red ctermfg=white guibg=#592929
-
-match OverLength /\%81v.\+/

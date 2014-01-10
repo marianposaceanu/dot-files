@@ -61,17 +61,6 @@ let g:airline_linecolumn_prefix = '¶ '
 let g:airline_paste_symbol = 'ρ'
 let g:airline_paste_symbol = 'Þ'
 
-" Nerdtree
-let NERDTreeShowBookmarks=1
-let NERDTreeChDirMode=0
-let NERDTreeQuitOnOpen=1
-let NERDTreeMouseMode=2
-let NERDTreeShowHidden=1
-let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git','\.hg','\.bzr']
-let NERDTreeKeepTreeInNewTab=1
-let g:nerdtree_tabs_open_on_gui_startup=0
-map <silent> <F1> :NERDTreeToggle %:p:h<CR>
-
 " Toogle search highlighting
 nnoremap <F3> :set hlsearch!<CR>
 
@@ -113,18 +102,6 @@ map <leader>A :Ack! "<C-r>=expand('<cword>')<CR>"
 "  via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
 vnoremap <F2> d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
 
-" Rename current file, via Gary Bernhardt
-function! RenameFile()
-  let old_name = expand('%')
-  let new_name = input('New file name: ', expand('%'))
-  if new_name != '' && new_name != old_name
-    exec ':saveas ' . new_name
-    exec ':silent !rm ' . old_name
-    redraw!
-  endif
-endfunction
-map <leader>n :call RenameFile()<cr>
-
 " Check code complexity and duplication for current file
 if has("gui_win32")
   map <leader>x :!cls &&
@@ -155,3 +132,26 @@ au BufNewFile,BufRead *.ru set filetype ruby
 " Spell checking and automatic wrapping at the recommended 72 columns
 "  for gitcommits
 autocmd Filetype gitcommit setlocal spell textwidth=72
+
+" Rename current file, via Gary Bernhardt
+function! RenameFile()
+  let old_name = expand('%')
+  let new_name = input('New file name: ', expand('%'))
+  if new_name != '' && new_name != old_name
+    exec ':saveas ' . new_name
+    exec ':silent !rm ' . old_name
+    redraw!
+  endif
+endfunction
+map <leader>n :call RenameFile()<cr>
+
+" Nerdtree
+" let NERDTreeShowBookmarks=1
+" let NERDTreeChDirMode=0
+" let NERDTreeQuitOnOpen=1
+" let NERDTreeMouseMode=2
+" let NERDTreeShowHidden=1
+" let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git','\.hg','\.bzr']
+" let NERDTreeKeepTreeInNewTab=1
+" let g:nerdtree_tabs_open_on_gui_startup=0
+" map <silent> <F1> :NERDTreeToggle %:p:h<CR>
