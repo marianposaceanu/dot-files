@@ -29,8 +29,8 @@ set smartcase                     " But case-sensitive if expression contains a
                                   "  capital letter.
 set incsearch                     " Highlight matches as you type.
 set hlsearch                      " Highlight matches.
-set wrap                          " Turn on line wrapping.
-set linebreak                     " ^
+set nowrap                        " Turn on line wrapping.
+" set linebreak                     " ^
 set scrolloff=3                   " Show 3 lines of context around the cursor.
 set laststatus=2                  " Show the status line all the time
 set encoding=utf-8                " Use UTF-8 everywhere.
@@ -129,10 +129,6 @@ endif
 au BufNewFile,BufRead Gemfile set filetype=ruby
 au BufNewFile,BufRead *.ru set filetype ruby
 
-" Spell checking and automatic wrapping at the recommended 72 columns
-"  for gitcommits
-autocmd Filetype gitcommit setlocal spell textwidth=72
-
 " Rename current file, via Gary Bernhardt
 function! RenameFile()
   let old_name = expand('%')
@@ -144,14 +140,3 @@ function! RenameFile()
   endif
 endfunction
 map <leader>n :call RenameFile()<cr>
-
-" Nerdtree
-" let NERDTreeShowBookmarks=1
-" let NERDTreeChDirMode=0
-" let NERDTreeQuitOnOpen=1
-" let NERDTreeMouseMode=2
-" let NERDTreeShowHidden=1
-" let NERDTreeIgnore=['\.pyc','\~$','\.swo$','\.swp$','\.git','\.hg','\.bzr']
-" let NERDTreeKeepTreeInNewTab=1
-" let g:nerdtree_tabs_open_on_gui_startup=0
-" map <silent> <F1> :NERDTreeToggle %:p:h<CR>
