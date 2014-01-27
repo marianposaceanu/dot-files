@@ -13,7 +13,7 @@ set background=dark
 colorscheme base16-ocean          " preview http://chriskempson.github.io/base16
 
 " general stuff
-set synmaxcol=90                  " fixes slow highlighting
+" set synmaxcol=90                  " fixes slow highlighting
 set number
 set hlsearch
 set showmatch

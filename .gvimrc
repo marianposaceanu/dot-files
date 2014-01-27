@@ -1,7 +1,7 @@
 if has("gui_gtk2")
   set guifont=Consolas\ 14
 elseif has("gui_macvim") || has("gui_win32")
-  set guifont=Source\ Code\ Pro:h14
+  set guifont=Source\ Code\ Pro:h13
 end
 
 set guioptions-=m  "remove menu bar
