@@ -30,7 +30,7 @@ set hlsearch                      " Highlight matches.
 set scrolloff=3                   " Show 3 lines of context around the cursor.
 set laststatus=2                  " Show the status line all the time
 set encoding=utf-8                " Use UTF-8 everywhere.
-" set nowrap                        " Turn on line wrapping.
+set nowrap                        " Turn off line wrapping.
 " set linebreak                     " ^
 " set ttimeoutlen=50                " fix for slow after INSERT exit mode
 
