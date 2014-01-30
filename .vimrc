@@ -93,6 +93,11 @@ let g:DeleteTrailingWhitespace = 1
 " Open gist after it's been created
 let g:gist_open_browser_after_post = 1
 
+" Treat .ru Gemfile .pp files with as Ruby
+au BufNewFile,BufRead Gemfile set filetype=ruby
+au BufNewFile,BufRead *.ru set filetype ruby
+au BufNewFile,BufRead *.pp set filetype ruby
+
 " Map Ack
 map <leader>a :Ack!<space>
 " Search for word under cursor with ack
@@ -124,10 +129,6 @@ if &term == "xterm"
   let g:airline_paste_symbol = ''
   let g:airline_paste_symbol = ''
 endif
-
-" Treat *.ru files with ruby syntax highlighting
-au BufNewFile,BufRead Gemfile set filetype=ruby
-au BufNewFile,BufRead *.ru set filetype ruby
 
 " Rename current file, via Gary Bernhardt
 function! RenameFile()
