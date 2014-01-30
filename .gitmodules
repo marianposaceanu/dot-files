@@ -54,12 +54,6 @@
 [submodule ".vim/bundle/vim-repeat"]
 	path = .vim/bundle/vim-repeat
 	url = https://github.com/tpope/vim-repeat
-[submodule ".vim/bundle/vim-gist"]
-	path = .vim/bundle/vim-gist
-	url = https://github.com/mattn/gist-vim
-[submodule ".vim/bundle/vim-webapi"]
-	path = .vim/bundle/vim-webapi
-	url = https://github.com/mattn/webapi-vim.git
 [submodule ".vim/bundle/xterm-color-table"]
 	path = .vim/bundle/xterm-color-table
 	url = https://github.com/chrishunt/xterm-color-table.vim.git
