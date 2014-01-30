@@ -8,12 +8,10 @@ filetype plugin indent on
 
 syntax on
 
-" Theme
 set background=dark
 colorscheme base16-ocean          " preview http://chriskempson.github.io/base16
 
-" general stuff
-" set synmaxcol=90                  " fixes slow highlighting
+" set synmaxcol=90                 " fixes slow highlighting
 set number
 set hlsearch
 set showmatch
@@ -29,12 +27,12 @@ set smartcase                     " But case-sensitive if expression contains a
                                   "  capital letter.
 set incsearch                     " Highlight matches as you type.
 set hlsearch                      " Highlight matches.
-set nowrap                        " Turn on line wrapping.
-" set linebreak                     " ^
 set scrolloff=3                   " Show 3 lines of context around the cursor.
 set laststatus=2                  " Show the status line all the time
 set encoding=utf-8                " Use UTF-8 everywhere.
-set ttimeoutlen=50                " fix for slow after INSERT exit mode
+" set nowrap                        " Turn on line wrapping.
+" set linebreak                     " ^
+" set ttimeoutlen=50                " fix for slow after INSERT exit mode
 
 set nobackup                      " Don't make a backup.
 set nowritebackup                 " And again.
@@ -84,19 +82,22 @@ imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
 
-" Show whitespace
-let g:ShowTrailingWhitespace = 1
-
-" Auto delete trailling whitespace
-let g:DeleteTrailingWhitespace = 1
-
-" Open gist after it's been created
-let g:gist_open_browser_after_post = 1
-
 " Treat .ru Gemfile .pp files with as Ruby
 au BufNewFile,BufRead Gemfile set filetype=ruby
 au BufNewFile,BufRead *.ru set filetype ruby
 au BufNewFile,BufRead *.pp set filetype ruby
+
+" This will fix color for Putty
+if &term == "xterm"
+  set t_Co=256
+  colorscheme Tomorrow-Night-Eighties
+  " Airline symbols
+  let g:airline_left_sep = '<'
+  let g:airline_right_sep = '>'
+  let g:airline_linecolumn_prefix = ''
+  let g:airline_paste_symbol = ''
+  let g:airline_paste_symbol = ''
+endif
 
 " Map Ack
 map <leader>a :Ack!<space>
@@ -117,18 +118,6 @@ else
         \ echo '----- Complexity -----' && flog % &&
         \ echo '----- Duplication -----' && flay %<cr>
 end
-
-" This will fix color for Putty
-if &term == "xterm"
-  set t_Co=256
-  colorscheme Tomorrow-Night-Eighties
-  " Airline symbols
-  let g:airline_left_sep = '<'
-  let g:airline_right_sep = '>'
-  let g:airline_linecolumn_prefix = ''
-  let g:airline_paste_symbol = ''
-  let g:airline_paste_symbol = ''
-endif
 
 " Rename current file, via Gary Bernhardt
 function! RenameFile()
