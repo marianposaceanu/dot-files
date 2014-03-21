@@ -9,7 +9,7 @@ filetype plugin indent on
 syntax on
 
 set background=dark
-colorscheme base16-ocean          " preview http://chriskempson.github.io/base16
+colorscheme base16-railscasts      " preview http://chriskempson.github.io/base16
 
 " set synmaxcol=90                 " fixes slow highlighting
 set number
