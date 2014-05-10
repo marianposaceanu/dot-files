@@ -27,3 +27,5 @@ else
 endif
 
 set lines=999 columns=9999
+
+set linespace=2
