@@ -43,6 +43,8 @@ set shiftwidth=2                  " And again, related.
 set softtabstop=2                 " This makes the backspace key treat the two
                                   "  spaces like a tab (so one backspace goes
                                   "  back a full 2 spaces).
+                                  
+set fileformats=unix              " just use the unix ff eveywhere
 
 if has('win32')                   " save swp files into tmp
   set dir=c:\\tmp
