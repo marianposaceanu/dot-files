@@ -1,1 +1,2 @@
 shell -${SHELL}
+term "xterm-256color"
