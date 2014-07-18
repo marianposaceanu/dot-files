@@ -44,8 +44,6 @@ set softtabstop=2                 " This makes the backspace key treat the two
                                   "  spaces like a tab (so one backspace goes
                                   "  back a full 2 spaces).
                                   
-" set fileformats=unix              " just use the unix ff eveywhere
-
 if has('win32')                   " save swp files into tmp
   set dir=c:\\tmp
 else
@@ -90,9 +88,11 @@ au BufNewFile,BufRead *.ru set filetype ruby
 au BufNewFile,BufRead *.pp set filetype ruby
 
 " This will fix color for Putty
-if &term == "xterm"
-  set t_Co=256
+if &term == "xterm-256color"
+  " set t_Co=256
   colorscheme Tomorrow-Night-Eighties
+  " colorscheme solarized
+
   " Airline symbols
   let g:airline_left_sep = '<'
   let g:airline_right_sep = '>'

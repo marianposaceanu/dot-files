@@ -57,3 +57,6 @@
 [submodule ".vim/bundle/elixir-lang"]
 	path = .vim/bundle/elixir-lang
 	url = https://github.com/elixir-lang/vim-elixir.git
+[submodule ".vim/bundle/vim-colors-solarized"]
+	path = .vim/bundle/vim-colors-solarized
+	url = git://github.com/altercation/vim-colors-solarized.git
