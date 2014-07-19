@@ -11,7 +11,7 @@ syntax on
 set background=dark
 colorscheme base16-railscasts      " preview http://chriskempson.github.io/base16
 
-" set synmaxcol=90                 " fixes slow highlighting
+set synmaxcol=150                  " fixes slow highlighting
 set number
 set hlsearch
 set showmatch
@@ -87,13 +87,14 @@ au BufNewFile,BufRead Gemfile set filetype=ruby
 au BufNewFile,BufRead *.ru set filetype ruby
 au BufNewFile,BufRead *.pp set filetype ruby
 
-" This will fix color for Putty
 if &term == "xterm-256color"
   set t_Co=256
   set background=dark
   colorscheme base16-railscasts
   " colorscheme Tomorrow-Night-Eighties
   " colorscheme solarized
+
+  " fixes for base16-railscasts
   highlight clear SignColumn
   highlight VertSplit    ctermbg=236
   highlight ColorColumn  ctermbg=237
@@ -109,16 +110,9 @@ if &term == "xterm-256color"
   highlight PmenuSel     ctermbg=3   ctermfg=1
   highlight SpellBad     ctermbg=0   ctermfg=1
   " tabs colors
-  highlight TabLineFill ctermfg=3   ctermbg=0
-  highlight TabLine     ctermfg=240 ctermbg=235
-  highlight TabLineSel  ctermfg=Black ctermbg=White
-
-  " Airline symbols
-  let g:airline_left_sep = '<'
-  let g:airline_right_sep = '>'
-  let g:airline_linecolumn_prefix = ''
-  let g:airline_paste_symbol = ''
-  let g:airline_paste_symbol = ''
+  highlight TabLineFill  ctermfg=3   ctermbg=0
+  highlight TabLine      ctermfg=240 ctermbg=235
+  highlight TabLineSel   ctermfg=Black ctermbg=White
 endif
 
 " Map Ack
