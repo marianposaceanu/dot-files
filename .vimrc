@@ -89,9 +89,26 @@ au BufNewFile,BufRead *.pp set filetype ruby
 
 " This will fix color for Putty
 if &term == "xterm-256color"
-  " set t_Co=256
-  colorscheme Tomorrow-Night-Eighties
+  set t_Co=256
+  set background=dark
+  colorscheme base16-railscasts
+  " colorscheme Tomorrow-Night-Eighties
   " colorscheme solarized
+  highlight clear SignColumn
+  highlight VertSplit    ctermbg=236
+  highlight ColorColumn  ctermbg=237
+  highlight LineNr       ctermbg=236 ctermfg=240
+  highlight CursorLineNr ctermbg=236 ctermfg=240
+  highlight CursorLine   ctermbg=236
+  highlight StatusLineNC ctermbg=238 ctermfg=0
+  highlight StatusLine   ctermbg=240 ctermfg=12
+  highlight IncSearch    ctermbg=3   ctermfg=1
+  highlight Search       ctermbg=1   ctermfg=3
+  highlight Visual       ctermbg=3   ctermfg=0
+  highlight Pmenu        ctermbg=240 ctermfg=12
+  highlight PmenuSel     ctermbg=3   ctermfg=1
+  highlight SpellBad     ctermbg=0   ctermfg=1
+
 
   " Airline symbols
   let g:airline_left_sep = '<'
