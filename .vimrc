@@ -108,7 +108,10 @@ if &term == "xterm-256color"
   highlight Pmenu        ctermbg=240 ctermfg=12
   highlight PmenuSel     ctermbg=3   ctermfg=1
   highlight SpellBad     ctermbg=0   ctermfg=1
-
+  " tabs colors
+  highlight TabLineFill ctermfg=3   ctermbg=0
+  highlight TabLine     ctermfg=240 ctermbg=235
+  highlight TabLineSel  ctermfg=Black ctermbg=White
 
   " Airline symbols
   let g:airline_left_sep = '<'
