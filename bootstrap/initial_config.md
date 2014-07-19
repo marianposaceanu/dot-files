@@ -34,6 +34,10 @@
 
     rm -rf path_to_submodule
 
+## Fully update submodules
+
+    git submodule foreach "(git checkout master; git pull)&"
+
 ### Credits
 
 - [submodule delete](http://stackoverflow.com/questions/1260748/how-do-i-remove-a-git-submodule)
