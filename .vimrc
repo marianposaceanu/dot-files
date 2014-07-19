@@ -158,3 +158,6 @@ nnoremap <expr> yy (v:register ==# '"' ? '"+' : '') . 'yy'
 nnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
 xnoremap <expr> y (v:register ==# '"' ? '"+' : '') . 'y'
 xnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
+
+" no more .netrwhist file
+let g:netrw_dirhistmax = 0
