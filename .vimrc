@@ -148,8 +148,11 @@ endfunction
 map <leader>n :call RenameFile()<cr>
 
 " OSX Vim clipboard fixes
-" https://coderwall.com/p/avmotq
-" http://stackoverflow.com/questions/13380643/vim-use-as-default-register-only-for-yank-command
+"  note: vim needs to be compiled with --enable-clipboard, --enable-xterm_clipboard
+"  you can easily add them via: brew edit vim
+" via:
+"  https://coderwall.com/p/avmotq
+"  http://stackoverflow.com/questions/13380643/vim-use-as-default-register-only-for-yank-command
 nnoremap <expr> y (v:register ==# '"' ? '"+' : '') . 'y'
 nnoremap <expr> yy (v:register ==# '"' ? '"+' : '') . 'yy'
 nnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
