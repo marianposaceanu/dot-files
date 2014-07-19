@@ -51,9 +51,6 @@
 [submodule ".vim/bundle/vim-repeat"]
 	path = .vim/bundle/vim-repeat
 	url = https://github.com/tpope/vim-repeat
-[submodule ".vim/bundle/xterm-color-table"]
-	path = .vim/bundle/xterm-color-table
-	url = https://github.com/chrishunt/xterm-color-table.vim.git
 [submodule ".vim/bundle/elixir-lang"]
 	path = .vim/bundle/elixir-lang
 	url = https://github.com/elixir-lang/vim-elixir.git
