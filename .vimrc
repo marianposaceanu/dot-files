@@ -146,3 +146,12 @@ function! RenameFile()
   endif
 endfunction
 map <leader>n :call RenameFile()<cr>
+
+" OSX Vim clipboard fixes
+" https://coderwall.com/p/avmotq
+" http://stackoverflow.com/questions/13380643/vim-use-as-default-register-only-for-yank-command
+nnoremap <expr> y (v:register ==# '"' ? '"+' : '') . 'y'
+nnoremap <expr> yy (v:register ==# '"' ? '"+' : '') . 'yy'
+nnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
+xnoremap <expr> y (v:register ==# '"' ? '"+' : '') . 'y'
+xnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
