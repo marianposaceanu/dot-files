@@ -19,6 +19,10 @@ Contains my dot-files for easy usage across different OSs.
 
     git submodule update --init
 
+#### fully update all bundles
+
+    git submodule foreach git pull origin master
+
 #### windows symbolic links
 
     mklink /h "c:\Program Files (x86)\Vim\.gvimrc" "\dot-files\.vim\.gvimrc"
@@ -54,7 +58,6 @@ theme | syntax | specific | ruby
 --- | --- | [Airline](https://github.com/bling/vim-airline) | ---
 --- | --- | [Golden Ratio](https://github.com/roman/golden-ratio) | ---
 --- | --- | [Ack](https://github.com/mileszs/ack.vim) | ---
---- | --- | [Ag](https://github.com/rking/ag.vim) | ---
 --- | --- | [Rooter](https://github.com/airblade/vim-rooter) | ---
 --- | --- | [Repeat](https://github.com/tpope/vim-repeat) | ---
 --- | --- | [WebApi](https://github.com/mattn/webapi-vim) | ---
