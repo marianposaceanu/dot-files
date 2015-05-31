@@ -23,6 +23,11 @@ Contains my dot-files for easy usage across different OSs.
 
     git submodule foreach git pull origin master
 
+#### cleanly remove a module
+
+    git submodule deinit asubmodule    
+    git rm asubmodule
+
 #### windows symbolic links
 
     mklink /h "c:\Program Files (x86)\Vim\.gvimrc" "\dot-files\.vim\.gvimrc"
