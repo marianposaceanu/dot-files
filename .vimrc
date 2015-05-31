@@ -189,3 +189,5 @@ function!   QuickFixOpenAll()
 endfunction
  
 command! QuickFixOpenAll call QuickFixOpenAll()
+
+set clipboard=unnamed
