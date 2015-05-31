@@ -52,12 +52,24 @@ endif
 
 " Airline settings
 "  let g:airline_powerline_fonts=1
-let g:airline_theme="simple"
+" let g:airline_theme="simple"
+
+if !exists('g:airline_symbols')
+  let g:airline_symbols = {}
+endif
+" unicode symbols
 let g:airline_left_sep = '»'
+let g:airline_left_sep = '▶'
 let g:airline_right_sep = '«'
-let g:airline_linecolumn_prefix = '¶ '
-let g:airline_paste_symbol = 'ρ'
-let g:airline_paste_symbol = 'Þ'
+let g:airline_right_sep = '◀'
+let g:airline_symbols.linenr = '␊'
+let g:airline_symbols.linenr = '␤'
+let g:airline_symbols.linenr = '¶'
+let g:airline_symbols.branch = '⎇'
+let g:airline_symbols.paste = 'ρ'
+let g:airline_symbols.paste = 'Þ'
+let g:airline_symbols.paste = '∥'
+let g:airline_symbols.whitespace = 'Ξ'
 
 " Toogle search highlighting
 nnoremap <F3> :set hlsearch!<CR>
