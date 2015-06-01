@@ -45,3 +45,6 @@
 [submodule ".vim/bundle/elixir-lang"]
 	path = .vim/bundle/elixir-lang
 	url = https://github.com/elixir-lang/vim-elixir.git
+[submodule ".vim/bundle/vim-tags"]
+	path = .vim/bundle/vim-tags
+	url = https://github.com/szw/vim-tags.git
