@@ -64,3 +64,8 @@ Contains my dot-files for easy usage across different OSs.
 
 - [install Ack on win](http://stackoverflow.com/questions/1023710/how-can-i-install-and-use-ack-library-on-windows)
 - [Perl for MS Windows](http://strawberryperl.com)
+
+#### tips - fully remove a submodule
+
+    git submodule deinit -f .vim/bundle/modul-name
+    git rm -f .vim/bundle/modul-name
