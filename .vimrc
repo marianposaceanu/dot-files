@@ -212,3 +212,4 @@ let g:ctrlp_cmd = 'CtrlPLastMode'
 let g:ctrlp_extensions = ['line']
 " let g:ctrlp_extensions = ['buffertag', 'tag', 'line', 'dir']
 
+set shell=/bin/sh
