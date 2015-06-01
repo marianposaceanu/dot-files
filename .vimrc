@@ -52,7 +52,7 @@ endif
 
 " Airline settings
 "  let g:airline_powerline_fonts=1
-" let g:airline_theme="simple"
+let g:airline_theme="simple"
 
 if !exists('g:airline_symbols')
   let g:airline_symbols = {}
@@ -203,3 +203,12 @@ endfunction
 command! QuickFixOpenAll call QuickFixOpenAll()
 
 set clipboard=unnamed
+
+" ctrlp which can do fuzzy line search
+" via http://superuser.com/questions/390011/fuzzy-find-within-file-in-vim
+" use <c-p> then <c-f> to switch modes
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_cmd = 'CtrlPLastMode'
+let g:ctrlp_extensions = ['line']
+" let g:ctrlp_extensions = ['buffertag', 'tag', 'line', 'dir']
+
