@@ -50,6 +50,8 @@ else
   set dir=~/tmp
 endif
 
+set lazyredraw
+
 " Airline settings
 "  let g:airline_powerline_fonts=1
 let g:airline_theme="simple"
@@ -199,7 +201,7 @@ function!   QuickFixOpenAll()
         let s:prev_val = s:curr_val
     endfor
 endfunction
- 
+
 command! QuickFixOpenAll call QuickFixOpenAll()
 
 set clipboard=unnamed
@@ -211,5 +213,3 @@ let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlPLastMode'
 let g:ctrlp_extensions = ['line']
 " let g:ctrlp_extensions = ['buffertag', 'tag', 'line', 'dir']
-
-set shell=/bin/sh
