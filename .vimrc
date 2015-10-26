@@ -1,19 +1,21 @@
 set nocompatible
 
 " Pathogen
+" ---------------------------------|
 call pathogen#infect()
 call pathogen#helptags()
-
-filetype plugin indent on
 
 syntax on
 
 " Theme
+" ---------------------------------|
 let base16colorspace=256
 set background=dark
 colorscheme base16-ocean           " requires https://github.com/chriskempson/base16-shell into .zshrc
 
-set synmaxcol=150                  " fixes slow highlighting
+filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
+
+set synmaxcol=200                  " fixes slow highlighting
 set number
 set hlsearch
 set showmatch
@@ -46,16 +48,16 @@ set softtabstop=2                 " This makes the backspace key treat the two
                                   "  spaces like a tab (so one backspace goes
                                   "  back a full 2 spaces).
 
+set lazyredraw                    " more info: https://github.com/tpope/vim-sensible/issues/78
+
 if has('win32')                   " save swp files into tmp
   set dir=c:\\tmp
 else
   set dir=~/tmp
 endif
 
-set lazyredraw
-
 " Airline settings
-"  let g:airline_powerline_fonts=1
+" ---------------------------------|
 let g:airline_theme="simple"
 
 if !exists('g:airline_symbols')
@@ -76,27 +78,20 @@ let g:airline_symbols.paste = '∥'
 let g:airline_symbols.whitespace = 'Ξ'
 
 " Toogle search highlighting
+" ---------------------------------|
 nnoremap <F3> :set hlsearch!<CR>
 
 " Toggle spell check with <F5>
+" ---------------------------------|
 map <F5> :setlocal spell! spelllang=en_us<cr>
 imap <F5> <ESC>:setlocal spell! spelllang=en_us<cr>
 
 " Toogle alternate shortcut for BuffExplorer
 "  explore/next/previous: Alt-F12, F12, Shift-F12.
+" ---------------------------------|
 nnoremap <silent> <M-F12> :BufExplorer<CR>
 nnoremap <silent> <F12> :bn<CR>
 nnoremap <silent> <S-F12> :bp<CR>
-
-" Bye bye arrow keys
-map <up> <nop>
-map <down> <nop>
-map <left> <nop>
-map <right> <nop>
-imap <up> <nop>
-imap <down> <nop>
-imap <left> <nop>
-imap <right> <nop>
 
 " Treat .ru Gemfile .pp files with as Ruby
 au BufNewFile,BufRead Gemfile set filetype=ruby
@@ -183,7 +178,19 @@ set clipboard=unnamed
 " ctrlp which can do fuzzy line search
 " via http://superuser.com/questions/390011/fuzzy-find-within-file-in-vim
 " use <c-p> then <c-f> to switch modes
+" ---------------------------------|
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlPLastMode'
 let g:ctrlp_extensions = ['line']
 " let g:ctrlp_extensions = ['buffertag', 'tag', 'line', 'dir']
+
+" Bye bye arrow keys
+" ---------------------------------|
+map <up> <nop>
+map <down> <nop>
+map <left> <nop>
+map <right> <nop>
+imap <up> <nop>
+imap <down> <nop>
+imap <left> <nop>
+imap <right> <nop>
