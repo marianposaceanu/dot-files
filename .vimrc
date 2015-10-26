@@ -15,6 +15,7 @@ colorscheme base16-ocean           " requires https://github.com/chriskempson/ba
 
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
 
+set pastetoggle=<F2>               " easier pasting
 set synmaxcol=200                  " fixes slow highlighting
 set number
 set hlsearch
@@ -22,6 +23,7 @@ set showmatch
 set incsearch
 set autoindent
 set history=1000
+set undolevels=1000
 set cursorline
 set expandtab
 set autochdir
