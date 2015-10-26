@@ -42,6 +42,21 @@ Contains my dot-files for easy usage across different OSs.
     ln -s ~/dot-files/.vim ~
     ln -s ~/dot-files/.gitconfig ~/.gitconfig
 
+#### on OS X in order to properly use the theme in iTerm2 one need to append to `.zshrc`
+
+```sh
+BASE16_SHELL="$HOME/.config/base16-shell/base16-ocean.dark.sh"
+[[ -s $BASE16_SHELL ]] && . $BASE16_SHELL
+```
+
+after installing [base16-shell](https://github.com/chriskempson/base16-shell)
+
+via:
+
+```
+git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-shell
+```
+
 #### credits
 
 - [inspired by Chris Hunt own dot files](https://github.com/chrishunt/dot-files#installation)
