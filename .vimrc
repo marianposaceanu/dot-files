@@ -8,8 +8,10 @@ filetype plugin indent on
 
 syntax on
 
+" Theme
+let base16colorspace=256
 set background=dark
-colorscheme base16-railscasts      " preview http://chriskempson.github.io/base16
+colorscheme base16-ocean           " requires https://github.com/chriskempson/base16-shell into .zshrc
 
 set synmaxcol=150                  " fixes slow highlighting
 set number
@@ -100,34 +102,6 @@ imap <right> <nop>
 au BufNewFile,BufRead Gemfile set filetype=ruby
 au BufNewFile,BufRead *.ru set filetype ruby
 au BufNewFile,BufRead *.pp set filetype ruby
-
-if &term == "xterm-256color"
-  set t_Co=256
-  set background=dark
-  colorscheme base16-railscasts
-  " colorscheme Tomorrow-Night-Eighties
-  " colorscheme solarized
-
-  " fixes for base16-railscasts
-  highlight clear SignColumn
-  highlight VertSplit    ctermbg=236
-  highlight ColorColumn  ctermbg=237
-  highlight LineNr       ctermbg=236 ctermfg=240
-  highlight CursorLineNr ctermbg=236 ctermfg=240
-  highlight CursorLine   ctermbg=236
-  highlight StatusLineNC ctermbg=238 ctermfg=0
-  highlight StatusLine   ctermbg=240 ctermfg=12
-  highlight IncSearch    ctermbg=3   ctermfg=1
-  highlight Search       ctermbg=1   ctermfg=3
-  highlight Visual       ctermbg=3   ctermfg=0
-  highlight Pmenu        ctermbg=240 ctermfg=12
-  highlight PmenuSel     ctermbg=3   ctermfg=1
-  highlight SpellBad     ctermbg=0   ctermfg=1
-  " tabs colors
-  highlight TabLineFill  ctermfg=3   ctermbg=0
-  highlight TabLine      ctermfg=240 ctermbg=235
-  highlight TabLineSel   ctermfg=Black ctermbg=White
-endif
 
 " Map Ack
 map <leader>a :Ack!<space>
