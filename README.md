@@ -15,6 +15,8 @@ Contains my dot-files for easy usage across different OSs.
 
     git clone git://github.com/dakull/dot-files.git
 
+### Submodules and bundles
+
 #### update the bundles
 
     git submodule update --init
@@ -27,6 +29,12 @@ Contains my dot-files for easy usage across different OSs.
 
     git submodule deinit asubmodule
     git rm asubmodule
+
+#### add a new submodule
+
+    git submodule add https://github.com/vim-airline/vim-airline-themes bundle/vim-airline-themes
+
+### Symbolic links
 
 #### windows symbolic links
 
