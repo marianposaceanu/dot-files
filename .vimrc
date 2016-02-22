@@ -7,6 +7,13 @@ call pathogen#helptags()
 
 syntax on
 
+" OSX Faster performance
+" ---------------------------------|
+" notes tweak the key repeat and latency with https://pqrs.org/osx/karabiner/
+set lazyredraw                    " more info: https://github.com/tpope/vim-sensible/issues/78
+set ttyfast
+
+
 " Theme
 " ---------------------------------|
 let base16colorspace=256
@@ -49,8 +56,6 @@ set shiftwidth=2                  " And again, related.
 set softtabstop=2                 " This makes the backspace key treat the two
                                   "  spaces like a tab (so one backspace goes
                                   "  back a full 2 spaces).
-
-set lazyredraw                    " more info: https://github.com/tpope/vim-sensible/issues/78
 
 if has('win32')                   " save swp files into tmp
   set dir=c:\\tmp
