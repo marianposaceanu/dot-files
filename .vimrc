@@ -65,7 +65,8 @@ endif
 
 " Airline settings
 " ---------------------------------|
-let g:airline_theme="simple"
+let g:airline_theme="base16"
+" let g:airline_theme="simple"
 
 if !exists('g:airline_symbols')
   let g:airline_symbols = {}
