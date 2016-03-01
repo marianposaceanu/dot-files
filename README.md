@@ -77,6 +77,9 @@ git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-shel
 - [all the Powerline font](https://github.com/Lokaltog/powerline-fonts)
 - [Powerline font patcher](https://github.com/fatih/subvim/tree/master/vim/base/vim-powerline/fontpatcher)
 - [precompiled ag for win platform](http://jaxbot.me/articles/ag_the_silver_searcher_for_windows_6_8_2013)
+- [vim-airline-themes](https://github.com/vim-airline/vim-airline-themes)
+- [vim-colors-solarize](https://github.com/altercation/vim-colors-solarize)
+- [custom font size](http://apple.stackexchange.com/questions/198518/how-to-make-font-size-equal-to-15-in-terminal-on-yosemite)
 
 #### screencasts
 
