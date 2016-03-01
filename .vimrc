@@ -18,7 +18,8 @@ set ttyfast
 " ---------------------------------|
 let base16colorspace=256
 set background=dark
-colorscheme base16-ocean           " requires https://github.com/chriskempson/base16-shell into .zshrc
+ colorscheme solarized
+" colorscheme base16-ocean           " requires https://github.com/chriskempson/base16-shell into .zshrc
 
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
 
@@ -65,7 +66,7 @@ endif
 
 " Airline settings
 " ---------------------------------|
-let g:airline_theme="base16"
+let g:airline_theme="solarized"
 " let g:airline_theme="simple"
 
 if !exists('g:airline_symbols')
