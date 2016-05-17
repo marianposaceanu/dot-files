@@ -13,13 +13,17 @@ syntax on
 set lazyredraw                    " more info: https://github.com/tpope/vim-sensible/issues/78
 set ttyfast
 
-
 " Theme
 " ---------------------------------|
 let base16colorspace=256
 set background=dark
- colorscheme solarized
-" colorscheme base16-ocean           " requires https://github.com/chriskempson/base16-shell into .zshrc
+
+" Theme colors
+" ---------------------------------|
+colorscheme monokai                " requires https://github.com/crusoexia/vim-monokai
+" colorscheme solarized
+" colorscheme base16-railscasts      " requires https://github.com/chriskempson/base16-shell into .zshrc
+" colorscheme molokai
 
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
 
@@ -66,8 +70,8 @@ endif
 
 " Airline settings
 " ---------------------------------|
-let g:airline_theme="solarized"
-" let g:airline_theme="simple"
+" let g:airline_theme="base16"
+let g:airline_theme="simple"
 
 if !exists('g:airline_symbols')
   let g:airline_symbols = {}
@@ -203,3 +207,10 @@ imap <up> <nop>
 imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
+
+
+
+" CtrlP Settings
+" ---------------------------------|
+
+set wildignore+=*/tmp/*,*.so,*.swp,*.zip,deps " MacOSX/Linux
