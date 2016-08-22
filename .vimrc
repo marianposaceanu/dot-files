@@ -20,6 +20,14 @@ set ttymouse=xterm2
 let base16colorspace=256
 set background=dark
 
+" Ruby is an oddball in the family, use special spacing/rules
+if v:version >= 703
+  " Note: Relative number is quite slow with Ruby, so is cursorline
+  autocmd FileType ruby setlocal ts=2 sts=2 sw=2 norelativenumber nocursorline
+else
+  autocmd FileType ruby setlocal ts=2 sts=2 sw=2
+endif
+
 " Theme colors
 " ---------------------------------|
 colorscheme monokai                " requires https://github.com/crusoexia/vim-monokai
