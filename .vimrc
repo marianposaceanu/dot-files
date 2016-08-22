@@ -12,6 +12,8 @@ syntax on
 " notes tweak the key repeat and latency with https://pqrs.org/osx/karabiner/
 set lazyredraw                    " more info: https://github.com/tpope/vim-sensible/issues/78
 set ttyfast
+set ttyscroll=3
+set ttymouse=xterm2
 
 " Theme
 " ---------------------------------|
@@ -54,6 +56,7 @@ set nowrap                        " Turn off line wrapping.
 
 set nobackup                      " Don't make a backup.
 set nowritebackup                 " And again.
+set noswapfile
 
 set expandtab                     " Use spaces instead of tabs
 set tabstop=2                     " Global tab width.
@@ -155,6 +158,10 @@ nnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
 xnoremap <expr> y (v:register ==# '"' ? '"+' : '') . 'y'
 xnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
 
+" yank text to OS X clipboard
+" http://evertpot.com/osx-tmux-vim-copy-paste-clipboard/
+set clipboard=unnamed
+
 " no more .netrwhist file
 let g:netrw_dirhistmax = 0
 
@@ -196,6 +203,9 @@ let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlPLastMode'
 let g:ctrlp_extensions = ['line']
 " let g:ctrlp_extensions = ['buffertag', 'tag', 'line', 'dir']
+" Faster listing of files for the CtrlP plugin (similar to Cmd-T plugin)
+let g:ctrlp_user_command = ['.git/', 'cd %s && git ls-files --exclude-standard -co']
+
 
 " Bye bye arrow keys
 " ---------------------------------|
