@@ -79,6 +79,14 @@ else
   set dir=~/tmp
 endif
 
+
+" FZF settings
+" ---------------------------------|
+let g:fzf_layout = { 'down': '40%' }
+let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
+set rtp+=/usr/local/opt/fzf
+nnoremap <C-p> :Files<CR>
+
 " Airline settings
 " ---------------------------------|
 " let g:airline_theme="base16"
@@ -203,18 +211,6 @@ command! QuickFixOpenAll call QuickFixOpenAll()
 
 set clipboard=unnamed
 
-" ctrlp which can do fuzzy line search
-" via http://superuser.com/questions/390011/fuzzy-find-within-file-in-vim
-" use <c-p> then <c-f> to switch modes
-" ---------------------------------|
-let g:ctrlp_map = '<c-p>'
-let g:ctrlp_cmd = 'CtrlPLastMode'
-let g:ctrlp_extensions = ['line']
-" let g:ctrlp_extensions = ['buffertag', 'tag', 'line', 'dir']
-" Faster listing of files for the CtrlP plugin (similar to Cmd-T plugin)
-let g:ctrlp_user_command = ['.git/', 'cd %s && git ls-files --exclude-standard -co']
-
-
 " Bye bye arrow keys
 " ---------------------------------|
 map <up> <nop>
@@ -225,10 +221,3 @@ imap <up> <nop>
 imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
-
-
-
-" CtrlP Settings
-" ---------------------------------|
-
-set wildignore+=*/tmp/*,*.so,*.swp,*.zip,deps " MacOSX/Linux
