@@ -46,3 +46,6 @@
 [submodule ".vim/bundle/vim-golden-ratio"]
 	path = .vim/bundle/vim-golden-ratio
 	url = https://github.com/roman/golden-ratio
+[submodule ".vim/bundle/vim-fzf"]
+	path = .vim/bundle/vim-fzf
+	url = https://github.com/junegunn/fzf.vim.git
