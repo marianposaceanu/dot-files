@@ -9,6 +9,7 @@
   whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
   editor = vim -f
 	autocrlf = input
+	excludesfile = .DS_Store
 [web]
   browser = open
 [push]
