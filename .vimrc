@@ -17,8 +17,13 @@ set ttymouse=xterm2
 
 " Theme
 " ---------------------------------|
-let base16colorspace=256
 set background=dark
+
+" If using a Base16 terminal theme designed to keep the 16 ANSI colors intact (a "256" variation)
+" and have sucessfully modified your 256 colorspace with base16-shell you'll need to add the following
+" to your ~/.vimrc before the colorsheme declaration.
+" via: https://github.com/chriskempson/base16-vim#256-colorspace
+" let base16colorspace=256
 
 " Ruby is an oddball in the family, use special spacing/rules
 if v:version >= 703
@@ -30,9 +35,9 @@ endif
 
 " Theme colors
 " ---------------------------------|
-colorscheme monokai                " requires https://github.com/crusoexia/vim-monokai
-" colorscheme solarized
-" colorscheme base16-railscasts      " requires https://github.com/chriskempson/base16-shell into .zshrc
+colorscheme solarized
+" colorscheme monokai              " requires https://github.com/crusoexia/vim-monokai
+" colorscheme base16-railscasts    " requires https://github.com/chriskempson/base16-shell into .zshrc
 " colorscheme molokai
 
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
