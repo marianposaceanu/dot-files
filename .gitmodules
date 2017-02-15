@@ -16,10 +16,6 @@
 [submodule ".vim/bundle/vim-tabular"]
 	path = .vim/bundle/vim-tabular
 	url = https://github.com/godlygeek/tabular.git
-[submodule ".vim/bundle/base16-vim"]
-	path = .vim/bundle/base16-vim
-	url = https://github.com/chriskempson/base16-vim
-  ignore = dirty
 [submodule ".vim/bundle/vim-javascript-syntax"]
 	path = .vim/bundle/vim-javascript-syntax
 	url = https://github.com/jelera/vim-javascript-syntax
@@ -53,3 +49,6 @@
 [submodule ".vim/bundle/vim-fzf"]
 	path = .vim/bundle/vim-fzf
 	url = https://github.com/junegunn/fzf.vim.git
+[submodule ".vim/bundle/vim-golden-ratio"]
+	path = .vim/bundle/vim-golden-ratio
+	url = https://github.com/roman/golden-ratio
