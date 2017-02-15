@@ -40,12 +40,12 @@
 [submodule ".vim/bundle/vim-airline-themes"]
 	path = .vim/bundle/vim-airline-themes
 	url = https://github.com/vim-airline/vim-airline-themes
-[submodule ".vim/bundle/vim-solarized"]
-	path = .vim/bundle/vim-solarized
-	url = git://github.com/altercation/vim-colors-solarized.git
 [submodule ".vim/bundle/vim-golden-ratio"]
 	path = .vim/bundle/vim-golden-ratio
 	url = https://github.com/roman/golden-ratio
 [submodule ".vim/bundle/vim-fzf"]
 	path = .vim/bundle/vim-fzf
 	url = https://github.com/junegunn/fzf.vim.git
+[submodule ".vim/bundle/vim-colors-solarized"]
+	path = .vim/bundle/vim-colors-solarized
+	url = git://github.com/altercation/vim-colors-solarized.git
