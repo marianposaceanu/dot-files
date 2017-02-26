@@ -92,7 +92,8 @@ map <C-n> :NERDTreeToggle<CR>
 
 " FZF settings
 " ---------------------------------|
-let g:fzf_layout = { 'down': '40%' }
+" let g:fzf_layout = { 'down': '40%' }
+let $FZF_DEFAULT_OPTS=' --height 40% --reverse --border'
 let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
 set rtp+=/usr/local/opt/fzf
 nnoremap <C-p> :Files<CR>

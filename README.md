@@ -25,6 +25,10 @@ Contains my dot-files for easy usage across different OSs.
 
     git submodule foreach git pull origin master
 
+#### install deps:
+
+FZF: `brew update; brew reinstall fzf`
+
 #### cleanly remove a module
 
     git submodule deinit asubmodule
