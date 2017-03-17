@@ -35,8 +35,8 @@ endif
 
 " Theme colors
 " ---------------------------------|
-colorscheme solarized
-" colorscheme monokai              " requires https://github.com/crusoexia/vim-monokai
+" colorscheme solarized
+colorscheme monokai              " requires https://github.com/crusoexia/vim-monokai
 " colorscheme base16-railscasts    " requires https://github.com/chriskempson/base16-shell into .zshrc
 " colorscheme molokai
 
