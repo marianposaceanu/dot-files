@@ -202,3 +202,6 @@ imap <up> <nop>
 imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
+
+" Golden View
+let g:goldenview__enable_default_mapping = 0
