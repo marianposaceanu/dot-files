@@ -69,6 +69,20 @@ via:
 git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-shell
 ```
 
+#### macOS keyboard key repeat
+
+```
+defaults write NSGlobalDomain KeyRepeat -int 1
+defaults write NSGlobalDomain InitialKeyRepeat -int 12
+```
+
+reset back to defaults:
+
+```
+defaults delete NSGlobalDomain KeyRepeat
+defaults delete NSGlobalDomain InitialKeyRepeat
+```
+
 #### credits
 
 - [inspired by Chris Hunt own dot files](https://github.com/chrishunt/dot-files#installation)
@@ -84,6 +98,7 @@ git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-shel
 - [vim-airline-themes](https://github.com/vim-airline/vim-airline-themes)
 - [vim-colors-solarize](https://github.com/altercation/vim-colors-solarize)
 - [custom font size](http://apple.stackexchange.com/questions/198518/how-to-make-font-size-equal-to-15-in-terminal-on-yosemite)
+- [key repeat](https://coderwall.com/p/jzuuzg/osx-set-fast-keyboard-repeat-rate)
 
 #### screencasts
 
