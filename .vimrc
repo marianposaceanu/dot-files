@@ -92,8 +92,8 @@ map <C-n> :NERDTreeToggle<CR>
 
 " FZF settings
 " ---------------------------------|
-" let g:fzf_layout = { 'down': '40%' }
-let $FZF_DEFAULT_OPTS=' --height 40% --reverse --border'
+let g:fzf_layout = { 'down': '20%' }
+let $FZF_DEFAULT_OPTS='--reverse --border'
 let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
 set rtp+=/usr/local/opt/fzf
 nnoremap <C-p> :Files<CR>
@@ -205,3 +205,8 @@ imap <right> <nop>
 
 " Golden View
 let g:goldenview__enable_default_mapping = 0
+
+" fix slow JRuby loading via: https://github.com/vim-ruby/vim-ruby/issues/33
+if !empty(matchstr($MY_RUBY_HOME, 'jruby'))
+  let g:ruby_path = '/usr/bin/ruby'
+endif
