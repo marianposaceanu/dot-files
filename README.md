@@ -34,6 +34,10 @@ FZF: `brew update; brew reinstall fzf`
     git submodule deinit asubmodule
     git rm asubmodule
 
+#### remove a broken module mapping
+
+    git rm --cached <path_to_submodule>
+
 #### add a new submodule
 
     git submodule add https://github.com/vim-airline/vim-airline-themes bundle/vim-airline-themes
@@ -53,6 +57,7 @@ FZF: `brew update; brew reinstall fzf`
     ln -s ~/dot-files/.gvimrc ~/.gvimrc
     ln -s ~/dot-files/.vim ~
     ln -s ~/dot-files/.gitconfig ~/.gitconfig
+    ln -s ~/dot-files/.tmux.conf ~/.tmux.conf
 
 #### on OS X in order to properly use the theme in iTerm2 one need to append to `.zshrc`
 
@@ -82,6 +87,14 @@ reset back to defaults:
 defaults delete NSGlobalDomain KeyRepeat
 defaults delete NSGlobalDomain InitialKeyRepeat
 ```
+
+#### macOS tmux fix
+
+```
+brew install reattach-to-user-namespace
+```
+
+via [fix-vim-tmux-yank-paste-on-unnamed-register](https://stackoverflow.com/questions/11404800/fix-vim-tmux-yank-paste-on-unnamed-register)
 
 #### credits
 
