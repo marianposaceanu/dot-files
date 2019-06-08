@@ -13,7 +13,7 @@ Contains my dot-files for easy usage across different OSs.
 
 #### usage
 
-    git clone git://github.com/dakull/dot-files.git
+    git clone git://github.com/marianposaceanu/dot-files.git
 
 ### Submodules and bundles
 
@@ -58,21 +58,7 @@ FZF: `brew update; brew reinstall fzf`
     ln -s ~/dot-files/.vim ~
     ln -s ~/dot-files/.gitconfig ~/.gitconfig
     ln -s ~/dot-files/.tmux.conf ~/.tmux.conf
-
-#### on OS X in order to properly use the theme in iTerm2 one need to append to `.zshrc`
-
-```sh
-BASE16_SHELL="$HOME/.config/base16-shell/base16-ocean.dark.sh"
-[[ -s $BASE16_SHELL ]] && . $BASE16_SHELL
-```
-
-after installing [base16-shell](https://github.com/chriskempson/base16-shell)
-
-via:
-
-```
-git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-shell
-```
+    ln -s ~/dot-files/.zshrc ~/.zshrc
 
 #### macOS keyboard key repeat
 
@@ -88,20 +74,48 @@ defaults delete NSGlobalDomain KeyRepeat
 defaults delete NSGlobalDomain InitialKeyRepeat
 ```
 
-#### macOS tmux fix
+#### zsh
+
+- install oh-my-zsh from: [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
+
+#### iTerm config
+
+- set the default scheme to base16: load it from iterm-colorschemes
+- set the b/g color from pure black to `#333333` and foreground to `#ebe6e2`
+
+optional: set zsh as the default shell
 
 ```
+chsh -s `which zsh`
+```
+
+#### tmux
+
+```
+brew install tmux
 brew install reattach-to-user-namespace
 ```
 
 via [fix-vim-tmux-yank-paste-on-unnamed-register](https://stackoverflow.com/questions/11404800/fix-vim-tmux-yank-paste-on-unnamed-register)
+
+#### ssh keys
+
+cp them into `~/.ssh` and add proper permissions:
+
+```
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/id_rsa
+chmod 644 ~/.ssh/id_rsa.pub
+chmod 644 ~/.ssh/authorized_keys
+service ssh restart
+```
 
 #### credits
 
 - [inspired by Chris Hunt own dot files](https://github.com/chrishunt/dot-files#installation)
 - [nice tip](http://pagesofinterest.net/blog/2013/05/switching-to-vim-1-start-at-the-beginning/)
 - [mklink reference](http://technet.microsoft.com/en-us/library/cc753194%28v=ws.10%29.aspx)
-- [learning vim](https://gist.github.com/dakull/5554601)
+- [learning vim](https://gist.github.com/marianposaceanu/5554601)
 - [patched Consolas font](https://github.com/eugeneching/consolas-powerline-vim)
 - [alternate patched Consolas font](https://github.com/nicolalamacchia/powerline-consolas)
 - [patched Menlo, Inconsolata and Mensch fonts](https://gist.github.com/qrush/1595572)
