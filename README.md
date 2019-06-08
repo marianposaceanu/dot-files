@@ -83,6 +83,20 @@ defaults delete NSGlobalDomain KeyRepeat
 defaults delete NSGlobalDomain InitialKeyRepeat
 ```
 
+#### iTerm config
+
+- set the default scheme to base16: load it from iterm-colorschemes
+- set zsh as the default shell via `chsh -s `which zsh``
+- set the b/g color from pure black to `#333333` and foreground to `#ebe6e2`
+
+
+#### tmux
+
+- `brew install tmux`
+
+    ln -s ~/dot-files/.tmux.conf ~/.tmux.conf
+
+
 #### credits
 
 - [inspired by Chris Hunt own dot files](https://github.com/chrishunt/dot-files#installation)
