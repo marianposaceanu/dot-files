@@ -210,3 +210,11 @@ let g:goldenview__enable_default_mapping = 0
 if !empty(matchstr($MY_RUBY_HOME, 'jruby'))
   let g:ruby_path = '/usr/bin/ruby'
 endif
+
+
+" via https://vim.fandom.com/wiki/Repeat_command_on_each_line_in_visual_block
+" allow the . to execute once for each line of a visual selection
+vnoremap . :normal .<CR>
+" make ` execute the contents of the a register
+nnoremap ` @a
+vnoremap ` :normal @a<CR>
