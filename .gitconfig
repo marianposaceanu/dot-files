@@ -43,6 +43,7 @@
   s   = status -s -b
   c   = commit -v
   co  = checkout
+  cp  = cherry-pick
   w   = whatchanged --decorate
   wp  = whatchanged --decorate -p
   a   = add -u
