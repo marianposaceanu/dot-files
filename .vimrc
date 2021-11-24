@@ -95,7 +95,7 @@ map <C-n> :NERDTreeToggle<CR>
 let g:fzf_layout = { 'down': '20%' }
 let $FZF_DEFAULT_OPTS='--reverse'
 let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
-set rtp+=/usr/local/opt/fzf
+set rtp+=/opt/homebrew/opt/fzf
 nnoremap <C-p> :Files<CR>
 
 " Airline settings
