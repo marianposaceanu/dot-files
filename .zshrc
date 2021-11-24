@@ -93,7 +93,19 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
-export PATH="/usr/local/opt/llvm@4/bin:$PATH"
-export PATH="/usr/local/opt/openssl/bin:$PATH"
+# Various fixes
+# No HomeBrew analytics
+export HOMEBREW_NO_ANALYTICS=1
+export LC_ALL=en_US.UTF-8
+export JRUBY_OPTS="--dev"
+
+# Java versions
+# JDK@11
+# export PATH="/usr/local/opt/openjdk@11/bin:$PATH"
+# JDK@11 M1 native
+export PATH="/opt/homebrew/opt/openjdk@11/bin:$PATH"
+# JDK@17
+# export PATH="/usr/local/opt/openjdk/bin:$PATH"
+
+# FZF
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
