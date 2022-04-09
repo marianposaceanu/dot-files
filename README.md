@@ -126,6 +126,8 @@ service ssh restart
 - [vim-colors-solarize](https://github.com/altercation/vim-colors-solarize)
 - [custom font size](http://apple.stackexchange.com/questions/198518/how-to-make-font-size-equal-to-15-in-terminal-on-yosemite)
 - [key repeat](https://coderwall.com/p/jzuuzg/osx-set-fast-keyboard-repeat-rate)
+- [vim-packages](https://shapeshed.com/vim-packages/#how-it-works)
+- [Fully remove Git Submodule](https://gist.github.com/raulferras/8420865)
 
 #### screencasts
 
