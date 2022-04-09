@@ -1,57 +1,51 @@
-[submodule ".vim/bundle/supertab"]
-	path = .vim/bundle/supertab
+[submodule ".vim/pack/bundles/start/supertab"]
+	path = .vim/pack/bundles/start/supertab
 	url = https://github.com/ervandew/supertab
-[submodule ".vim/bundle/coffee-script"]
-	path = .vim/bundle/coffee-script
-	url = https://github.com/kchmck/vim-coffee-script.git
-[submodule ".vim/bundle/vim-surround"]
-	path = .vim/bundle/vim-surround
-	url = https://github.com/tpope/vim-surround.git
-[submodule ".vim/bundle/vim-markdown"]
-	path = .vim/bundle/vim-markdown
-	url = https://github.com/tpope/vim-markdown.git
-[submodule ".vim/bundle/vim-commentary"]
-	path = .vim/bundle/vim-commentary
+[submodule ".vim/pack/bundles/start/vim-surround"]
+	path = .vim/pack/bundles/start/vim-surround
+	url = https://github.com/tpope/vim-surround
+[submodule ".vim/pack/bundles/start/vim-markdown"]
+	path = .vim/pack/bundles/start/vim-markdown
+	url = https://github.com/tpope/vim-markdown
+[submodule ".vim/pack/bundles/start/vim-commentary"]
+	path = .vim/pack/bundles/start/vim-commentary
 	url = https://github.com/tpope/vim-commentary
-[submodule ".vim/bundle/vim-tabular"]
-	path = .vim/bundle/vim-tabular
-	url = https://github.com/godlygeek/tabular.git
-[submodule ".vim/bundle/vim-javascript-syntax"]
-	path = .vim/bundle/vim-javascript-syntax
+[submodule ".vim/pack/bundles/start/tabular"]
+	path = .vim/pack/bundles/start/tabular
+	url = https://github.com/godlygeek/tabular
+[submodule ".vim/pack/bundles/start/vim-javascript-syntax"]
+	path = .vim/pack/bundles/start/vim-javascript-syntax
 	url = https://github.com/jelera/vim-javascript-syntax
-[submodule ".vim/bundle/vim-airline"]
-	path = .vim/bundle/vim-airline
+[submodule ".vim/pack/bundles/start/vim-airline"]
+	path = .vim/pack/bundles/start/vim-airline
 	url = https://github.com/bling/vim-airline
-[submodule ".vim/bundle/vim-rooter"]
-	path = .vim/bundle/vim-rooter
-	url = https://github.com/airblade/vim-rooter.git
-[submodule ".vim/bundle/vim-ack"]
-	path = .vim/bundle/vim-ack
-	url = https://github.com/mileszs/ack.vim.git
-[submodule ".vim/bundle/vim-endwise"]
-	path = .vim/bundle/vim-endwise
-	url = https://github.com/tpope/vim-endwise.git
-[submodule ".vim/bundle/vim-repeat"]
-	path = .vim/bundle/vim-repeat
+[submodule ".vim/pack/bundles/start/vim-rooter"]
+	path = .vim/pack/bundles/start/vim-rooter
+	url = https://github.com/airblade/vim-rooter
+[submodule ".vim/pack/bundles/start/ack.vim"]
+	path = .vim/pack/bundles/start/ack.vim
+	url = https://github.com/mileszs/ack.vim
+[submodule ".vim/pack/bundles/start/vim-endwise"]
+	path = .vim/pack/bundles/start/vim-endwise
+	url = https://github.com/tpope/vim-endwise
+[submodule ".vim/pack/bundles/start/vim-repeat"]
+	path = .vim/pack/bundles/start/vim-repeat
 	url = https://github.com/tpope/vim-repeat
-[submodule ".vim/bundle/elixir-lang"]
-	path = .vim/bundle/elixir-lang
-	url = https://github.com/elixir-lang/vim-elixir.git
-[submodule ".vim/bundle/vim-airline-themes"]
-	path = .vim/bundle/vim-airline-themes
+[submodule ".vim/pack/bundles/start/vim-airline-themes"]
+	path = .vim/pack/bundles/start/vim-airline-themes
 	url = https://github.com/vim-airline/vim-airline-themes
-[submodule ".vim/bundle/vim-fzf"]
-	path = .vim/bundle/vim-fzf
-	url = https://github.com/junegunn/fzf.vim.git
-[submodule ".vim/bundle/vim-colors-solarized"]
-	path = .vim/bundle/vim-colors-solarized
-	url = git://github.com/altercation/vim-colors-solarized.git
-[submodule ".vim/bundle/vim-nerdtree"]
-	path = .vim/bundle/vim-nerdtree
-	url = https://github.com/scrooloose/nerdtree.git
-[submodule ".vim/bundle/vim-monokai"]
-	path = .vim/bundle/vim-monokai
-	url = https://github.com/crusoexia/vim-monokai.git
-[submodule ".vim/bundle/vim-golden-view"]
-	path = .vim/bundle/vim-golden-view
-	url = https://github.com/zhaocai/GoldenView.Vim.git
+[submodule ".vim/pack/bundles/start/fzf.vim"]
+	path = .vim/pack/bundles/start/fzf.vim
+	url = https://github.com/junegunn/fzf.vim
+[submodule ".vim/pack/bundles/start/vim-colors-solarized"]
+	path = .vim/pack/bundles/start/vim-colors-solarized
+	url = https://github.com/altercation/vim-colors-solarized
+[submodule ".vim/pack/bundles/start/nerdtree"]
+	path = .vim/pack/bundles/start/nerdtree
+	url = https://github.com/scrooloose/nerdtree
+[submodule ".vim/pack/bundles/start/vim-monokai"]
+	path = .vim/pack/bundles/start/vim-monokai
+	url = https://github.com/crusoexia/vim-monokai
+[submodule ".vim/pack/bundles/start/GoldenView.Vim"]
+	path = .vim/pack/bundles/start/GoldenView.Vim
+	url = https://github.com/zhaocai/GoldenView.Vim
