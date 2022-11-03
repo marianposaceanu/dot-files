@@ -11,9 +11,13 @@ Contains my dot-files for easy usage across different OSs.
 - VIM Config files and bundles
 - VIM alternative icons in /assets/vim_icons
 
+#### set-up ssh keys
+
+- https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+
 #### usage
 
-    git clone git://github.com/marianposaceanu/dot-files.git
+    git clone git@github.com:marianposaceanu/dot-files.git
 
 ### Submodules and bundles
 
