@@ -90,8 +90,7 @@ map <C-n> :NERDTreeToggle<CR>
 let g:fzf_layout = { 'down': '20%' }
 let $FZF_DEFAULT_OPTS='--reverse'
 let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
-" set rtp+=/opt/homebrew/opt/fzf
-set rtp+=/opt/homebrew/opt/fz
+set rtp+=/opt/homebrew/opt/fzf
 nnoremap <C-p> :Files<CR>
 
 " Airline settings
@@ -216,3 +215,11 @@ vnoremap . :normal .<CR>
 " make ` execute the contents of the a register
 nnoremap ` @a
 vnoremap ` :normal @a<CR>
+
+" Use ctrl-[hjkl] to select the active split!
+" via https://stackoverflow.com/questions/6053301/easier-way-to-navigate-between-vim-split-panes
+"     https://vim.fandom.com/wiki/Switch_between_Vim_window_splits_easily
+nmap <silent> <c-k> :wincmd k<CR>
+nmap <silent> <c-j> :wincmd j<CR>
+nmap <silent> <c-h> :wincmd h<CR>
+nmap <silent> <c-l> :wincmd l<CR>
