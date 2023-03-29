@@ -87,7 +87,12 @@ map <C-n> :NERDTreeToggle<CR>
 
 " FZF settings
 " ---------------------------------|
-let g:fzf_layout = { 'down': '20%' }
+" https://github.com/junegunn/fzf/blob/master/README-VIM.md
+" https://github.com/junegunn/fzf.vim/issues/248
+" let g:fzf_layout = { 'down': '20%' }
+" let g:fzf_layout = { 'window': '-tabnew' }
+" center fzf pop-up IDE-style
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
 let $FZF_DEFAULT_OPTS='--reverse'
 let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
 set rtp+=/opt/homebrew/opt/fzf
