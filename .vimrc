@@ -10,6 +10,7 @@ set ttyfast
 set ttyscroll=3
 set ttymouse=xterm2
 
+
 " Theme
 " ---------------------------------|
 set background=dark
@@ -78,6 +79,13 @@ if has('win32')                   " save swp files into tmp
 else
   set dir=~/tmp
 endif
+
+
+
+" Windows separators
+" ---------------------------------|
+set fillchars=eob:\ ,fold:\ ,vert:\ 
+
 
 
 " NERDTree settings
