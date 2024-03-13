@@ -236,3 +236,40 @@ nmap <silent> <c-k> :wincmd k<CR>
 nmap <silent> <c-j> :wincmd j<CR>
 nmap <silent> <c-h> :wincmd h<CR>
 nmap <silent> <c-l> :wincmd l<CR>
+
+" Simple git blame with GitHub URL
+function! GitBlameWithCommitMessageAndAuthor()
+    let current_line = line('.')
+    let filename = expand('%')
+    let blame_cmd = 'git blame -l -L' . current_line . ',' . current_line . ' -- ' . shellescape(filename)
+    let blame_output = system(blame_cmd)
+    let commit_hash = split(blame_output)[0]
+
+    if commit_hash !~ '^0\+\|^\\s*$'
+        let show_cmd = 'git show --no-patch --no-notes --pretty=format:"%h (%an) %s" ' . commit_hash
+        let show_output = system(show_cmd)
+
+        " Extract GitHub repo URL from git remote
+        let remote_url_cmd = 'git config --get remote.origin.url'
+        let remote_url = system(remote_url_cmd)
+        let remote_url = substitute(remote_url, '\n\+$', '', '') " Remove trailing newline
+        let github_repo_url = substitute(remote_url, '\.git$', '', '')
+        let github_repo_url = substitute(github_repo_url, 'git@github\.com:', 'https://github.com/', '')
+        let github_repo_url = substitute(github_repo_url, 'https://', 'https://', '')
+
+        " Construct the GitHub URL for the commit
+        let commit_url = github_repo_url . '/commit/' . commit_hash
+
+        " Display the commit info and make the hash clickable
+        echohl Directory
+        echo "Commit: "
+        echohl Underlined
+        echo commit_url
+        echohl None
+        echo " - " . show_output
+        echohl None
+    else
+        echo "Not committed yet"
+    endif
+endfunction
+command! Blame call GitBlameWithCommitMessageAndAuthor()
