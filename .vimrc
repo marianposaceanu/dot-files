@@ -237,30 +237,40 @@ nmap <silent> <c-j> :wincmd j<CR>
 nmap <silent> <c-h> :wincmd h<CR>
 nmap <silent> <c-l> :wincmd l<CR>
 
-" Simple git blame with GitHub URL
+" Define a function that gets Git blame information, including the commit message and author, for the current line in a Vim buffer.
 function! GitBlameWithCommitMessageAndAuthor()
+    " Get the current line number.
     let current_line = line('.')
+    " Get the current file name.
     let filename = expand('%')
+    " Construct the git blame command for the current line.
     let blame_cmd = 'git blame -l -L' . current_line . ',' . current_line . ' -- ' . shellescape(filename)
+    " Execute the git blame command and capture the output.
     let blame_output = system(blame_cmd)
+    " Extract the commit hash from the git blame output.
     let commit_hash = split(blame_output)[0]
 
+    " Check if a valid commit hash is found (not a series of zeros or empty).
     if commit_hash !~ '^0\+\|^\\s*$'
+        " Construct the git show command to get commit details using the hash.
         let show_cmd = 'git show --no-patch --no-notes --pretty=format:"%h (%an) %s" ' . commit_hash
+        " Execute the git show command and capture the output.
         let show_output = system(show_cmd)
 
-        " Extract GitHub repo URL from git remote
+        " Get the remote repository URL from git configuration.
         let remote_url_cmd = 'git config --get remote.origin.url'
+        " Execute the command to get the remote URL and remove any trailing newline.
         let remote_url = system(remote_url_cmd)
         let remote_url = substitute(remote_url, '\n\+$', '', '') " Remove trailing newline
+        " Transform the remote URL into a GitHub repository URL.
         let github_repo_url = substitute(remote_url, '\.git$', '', '')
         let github_repo_url = substitute(github_repo_url, 'git@github\.com:', 'https://github.com/', '')
         let github_repo_url = substitute(github_repo_url, 'https://', 'https://', '')
 
-        " Construct the GitHub URL for the commit
+        " Construct the full GitHub URL for the specific commit.
         let commit_url = github_repo_url . '/commit/' . commit_hash
 
-        " Display the commit info and make the hash clickable
+        " Display the commit URL and the commit details.
         echohl Directory
         echo "Commit: "
         echohl Underlined
@@ -269,7 +279,10 @@ function! GitBlameWithCommitMessageAndAuthor()
         echo " - " . show_output
         echohl None
     else
+        " Handle the case where the line is not yet committed.
         echo "Not committed yet"
     endif
 endfunction
+
+" Define a Vim command 'Blame' that calls the above function.
 command! Blame call GitBlameWithCommitMessageAndAuthor()
