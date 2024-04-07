@@ -5,7 +5,6 @@ theme | syntax | specific | ruby
 [Base16](https://github.com/chriskempson/base16-vim) | --- | --- | ---
 [Tomorrow](https://github.com/chriskempson/vim-tomorrow-theme) | --- | --- | ---
 [Wombat](https://github.com/cschlueter/vim-wombat) | --- | --- | ---
---- | [CoffeeScript](https://github.com/kchmck/vim-coffee-script) | --- | --- | ---
 --- | [Enhanced Javascript](https://github.com/jelera/vim-javascript-syntax) | --- | --- | ---
 --- | [Markdown](https://github.com/tpope/vim-markdown) | --- | --- | ---
 --- | --- | [Commentary](https://github.com/tpope/vim-commentary) | ---
