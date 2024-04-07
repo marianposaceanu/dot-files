@@ -32,9 +32,14 @@ endif
 " Theme colors
 " ---------------------------------|
 " colorscheme solarized
-colorscheme monokai              " requires https://github.com/crusoexia/vim-monokai
+" colorscheme monokai              " requires https://github.com/crusoexia/vim-monokai
 " colorscheme base16-railscasts    " requires https://github.com/chriskempson/base16-shell into .zshrc
 " colorscheme molokai
+set termguicolors                  " enable true colors support
+" let ayucolor="light"               " for light version of theme
+" let ayucolor="mirage"              " for mirage version of theme
+let ayucolor="dark"                " for dark version of theme
+colorscheme ayu
 
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
 

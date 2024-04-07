@@ -49,3 +49,6 @@
 [submodule ".vim/pack/bundles/start/GoldenView.Vim"]
 	path = .vim/pack/bundles/start/GoldenView.Vim
 	url = https://github.com/zhaocai/GoldenView.Vim
+[submodule ".vim/pack/bundles/start/ayu-vim"]
+	path = .vim/pack/bundles/start/ayu-vim
+	url = https://github.com/ayu-theme/ayu-vim.git
