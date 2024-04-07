@@ -44,7 +44,7 @@ FZF: `brew update; brew reinstall fzf`
 
 #### add a new submodule
 
-    git submodule add https://github.com/vim-airline/vim-airline-themes bundle/vim-airline-themes
+    git submodule add https://github.com/ayu-theme/ayu-vim.git .vim/pack/bundles/start/ayu-vim
 
 ### Symbolic links
 
