@@ -13,7 +13,7 @@ set ttymouse=xterm2
 
 " Theme
 " ---------------------------------|
-set background=dark
+" set background=dark
 
 " If using a Base16 terminal theme designed to keep the 16 ANSI colors intact (a "256" variation)
 " and have sucessfully modified your 256 colorspace with base16-shell you'll need to add the following
@@ -108,7 +108,18 @@ map <C-n> :NERDTreeToggle<CR>
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
 let $FZF_DEFAULT_OPTS='--reverse'
 let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
-set rtp+=/opt/homebrew/opt/fzf
+                                              " Detect the system architecture and set the runtime path accordingly
+let s:arch = system('uname -m')               " Check the system architecture
+let s:arch = trim(s:arch)                     " Remove the trailing newline character
+" echom "Detected architecture: " . s:arch    " Debug message to check the architecture
+if s:arch == "arm64"                          " Apple Silicon (ARM)
+    execute 'set rtp+=/opt/homebrew/opt/fzf'
+elseif s:arch == "x86_64"                     " x86
+    execute 'set rtp+=/usr/local/opt/fzf'
+else
+    echom "Unknown architecture: " . s:arch
+endif
+
 nnoremap <C-p> :Files<CR>
 
 " Airline settings
