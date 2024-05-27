@@ -32,6 +32,7 @@ Contains my dot-files for easy usage across different OSs.
 #### install deps:
 
 FZF: `brew update; brew reinstall fzf`
+FZF+: `brew install fzf bat ripgrep the_silver_searcher perl universal-ctags`
 
 #### cleanly remove a module
 
