@@ -106,27 +106,33 @@ nnoremap <C-p> :Files<CR>
 
 " Airline settings
 " ---------------------------------|
-" let g:airline_theme="base16"
-let g:airline_theme="simple"
+" Set the theme
+let g:airline_theme='simple'
 
-" Disable olde fixes - cleaner look
+" Enable powerline fonts
 let g:airline_powerline_fonts = 1
-if !exists('g:airline_symbols')
-  let g:airline_symbols = {}
-endif
-" unicode symbols
-let g:airline_left_sep = '»'
-let g:airline_left_sep = '▶'
-let g:airline_right_sep = '«'
-let g:airline_right_sep = '◀'
-let g:airline_symbols.linenr = '␊'
-let g:airline_symbols.linenr = '␤'
-let g:airline_symbols.linenr = '¶'
-let g:airline_symbols.branch = '⎇'
-let g:airline_symbols.paste = 'ρ'
-let g:airline_symbols.paste = 'Þ'
-let g:airline_symbols.paste = '∥'
-let g:airline_symbols.whitespace = 'Ξ'
+
+" Disable default sections
+let g:airline_section_a = ''
+let g:airline_section_b = ''
+let g:airline_section_c = ''
+let g:airline_section_x = ''
+let g:airline_section_y = ''
+let g:airline_section_z = ''
+
+" Customize sections
+let g:airline_section_a = airline#section#create(['mode'])
+let g:airline_section_c = airline#section#create(['%f'])
+let g:airline_section_x = airline#section#create(['%p%%'])
+let g:airline_section_y = airline#section#create(['fileformat', 'fileencoding'])  " Including file encoding
+let g:airline_section_z = airline#section#create(['linenr', ':%c'])
+
+" Disable unused extensions
+let g:airline#extensions#branch#enabled = 0
+let g:airline#extensions#hunks#enabled = 0
+let g:airline#extensions#syntastic#enabled = 0
+let g:airline#extensions#tagbar#enabled = 0
+let g:airline#extensions#tabline#enabled = 0
 
 " Toogle search highlighting
 " ---------------------------------|
