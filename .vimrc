@@ -9,6 +9,7 @@ set lazyredraw                    " more info: https://github.com/tpope/vim-sens
 set ttyfast
 set ttyscroll=3
 set ttymouse=xterm2
+set regexpengine=1
 
 
 " Theme
@@ -22,12 +23,7 @@ set ttymouse=xterm2
 " let base16colorspace=256
 
 " Ruby is an oddball in the family, use special spacing/rules
-if v:version >= 703
-  " Note: Relative number is quite slow with Ruby, so is cursorline
-  autocmd FileType ruby setlocal ts=2 sts=2 sw=2 norelativenumber nocursorline
-else
-  autocmd FileType ruby setlocal ts=2 sts=2 sw=2
-endif
+autocmd FileType ruby setlocal ts=2 sts=2 sw=2 norelativenumber nocursorline
 
 " Theme colors
 " ---------------------------------|
@@ -36,40 +32,38 @@ endif
 " colorscheme base16-railscasts    " requires https://github.com/chriskempson/base16-shell into .zshrc
 " colorscheme molokai
 set termguicolors                  " enable true colors support
+let ayucolor="dark"                " for dark version of theme
 " let ayucolor="light"               " for light version of theme
 " let ayucolor="mirage"              " for mirage version of theme
-let ayucolor="dark"                " for dark version of theme
 colorscheme ayu
 
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
 
-set pastetoggle=<F2>               " easier pasting
-set synmaxcol=200                  " fixes slow highlighting
-set number
-set hlsearch
-set showmatch
-set incsearch
-set autoindent
-set history=1000
-set undolevels=1000
-set cursorline
-set expandtab
-set autochdir
-set backspace=indent,eol,start    " Intuitive backspacing.
-set ignorecase                    " Case-insensitive searching.
-set smartcase                     " But case-sensitive if expression contains a
-                                  "  capital letter.
-set incsearch                     " Highlight matches as you type.
-set hlsearch                      " Highlight matches.
-set scrolloff=3                   " Show 3 lines of context around the cursor.
-set laststatus=2                  " Show the status line all the time
-set encoding=utf-8                " Use UTF-8 everywhere.
-set nowrap                        " Turn off line wrapping.
+set pastetoggle=<F2>               " Toggle paste mode with F2 for easier pasting.
+set synmaxcol=200                  " Limit syntax highlighting to 200 columns for performance.
+set number                         " Display line numbers.
+set hlsearch                       " Highlight search matches.
+set showmatch                      " Briefly jump to matching bracket when inserting one.
+set incsearch                      " Highlight matches as you type during a search.
+set autoindent                     " Copy indent from the current line when starting a new line.
+set history=1000                   " Keep 1000 lines of command line history.
+set undolevels=1000                " Allow 1000 levels of undo.
+set cursorline                     " Highlight the line with the cursor.
+set expandtab                      " Use spaces instead of tabs.
+set autochdir                      " Automatically change the current working directory to the file being edited.
+set backspace=indent,eol,start     " Allow intuitive backspacing in insert mode.
+set ignorecase                     " Case-insensitive searching by default.
+set smartcase                      " Case-sensitive search if the search pattern contains uppercase letters.
+set scrolloff=3                    " Keep 3 lines visible above and below the cursor.
+set laststatus=2                   " Always show the status line.
+set encoding=utf-8                 " Use UTF-8 encoding for files.
+set nowrap                         " Disable line wrapping, display long lines as one line.
+set ttimeoutlen=50                " fix for slow after INSERT exit mode
 " set linebreak                     " ^
-" set ttimeoutlen=50                " fix for slow after INSERT exit mode
 
 set nobackup                      " Don't make a backup.
 set nowritebackup                 " And again.
+set dir=~/tmp                     " save swp files into tmp
 set noswapfile
 
 set expandtab                     " Use spaces instead of tabs
@@ -78,19 +72,6 @@ set shiftwidth=2                  " And again, related.
 set softtabstop=2                 " This makes the backspace key treat the two
                                   "  spaces like a tab (so one backspace goes
                                   "  back a full 2 spaces).
-
-if has('win32')                   " save swp files into tmp
-  set dir=c:\\tmp
-else
-  set dir=~/tmp
-endif
-
-
-
-" Windows separators
-" ---------------------------------|
-set fillchars=eob:\ ,fold:\ ,vert:\ 
-
 
 
 " NERDTree settings
@@ -108,6 +89,7 @@ map <C-n> :NERDTreeToggle<CR>
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
 let $FZF_DEFAULT_OPTS='--reverse'
 let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
+
                                               " Detect the system architecture and set the runtime path accordingly
 let s:arch = system('uname -m')               " Check the system architecture
 let s:arch = trim(s:arch)                     " Remove the trailing newline character
@@ -128,23 +110,23 @@ nnoremap <C-p> :Files<CR>
 let g:airline_theme="simple"
 
 " Disable olde fixes - cleaner look
-" let g:airline_powerline_fonts = 1
-" if !exists('g:airline_symbols')
-"   let g:airline_symbols = {}
-" endif
+let g:airline_powerline_fonts = 1
+if !exists('g:airline_symbols')
+  let g:airline_symbols = {}
+endif
 " unicode symbols
-" let g:airline_left_sep = '»'
-" let g:airline_left_sep = '▶'
-" let g:airline_right_sep = '«'
-" let g:airline_right_sep = '◀'
-" let g:airline_symbols.linenr = '␊'
-" let g:airline_symbols.linenr = '␤'
-" let g:airline_symbols.linenr = '¶'
-" let g:airline_symbols.branch = '⎇'
-" let g:airline_symbols.paste = 'ρ'
-" let g:airline_symbols.paste = 'Þ'
-" let g:airline_symbols.paste = '∥'
-" let g:airline_symbols.whitespace = 'Ξ'
+let g:airline_left_sep = '»'
+let g:airline_left_sep = '▶'
+let g:airline_right_sep = '«'
+let g:airline_right_sep = '◀'
+let g:airline_symbols.linenr = '␊'
+let g:airline_symbols.linenr = '␤'
+let g:airline_symbols.linenr = '¶'
+let g:airline_symbols.branch = '⎇'
+let g:airline_symbols.paste = 'ρ'
+let g:airline_symbols.paste = 'Þ'
+let g:airline_symbols.paste = '∥'
+let g:airline_symbols.whitespace = 'Ξ'
 
 " Toogle search highlighting
 " ---------------------------------|
@@ -161,11 +143,6 @@ imap <F5> <ESC>:setlocal spell! spelllang=en_us<cr>
 nnoremap <silent> <M-F12> :BufExplorer<CR>
 nnoremap <silent> <F12> :bn<CR>
 nnoremap <silent> <S-F12> :bp<CR>
-
-" Treat .ru Gemfile .pp files with as Ruby
-au BufNewFile,BufRead Gemfile set filetype=ruby
-au BufNewFile,BufRead *.ru set filetype ruby
-au BufNewFile,BufRead *.pp set filetype ruby
 
 " Ack configs
 " ---------------------------------|
