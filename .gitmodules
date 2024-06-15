@@ -31,9 +31,6 @@
 [submodule ".vim/pack/bundles/start/fzf.vim"]
 	path = .vim/pack/bundles/start/fzf.vim
 	url = https://github.com/junegunn/fzf.vim
-[submodule ".vim/pack/bundles/start/vim-colors-solarized"]
-	path = .vim/pack/bundles/start/vim-colors-solarized
-	url = https://github.com/altercation/vim-colors-solarized
 [submodule ".vim/pack/bundles/start/nerdtree"]
 	path = .vim/pack/bundles/start/nerdtree
 	url = https://github.com/scrooloose/nerdtree
