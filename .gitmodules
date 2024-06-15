@@ -4,18 +4,12 @@
 [submodule ".vim/pack/bundles/start/vim-surround"]
 	path = .vim/pack/bundles/start/vim-surround
 	url = https://github.com/tpope/vim-surround
-[submodule ".vim/pack/bundles/start/vim-markdown"]
-	path = .vim/pack/bundles/start/vim-markdown
-	url = https://github.com/tpope/vim-markdown
 [submodule ".vim/pack/bundles/start/vim-commentary"]
 	path = .vim/pack/bundles/start/vim-commentary
 	url = https://github.com/tpope/vim-commentary
 [submodule ".vim/pack/bundles/start/tabular"]
 	path = .vim/pack/bundles/start/tabular
 	url = https://github.com/godlygeek/tabular
-[submodule ".vim/pack/bundles/start/vim-javascript-syntax"]
-	path = .vim/pack/bundles/start/vim-javascript-syntax
-	url = https://github.com/jelera/vim-javascript-syntax
 [submodule ".vim/pack/bundles/start/vim-airline"]
 	path = .vim/pack/bundles/start/vim-airline
 	url = https://github.com/bling/vim-airline
