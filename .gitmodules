@@ -52,3 +52,6 @@
 [submodule ".vim/pack/bundles/start/ayu-vim"]
 	path = .vim/pack/bundles/start/ayu-vim
 	url = https://github.com/ayu-theme/ayu-vim.git
+[submodule ".vim/pack/bundles/start/vim-polyglot"]
+	path = .vim/pack/bundles/start/vim-polyglot
+	url = https://github.com/sheerun/vim-polyglot
