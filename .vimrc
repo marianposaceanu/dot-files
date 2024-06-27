@@ -285,3 +285,17 @@ endfunction
 
 " Define a Vim command 'Blame' that calls the above function.
 command! Blame call GitBlameWithCommitMessageAndAuthor()
+
+" Map function keys
+nnoremap <F1> :echo "F1"<CR>
+nnoremap <F2> :echo "F2"<CR>
+nnoremap <F3> :set hlsearch!<CR>
+nnoremap <F4> :echo "F4"<CR>
+nnoremap <F5> :echo "F5"<CR>
+nnoremap <F6> :echo "F6"<CR>
+nnoremap <F7> :echo "F7"<CR>
+nnoremap <F8> :echo "F8"<CR>
+nnoremap <F9> :echo "F9"<CR>
+nnoremap <F10> :echo "F10"<CR>
+nnoremap <F11> :echo "F11"<CR>
+nnoremap <F12> :echo "F12"<CR>
