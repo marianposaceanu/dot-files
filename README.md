@@ -4,7 +4,7 @@ Contains my dot-files for easy usage across different OSs.
 
 #### theme preview
 
-![Theme Preview](assets/preview.png?raw=true)
+![Theme Preview](assets/preview_24.jpg?raw=true)
 
 #### contains
 
