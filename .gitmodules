@@ -1,6 +1,7 @@
 [submodule ".vim/pack/bundles/start/supertab"]
 	path = .vim/pack/bundles/start/supertab
 	url = https://github.com/ervandew/supertab
+	branch = main
 [submodule ".vim/pack/bundles/start/vim-surround"]
 	path = .vim/pack/bundles/start/vim-surround
 	url = https://github.com/tpope/vim-surround
@@ -46,3 +47,6 @@
 [submodule ".vim/pack/bundles/start/vim-polyglot"]
 	path = .vim/pack/bundles/start/vim-polyglot
 	url = https://github.com/sheerun/vim-polyglot
+[submodule ".vim/pack/bundles/start/fugitive"]
+	path = .vim/pack/bundles/start/fugitive
+	url = https://github.com/tpope/vim-fugitive.git
