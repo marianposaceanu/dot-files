@@ -1,40 +1,53 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ -z "$1" ]; then
+set -euo pipefail
+
+if [ -z "${1:-}" ]; then
   echo "Usage: $0 <submodule-path>"
   exit 1
 fi
 
-SUBMODULE_PATH=$1
+SUBMODULE_PATH="$1"
 
-# Ensure the submodule path exists in the .gitmodules file
-if ! grep -q "$SUBMODULE_PATH" .gitmodules; then
+if [ ! -f .gitmodules ]; then
+  echo "Error: .gitmodules not found in current directory."
+  exit 1
+fi
+
+mapfile -t MATCHING_SECTIONS < <(
+  git config -f .gitmodules --get-regexp '^submodule\..*\.path$' \
+    | awk -v p="$SUBMODULE_PATH" '$2 == p {sub(/\.path$/, "", $1); print $1}'
+)
+
+if [ "${#MATCHING_SECTIONS[@]}" -eq 0 ]; then
   echo "Error: Submodule path '$SUBMODULE_PATH' does not exist in .gitmodules."
   exit 1
 fi
 
-# Get the submodule name from .gitmodules
-SUBMODULE_NAME=$(git config -f .gitmodules --name-only --get-regexp "submodule\..*\.path" | grep "$SUBMODULE_PATH" | sed 's/\.path//')
-if [ -z "$SUBMODULE_NAME" ]; then
-  echo "Error: Could not find submodule '$SUBMODULE_PATH' in .gitmodules."
+if [ "${#MATCHING_SECTIONS[@]}" -gt 1 ]; then
+  echo "Error: Multiple submodule sections match '$SUBMODULE_PATH'."
+  printf ' - %s\n' "${MATCHING_SECTIONS[@]}"
   exit 1
 fi
 
+SUBMODULE_NAME="${MATCHING_SECTIONS[0]}"
+
 echo "Removing submodule '$SUBMODULE_NAME' at path '$SUBMODULE_PATH'..."
 
-# Remove the submodule entry from .gitmodules
+# Remove the submodule entry from .gitmodules and stage it before git rm.
 git config -f .gitmodules --remove-section "$SUBMODULE_NAME"
+git add .gitmodules
 
-# Remove the submodule from the index
-git rm --cached "$SUBMODULE_PATH"
+# Deinitialize and remove submodule from index/working tree.
+git submodule deinit -f -- "$SUBMODULE_PATH" >/dev/null 2>&1 || true
+git rm -f "$SUBMODULE_PATH"
 
-# Remove the submodule's directory from the working tree
-rm -rf "$SUBMODULE_PATH"
+# Remove local submodule config if present.
+if git config --get-regexp "^${SUBMODULE_NAME//./\.}(\.|$)" >/dev/null 2>&1; then
+  git config --remove-section "$SUBMODULE_NAME" || true
+fi
 
-# Remove the submodule reference from .git/config
-git config --remove-section "$SUBMODULE_NAME"
-
-# Remove the submodule's directory from .git/modules
+# Remove submodule metadata.
 rm -rf ".git/modules/$SUBMODULE_PATH"
 
 echo "Submodule '$SUBMODULE_NAME' removed successfully."
