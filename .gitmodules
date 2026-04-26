@@ -8,15 +8,12 @@
 [submodule ".vim/pack/bundles/start/vim-commentary"]
 	path = .vim/pack/bundles/start/vim-commentary
 	url = https://github.com/tpope/vim-commentary
-[submodule ".vim/pack/bundles/start/tabular"]
-	path = .vim/pack/bundles/start/tabular
+[submodule ".vim/pack/bundles/opt/tabular"]
+	path = .vim/pack/bundles/opt/tabular
 	url = https://github.com/godlygeek/tabular
 [submodule ".vim/pack/bundles/start/vim-rooter"]
 	path = .vim/pack/bundles/start/vim-rooter
 	url = https://github.com/airblade/vim-rooter
-[submodule ".vim/pack/bundles/start/ack.vim"]
-	path = .vim/pack/bundles/start/ack.vim
-	url = https://github.com/mileszs/ack.vim
 [submodule ".vim/pack/bundles/start/vim-endwise"]
 	path = .vim/pack/bundles/start/vim-endwise
 	url = https://github.com/tpope/vim-endwise

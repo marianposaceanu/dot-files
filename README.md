@@ -42,6 +42,7 @@ Contains my dot-files for easy usage across different OSs.
 - `<C-p>`: open `:Files` via `fzf.vim`.
 - `<C-n>`: lazy-load and toggle NERDTree.
 - `<leader>gv`: lazy-load and toggle GoldenView.
+- `:Tabularize /<pattern>`: lazy-load Tabular and align by pattern (example: `:Tabularize /=>`).
 
 #### cleanly remove a module
 

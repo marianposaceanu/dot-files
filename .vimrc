@@ -86,6 +86,11 @@ augroup END
 " ---------------------------------|
 nnoremap <C-n> :packadd nerdtree <Bar> NERDTreeToggle<CR>
 
+augroup tabular_lazy
+  autocmd!
+  autocmd CmdUndefined Tabularize packadd tabular
+augroup END
+
 
 " FZF settings
 " ---------------------------------|
