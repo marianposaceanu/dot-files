@@ -6,12 +6,18 @@ window-height = 50
 window-width = 180
 shell-integration = none
 copy-on-select = clipboard
+scrollback-limit = 50000000
+mouse-hide-while-typing = true
+cursor-click-to-move = true
 
 # from https://github.com/cnavajas/.dotfiles/blob/master/ghostty/config
 unfocused-split-opacity = 0.3
 
 # window
 # macos-titlebar-style = hidden
+macos-option-as-alt = true
+macos-auto-secure-input = true
+window-save-state = always
 
 # improvised search
 # via https://github.com/ghostty-org/ghostty/issues/189#issuecomment-2564157291
