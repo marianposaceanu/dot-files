@@ -1,0 +1,37 @@
+Vim startup profile log: /var/folders/ns/q3nvc5y96f36dv4sl8vh5cv80000gn/T/vim-startuptime.XXXXXX.log.QLGXdbWDlU
+
+Top sourced files by self+sourced time (ms):
+    35.552	sourcing /Users/marian/dot-files/.vimrc
+    12.974	sourcing /opt/homebrew/share/vim/vim92/syntax/syntax.vim
+     5.498	sourcing /opt/homebrew/share/vim/vim92/filetype.vim
+     2.465	sourcing /opt/homebrew/share/vim/vim92/autoload/dist/ft.vim
+     2.283	sourcing /opt/homebrew/share/vim/vim92/syntax/synload.vim
+     1.913	sourcing /opt/homebrew/share/vim/vim92/syntax/syncolor.vim
+     1.773	sourcing /Users/marian/.vim/colors/ayu.vim
+     1.526	sourcing /Users/marian/.vim/pack/bundles/start/tabular/after/plugin/TabularMaps.vim
+     1.382	sourcing /opt/homebrew/share/vim/vim92/colors/lists/default.vim
+     1.325	sourcing /opt/homebrew/share/vim/vim92/plugin/netrwPlugin.vim
+     1.259	sourcing /opt/homebrew/share/vim/vim92/scripts.vim
+     0.783	sourcing /Users/marian/.vim/pack/bundles/start/lightline.vim/autoload/lightline/colorscheme/wombat.vim
+     0.778	sourcing /Users/marian/.vim/plugin/bufexplorer.vim
+     0.754	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/fugitive/plugin/fugitive.vim
+     0.600	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/fzf.vim/plugin/fzf.vim
+     0.546	sourcing /opt/homebrew/opt/fzf/plugin/fzf.vim
+     0.543	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/supertab/plugin/supertab.vim
+     0.290	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/vim-surround/plugin/surround.vim
+     0.286	sourcing /Users/marian/.vim/pack/bundles/start/lightline.vim/autoload/lightline.vim
+     0.278	sourcing /opt/homebrew/share/vim/vim92/autoload/dist/script.vim
+
+Plugin totals under .vim/pack/bundles/start (ms):
+     1.831	   3 files	tabular
+     1.265	   5 files	lightline.vim
+     0.762	   2 files	fugitive
+     0.600	   1 files	fzf.vim
+     0.543	   1 files	supertab
+     0.290	   1 files	vim-surround
+     0.206	   1 files	vim-endwise
+     0.189	   1 files	ack.vim
+     0.171	   1 files	vim-rooter
+     0.090	   1 files	vim-commentary
+
+Tip: run multiple times and compare medians for stability.

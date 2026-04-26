@@ -111,35 +111,15 @@ endif
 
 nnoremap <C-p> :Files<CR>
 
-" Airline settings
+" Lightline settings
 " ---------------------------------|
-" Set the theme
-let g:airline_theme='simple'
-
-" Enable powerline fonts
-let g:airline_powerline_fonts = 1
-
-" Disable default sections
-let g:airline_section_a = ''
-let g:airline_section_b = ''
-let g:airline_section_c = ''
-let g:airline_section_x = ''
-let g:airline_section_y = ''
-let g:airline_section_z = ''
-
-" Customize sections
-let g:airline_section_a = airline#section#create(['mode'])
-let g:airline_section_c = airline#section#create(['%f'])
-let g:airline_section_x = airline#section#create(['%p%%'])
-let g:airline_section_y = airline#section#create(['fileformat', 'fileencoding'])  " Including file encoding
-let g:airline_section_z = airline#section#create(['linenr', ':%c'])
-
-" Disable unused extensions
-let g:airline#extensions#branch#enabled = 0
-let g:airline#extensions#hunks#enabled = 0
-let g:airline#extensions#syntastic#enabled = 0
-let g:airline#extensions#tagbar#enabled = 0
-let g:airline#extensions#tabline#enabled = 0
+let g:lightline = {
+      \ 'colorscheme': 'wombat',
+      \ 'active': {
+      \   'left': [ [ 'mode' ], [ 'readonly', 'filename', 'modified' ] ],
+      \   'right': [ [ 'percent' ], [ 'lineinfo' ], [ 'fileformat', 'fileencoding' ] ]
+      \ }
+      \ }
 
 " Toogle search highlighting
 " ---------------------------------|

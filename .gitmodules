@@ -11,9 +11,6 @@
 [submodule ".vim/pack/bundles/start/tabular"]
 	path = .vim/pack/bundles/start/tabular
 	url = https://github.com/godlygeek/tabular
-[submodule ".vim/pack/bundles/start/vim-airline"]
-	path = .vim/pack/bundles/start/vim-airline
-	url = https://github.com/bling/vim-airline
 [submodule ".vim/pack/bundles/start/vim-rooter"]
 	path = .vim/pack/bundles/start/vim-rooter
 	url = https://github.com/airblade/vim-rooter
@@ -26,9 +23,6 @@
 [submodule ".vim/pack/bundles/start/vim-repeat"]
 	path = .vim/pack/bundles/start/vim-repeat
 	url = https://github.com/tpope/vim-repeat
-[submodule ".vim/pack/bundles/start/vim-airline-themes"]
-	path = .vim/pack/bundles/start/vim-airline-themes
-	url = https://github.com/vim-airline/vim-airline-themes
 [submodule ".vim/pack/bundles/start/fzf.vim"]
 	path = .vim/pack/bundles/start/fzf.vim
 	url = https://github.com/junegunn/fzf.vim
@@ -50,3 +44,6 @@
 [submodule ".vim/pack/bundles/start/fugitive"]
 	path = .vim/pack/bundles/start/fugitive
 	url = https://github.com/tpope/vim-fugitive.git
+[submodule ".vim/pack/bundles/start/lightline.vim"]
+	path = .vim/pack/bundles/start/lightline.vim
+	url = https://github.com/itchyny/lightline.vim.git

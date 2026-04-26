@@ -14,7 +14,10 @@ if [ ! -f .gitmodules ]; then
   exit 1
 fi
 
-mapfile -t MATCHING_SECTIONS < <(
+MATCHING_SECTIONS=()
+while IFS= read -r section; do
+  [ -n "$section" ] && MATCHING_SECTIONS+=("$section")
+done < <(
   git config -f .gitmodules --get-regexp '^submodule\..*\.path$' \
     | awk -v p="$SUBMODULE_PATH" '$2 == p {sub(/\.path$/, "", $1); print $1}'
 )
