@@ -94,6 +94,11 @@ augroup tabular_lazy
   autocmd CmdUndefined Tabularize packadd tabular
 augroup END
 
+augroup fugitive_lazy
+  autocmd!
+  autocmd CmdUndefined Git,G,Gstatus,Gblame,Glog,Gclog,Gwrite,Gread,Gdiffsplit,Gvdiffsplit,GBrowse packadd fugitive
+augroup END
+
 
 " FZF settings
 " ---------------------------------|

@@ -23,8 +23,8 @@
 [submodule ".vim/pack/bundles/start/fzf.vim"]
 	path = .vim/pack/bundles/start/fzf.vim
 	url = https://github.com/junegunn/fzf.vim
-[submodule ".vim/pack/bundles/start/fugitive"]
-	path = .vim/pack/bundles/start/fugitive
+[submodule ".vim/pack/bundles/opt/fugitive"]
+	path = .vim/pack/bundles/opt/fugitive
 	url = https://github.com/tpope/vim-fugitive.git
 [submodule ".vim/pack/bundles/opt/nerdtree"]
 	path = .vim/pack/bundles/opt/nerdtree
