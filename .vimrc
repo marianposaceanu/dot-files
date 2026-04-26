@@ -50,7 +50,7 @@ set history=1000                   " Keep 1000 lines of command line history.
 set undolevels=1000                " Allow 1000 levels of undo.
 set cursorline                     " Highlight the line with the cursor.
 set expandtab                      " Use spaces instead of tabs.
-set autochdir                      " Automatically change the current working directory to the file being edited.
+" set autochdir                    " Keep cwd stable for better plugin/tool behavior.
 set backspace=indent,eol,start     " Allow intuitive backspacing in insert mode.
 set ignorecase                     " Case-insensitive searching by default.
 set smartcase                      " Case-sensitive search if the search pattern contains uppercase letters.
@@ -73,10 +73,17 @@ set softtabstop=2                 " This makes the backspace key treat the two
                                   "  spaces like a tab (so one backspace goes
                                   "  back a full 2 spaces).
 
+" Large file performance guardrails
+augroup large_file_perf
+  autocmd!
+  autocmd BufReadPre * if getfsize(expand('%:p')) > 1024 * 1024 | let b:large_file = 1 | endif
+  autocmd BufReadPost * if exists('b:large_file') | syntax off | setlocal nocursorline | endif
+augroup END
+
 
 " NERDTree settings
 " ---------------------------------|
-map <C-n> :NERDTreeToggle<CR>
+nnoremap <C-n> :packadd nerdtree <Bar> NERDTreeToggle<CR>
 
 
 " FZF settings
@@ -214,6 +221,11 @@ imap <right> <nop>
 
 " Golden View
 let g:goldenview__enable_default_mapping = 0
+function! s:ToggleGoldenView() abort
+  packadd GoldenView.Vim
+  execute 'GoldenViewToggle'
+endfunction
+nnoremap <leader>gv :call <SID>ToggleGoldenView()<CR>
 
 " fix slow JRuby loading via: https://github.com/vim-ruby/vim-ruby/issues/33
 if !empty(matchstr($MY_RUBY_HOME, 'jruby'))
