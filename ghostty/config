@@ -1,0 +1,18 @@
+# theme = OneHalfDark
+font-family = "Berkeley Mono Trial Regular"
+font-size = 16
+font-feature = -calt
+window-height = 50
+window-width = 180
+shell-integration = none
+copy-on-select = clipboard
+
+# from https://github.com/cnavajas/.dotfiles/blob/master/ghostty/config
+unfocused-split-opacity = 0.3
+
+# window
+# macos-titlebar-style = hidden
+
+# improvised search
+# via https://github.com/ghostty-org/ghostty/issues/189#issuecomment-2564157291
+keybind = super+f=write_screen_file:open

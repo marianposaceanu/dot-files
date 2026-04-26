@@ -64,6 +64,8 @@ Contains my dot-files for easy usage across different OSs.
     ln -s ~/dot-files/.gitconfig ~/.gitconfig
     ln -s ~/dot-files/.tmux.conf ~/.tmux.conf
     ln -s ~/dot-files/.zshrc ~/.zshrc
+    mv "$HOME/Library/Application Support/com.mitchellh.ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config.backup"
+    ln -s ~/dot-files/ghostty/config "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 
 #### macOS keyboard key repeat
 
