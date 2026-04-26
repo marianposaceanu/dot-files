@@ -40,7 +40,7 @@ colorscheme ayu
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
 
 set pastetoggle=<F2>               " Toggle paste mode with F2 for easier pasting.
-set synmaxcol=200                  " Limit syntax highlighting to 200 columns for performance.
+set synmaxcol=2000                 " Limit syntax highlighting to 200 columns for performance.
 set number                         " Display line numbers.
 set hlsearch                       " Highlight search matches.
 set showmatch                      " Briefly jump to matching bracket when inserting one.
@@ -286,6 +286,73 @@ endfunction
 " Define a Vim command 'Blame' that calls the above function.
 command! Blame call GitBlameWithCommitMessageAndAuthor()
 
+" Define a function that searches git log for changes based on selected text or current line content and outputs a GitHub commit link.
+function! GitLogSearchByLineOrSelection(...) range
+    " Initialize search_term variable.
+    let search_term = ''
+
+    " Check if there is any selected text in visual mode or a range passed
+    if a:firstline != a:lastline || mode() ==# 'v'
+        " Get the lines between the start and end positions.
+        let lines = getline(a:firstline, a:lastline)
+
+        " Join multiple lines with a space for searching.
+        let search_term = join(lines, ' ')
+    else
+        " If no visual selection or range, get the current line content.
+        let search_term = getline('.')
+    endif
+
+    " Escape the search term to safely pass it to the shell.
+    let search_term = shellescape(search_term)
+
+    " Get the current file name.
+    let filename = expand('%')
+
+    " Construct the git log search command using --reverse and -S for the search term.
+    let log_cmd = 'git log --reverse -S' . search_term . ' -- ' . shellescape(filename)
+
+    " Execute the git log command and capture the output.
+    let log_output = system(log_cmd)
+
+    " Check if any result is found.
+    if empty(log_output)
+        echo "No commits found for the search term"
+    else
+        " Extract the commit hash from the git log output (first word in each log entry).
+        let commit_hash = split(log_output)[1]
+
+        " Get the remote repository URL from git configuration.
+        let remote_url_cmd = 'git config --get remote.origin.url'
+        let remote_url = system(remote_url_cmd)
+        let remote_url = substitute(remote_url, '\n\+$', '', '') " Remove trailing newline
+
+        " Transform the remote URL into a GitHub repository URL.
+        let github_repo_url = substitute(remote_url, '\.git$', '', '')
+        let github_repo_url = substitute(github_repo_url, 'git@github\.com:', 'https://github.com/', '')
+        let github_repo_url = substitute(github_repo_url, 'https://', 'https://', '')
+
+        " Construct the full GitHub URL for the specific commit.
+        let commit_url = github_repo_url . '/commit/' . commit_hash
+
+        " Display the commit URL and the log output.
+        echohl Directory
+        echo "Commit: "
+        echohl Underlined
+        echo commit_url
+        echohl None
+        echo " - " . log_output
+        echohl None
+    endif
+endfunction
+
+" Define a Vim command 'LogSearch' that accepts an optional range.
+command! -range LogSearch <line1>,<line2>call GitLogSearchByLineOrSelection(<line1>, <line2>)
+
+" Map the function to be used in visual mode or normal mode to search the current line or selected text.
+vnoremap <leader>gs :<C-U>call GitLogSearchByLineOrSelection('<','>')<CR>
+nnoremap <leader>gs :call GitLogSearchByLineOrSelection()<CR>
+
 " Map function keys
 nnoremap <F1> :echo "F1"<CR>
 nnoremap <F2> :echo "F2"<CR>
@@ -299,3 +366,6 @@ nnoremap <F9> :echo "F9"<CR>
 nnoremap <F10> :echo "F10"<CR>
 nnoremap <F11> :echo "F11"<CR>
 nnoremap <F12> :echo "F12"<CR>
+
+" Map .json.jbuilder files to Ruby syntax
+autocmd BufNewFile,BufRead *.json.jbuilder set syntax=ruby
