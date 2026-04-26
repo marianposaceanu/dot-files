@@ -1,0 +1,7 @@
+brew "fzf"
+brew "ripgrep"
+brew "bat"
+brew "the_silver_searcher"
+brew "universal-ctags"
+brew "tmux"
+brew "reattach-to-user-namespace"

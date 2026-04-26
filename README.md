@@ -23,17 +23,23 @@ Contains my dot-files for easy usage across different OSs.
 
 #### update the bundles
 
-    git submodule update --init
+    git submodule update --init --recursive
 
 #### fully update all bundles
 
-    git submodule foreach git pull origin master
+    git submodule update --remote --recursive
 
 #### install deps:
 
 - via script: `./bootstrap/install_brew_deps.sh`
-- FZF: `brew update; brew reinstall fzf`
-- FZF+: `brew install fzf bat ripgrep the_silver_searcher perl universal-ctags`
+- via Brewfile: `brew bundle --file Brewfile`
+- current formulae: `fzf`, `ripgrep`, `bat`, `the_silver_searcher`, `universal-ctags`, `tmux`, `reattach-to-user-namespace`
+
+#### config and benchmark checks
+
+- run config checks: `./bootstrap/check_configs.sh`
+- single-run Vim profile: `./benchmarks/profile_vim_plugins.sh`
+- median profile (default 7 runs): `./benchmarks/profile_vim_plugins_median.sh`
 
 #### vim shortcuts
 

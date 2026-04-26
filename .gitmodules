@@ -29,9 +29,6 @@
 [submodule ".vim/pack/bundles/opt/nerdtree"]
 	path = .vim/pack/bundles/opt/nerdtree
 	url = https://github.com/scrooloose/nerdtree
-[submodule ".vim/pack/bundles/start/vim-monokai"]
-	path = .vim/pack/bundles/start/vim-monokai
-	url = https://github.com/crusoexia/vim-monokai
 [submodule ".vim/pack/bundles/opt/GoldenView.Vim"]
 	path = .vim/pack/bundles/opt/GoldenView.Vim
 	url = https://github.com/zhaocai/GoldenView.Vim

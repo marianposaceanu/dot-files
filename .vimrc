@@ -27,7 +27,6 @@ autocmd FileType ruby setlocal ts=2 sts=2 sw=2 norelativenumber nocursorline
 " Theme colors
 " ---------------------------------|
 " colorscheme solarized
-" colorscheme monokai              " requires https://github.com/crusoexia/vim-monokai
 " colorscheme base16-railscasts    " requires https://github.com/chriskempson/base16-shell into .zshrc
 " colorscheme molokai
 set termguicolors                  " enable true colors support
@@ -65,7 +64,6 @@ set nowritebackup                 " And again.
 set dir=~/tmp                     " save swp files into tmp
 set noswapfile
 
-set expandtab                     " Use spaces instead of tabs
 set tabstop=2                     " Global tab width.
 set shiftwidth=2                  " And again, related.
 set softtabstop=2                 " This makes the backspace key treat the two
@@ -138,7 +136,7 @@ nnoremap <F3> :set hlsearch!<CR>
 
 " Toggle spell check with <F5>
 " ---------------------------------|
-map <F5> :setlocal spell! spelllang=en_us<cr>
+nnoremap <F5> :setlocal spell! spelllang=en_us<cr>
 imap <F5> <ESC>:setlocal spell! spelllang=en_us<cr>
 
 " Toogle alternate shortcut for BuffExplorer
@@ -159,11 +157,11 @@ vnoremap <F2> d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
 
 " Check code complexity and duplication for current file
 if has("gui_win32")
-  map <leader>x :!cls &&
+  nnoremap <leader>x :!cls &&
         \ echo '----- Complexity -----' && flog % &&
         \ echo '----- Duplication -----' && flay %<cr>
 else
-  map <leader>x :!clear &&
+  nnoremap <leader>x :!clear &&
         \ echo '----- Complexity -----' && flog % &&
         \ echo '----- Duplication -----' && flay %<cr>
 end
@@ -178,7 +176,7 @@ function! RenameFile()
     redraw!
   endif
 endfunction
-map <leader>n :call RenameFile()<cr>
+nnoremap <leader>n :call RenameFile()<cr>
 
 " OSX Vim clipboard fixes
 "  note: vim needs to be compiled with --enable-clipboard, --enable-xterm_clipboard
@@ -201,10 +199,10 @@ let g:netrw_dirhistmax = 0
 
 " Bye bye arrow keys
 " ---------------------------------|
-map <up> <nop>
-map <down> <nop>
-map <left> <nop>
-map <right> <nop>
+nnoremap <up> <nop>
+nnoremap <down> <nop>
+nnoremap <left> <nop>
+nnoremap <right> <nop>
 imap <up> <nop>
 imap <down> <nop>
 imap <left> <nop>
@@ -234,10 +232,10 @@ vnoremap ` :normal @a<CR>
 " Use ctrl-[hjkl] to select the active split!
 " via https://stackoverflow.com/questions/6053301/easier-way-to-navigate-between-vim-split-panes
 "     https://vim.fandom.com/wiki/Switch_between_Vim_window_splits_easily
-nmap <silent> <c-k> :wincmd k<CR>
-nmap <silent> <c-j> :wincmd j<CR>
-nmap <silent> <c-h> :wincmd h<CR>
-nmap <silent> <c-l> :wincmd l<CR>
+nnoremap <silent> <c-k> :wincmd k<CR>
+nnoremap <silent> <c-j> :wincmd j<CR>
+nnoremap <silent> <c-h> :wincmd h<CR>
+nnoremap <silent> <c-l> :wincmd l<CR>
 
 " Map .json.jbuilder files to Ruby syntax
 autocmd BufNewFile,BufRead *.json.jbuilder set syntax=ruby
