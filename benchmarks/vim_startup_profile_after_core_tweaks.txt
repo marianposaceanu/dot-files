@@ -1,0 +1,35 @@
+Vim startup profile log: /var/folders/ns/q3nvc5y96f36dv4sl8vh5cv80000gn/T/vim-startuptime.XXXXXX.log.f6PvMe34l0
+
+Top sourced files by self+sourced time (ms):
+    25.918	sourcing /Users/marian/dot-files/.vimrc
+    10.145	sourcing /opt/homebrew/share/vim/vim92/syntax/syntax.vim
+     4.006	sourcing /opt/homebrew/share/vim/vim92/filetype.vim
+     2.160	sourcing /opt/homebrew/share/vim/vim92/autoload/dist/ft.vim
+     1.715	sourcing /opt/homebrew/share/vim/vim92/syntax/synload.vim
+     1.559	sourcing /Users/marian/.vim/colors/ayu.vim
+     1.449	sourcing /opt/homebrew/share/vim/vim92/syntax/syncolor.vim
+     1.175	sourcing /opt/homebrew/share/vim/vim92/plugin/netrwPlugin.vim
+     1.053	sourcing /opt/homebrew/share/vim/vim92/scripts.vim
+     1.047	sourcing /opt/homebrew/share/vim/vim92/colors/lists/default.vim
+     0.795	sourcing /Users/marian/.vim/pack/bundles/start/lightline.vim/autoload/lightline/colorscheme/wombat.vim
+     0.736	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/fugitive/plugin/fugitive.vim
+     0.731	sourcing /Users/marian/.vim/plugin/bufexplorer.vim
+     0.585	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/fzf.vim/plugin/fzf.vim
+     0.541	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/supertab/plugin/supertab.vim
+     0.481	sourcing /opt/homebrew/opt/fzf/plugin/fzf.vim
+     0.294	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/vim-surround/plugin/surround.vim
+     0.292	sourcing /Users/marian/.vim/pack/bundles/start/lightline.vim/autoload/lightline.vim
+     0.245	sourcing /opt/homebrew/share/vim/vim92/autoload/dist/script.vim
+     0.229	sourcing /Users/marian/dot-files/.vim/pack/bundles/start/vim-endwise/plugin/endwise.vim
+
+Plugin totals under .vim/pack/bundles/start (ms):
+     1.305	   5 files	lightline.vim
+     0.748	   2 files	fugitive
+     0.585	   1 files	fzf.vim
+     0.541	   1 files	supertab
+     0.294	   1 files	vim-surround
+     0.229	   1 files	vim-endwise
+     0.165	   1 files	vim-rooter
+     0.091	   1 files	vim-commentary
+
+Tip: run multiple times and compare medians for stability.

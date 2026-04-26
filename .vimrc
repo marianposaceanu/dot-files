@@ -9,7 +9,6 @@ set lazyredraw                    " more info: https://github.com/tpope/vim-sens
 set ttyfast
 set ttyscroll=3
 set ttymouse=xterm2
-set regexpengine=1
 
 
 " Theme
@@ -40,7 +39,7 @@ colorscheme ayu
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
 
 set pastetoggle=<F2>               " Toggle paste mode with F2 for easier pasting.
-set synmaxcol=2000                 " Limit syntax highlighting to 200 columns for performance.
+set synmaxcol=800                  " Limit syntax highlighting to 800 columns for better performance.
 set number                         " Display line numbers.
 set hlsearch                       " Highlight search matches.
 set showmatch                      " Briefly jump to matching bracket when inserting one.
@@ -48,7 +47,6 @@ set incsearch                      " Highlight matches as you type during a sear
 set autoindent                     " Copy indent from the current line when starting a new line.
 set history=1000                   " Keep 1000 lines of command line history.
 set undolevels=1000                " Allow 1000 levels of undo.
-set cursorline                     " Highlight the line with the cursor.
 set expandtab                      " Use spaces instead of tabs.
 " set autochdir                    " Keep cwd stable for better plugin/tool behavior.
 set backspace=indent,eol,start     " Allow intuitive backspacing in insert mode.
@@ -79,6 +77,13 @@ augroup large_file_perf
   autocmd!
   autocmd BufReadPre * if getfsize(expand('%:p')) > 1024 * 1024 | let b:large_file = 1 | endif
   autocmd BufReadPost * if exists('b:large_file') | syntax off | setlocal nocursorline | endif
+augroup END
+
+" Cursorline only in active window
+augroup active_cursorline
+  autocmd!
+  autocmd WinEnter,BufEnter * setlocal cursorline
+  autocmd WinLeave * setlocal nocursorline
 augroup END
 
 
