@@ -34,6 +34,15 @@ Contains my dot-files for easy usage across different OSs.
 - FZF: `brew update; brew reinstall fzf`
 - FZF+: `brew install fzf bat ripgrep the_silver_searcher perl universal-ctags`
 
+#### vim shortcuts
+
+- `<leader>a` (usually `\a`): run `:Rg` and type a ripgrep search query.
+- `<leader>A` (usually `\A`): run `:Rg` for the word under cursor.
+- `<leader>gs`: search git history for current line/selection and print commit URL.
+- `<C-p>`: open `:Files` via `fzf.vim`.
+- `<C-n>`: lazy-load and toggle NERDTree.
+- `<leader>gv`: lazy-load and toggle GoldenView.
+
 #### cleanly remove a module
 
     git submodule deinit asubmodule

@@ -58,6 +58,7 @@ set scrolloff=3                    " Keep 3 lines visible above and below the cu
 set laststatus=2                   " Always show the status line.
 set encoding=utf-8                 " Use UTF-8 encoding for files.
 set nowrap                         " Disable line wrapping, display long lines as one line.
+set fillchars+=eob:.               " Show end-of-buffer lines as dots.
 set ttimeoutlen=50                " fix for slow after INSERT exit mode
 " set linebreak                     " ^
 
@@ -137,10 +138,10 @@ nnoremap <silent> <M-F12> :BufExplorer<CR>
 nnoremap <silent> <F12> :bn<CR>
 nnoremap <silent> <S-F12> :bp<CR>
 
-" Ack configs
+" Ripgrep configs (fzf.vim)
 " ---------------------------------|
-map <leader>a :Ack!<space>                             " Map Ack
-map <leader>A :Ack! "<C-r>=expand('<cword>')<CR>"      " Search for word under cursor with ack
+nnoremap <leader>a :Rg<space>
+nnoremap <leader>A :Rg <C-r><C-w><CR>
 
 " Sorting words (not lines) in VIM
 "  via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
