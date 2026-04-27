@@ -53,6 +53,7 @@ set ignorecase                     " Case-insensitive searching by default.
 set smartcase                      " Case-sensitive search if the search pattern contains uppercase letters.
 set scrolloff=3                    " Keep 3 lines visible above and below the cursor.
 set laststatus=2                   " Always show the status line.
+set cursorlineopt=number           " Highlight only the line number for the cursor line.
 set encoding=utf-8                 " Use UTF-8 encoding for files.
 set nowrap                         " Disable line wrapping, display long lines as one line.
 set fillchars+=eob:.               " Show end-of-buffer lines as dots.
@@ -128,7 +129,7 @@ nnoremap <C-p> :Files<CR>
 " Lightline settings
 " ---------------------------------|
 let g:lightline = {
-      \ 'colorscheme': 'wombat',
+      \ 'colorscheme': 'ayu_dark',
       \ 'active': {
       \   'left': [ [ 'mode' ], [ 'readonly', 'filename', 'modified' ] ],
       \   'right': [ [ 'percent' ], [ 'lineinfo' ], [ 'fileformat', 'fileencoding' ] ]
