@@ -37,13 +37,15 @@ SUBMODULE_NAME="${MATCHING_SECTIONS[0]}"
 
 echo "Removing submodule '$SUBMODULE_NAME' at path '$SUBMODULE_PATH'..."
 
-# Remove the submodule entry from .gitmodules and stage it before git rm.
-git config -f .gitmodules --remove-section "$SUBMODULE_NAME"
-git add .gitmodules
-
 # Deinitialize and remove submodule from index/working tree.
 git submodule deinit -f -- "$SUBMODULE_PATH" >/dev/null 2>&1 || true
 git rm -f "$SUBMODULE_PATH"
+
+# Ensure the submodule entry is removed from .gitmodules and stage it.
+if git config -f .gitmodules --get-regexp "^${SUBMODULE_NAME//./\\.}\\.path$" >/dev/null 2>&1; then
+  git config -f .gitmodules --remove-section "$SUBMODULE_NAME"
+fi
+git add .gitmodules
 
 # Remove local submodule config if present.
 if git config --get-regexp "^${SUBMODULE_NAME//./\.}(\.|$)" >/dev/null 2>&1; then

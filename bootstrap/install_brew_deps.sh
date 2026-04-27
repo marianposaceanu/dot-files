@@ -19,7 +19,7 @@ echo "Updating Homebrew metadata..."
 brew update
 
 echo "Installing dependencies from Brewfile..."
-if brew bundle --help 2>/dev/null | rg -q -- '--no-lock'; then
+if brew bundle --help 2>/dev/null | grep -q -- '--no-lock'; then
   brew bundle --file "$BREWFILE" --no-lock
 else
   brew bundle --file "$BREWFILE"

@@ -29,6 +29,8 @@ Contains my dot-files for easy usage across different OSs.
 
     git submodule update --remote --recursive
 
+This updates plugin pointers in your repo; run it only when you intentionally want to bump submodule versions.
+
 #### install deps:
 
 - via script: `./bootstrap/install_brew_deps.sh`
