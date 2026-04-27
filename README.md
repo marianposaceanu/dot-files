@@ -75,7 +75,7 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
     ln -s ~/dot-files/.gitconfig ~/.gitconfig
     ln -s ~/dot-files/.tmux.conf ~/.tmux.conf
     ln -s ~/dot-files/.zshrc ~/.zshrc
-    mv "$HOME/Library/Application Support/com.mitchellh.ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config.backup"
+    ./bootstrap/backup_ghostty_config.sh
     ln -s ~/dot-files/ghostty/config "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 
 #### macOS keyboard key repeat
@@ -95,10 +95,6 @@ defaults delete NSGlobalDomain InitialKeyRepeat
 #### zsh
 
 - install oh-my-zsh from: [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
-
-#### iTerm config
-
-- set the b/g color from pure black to `#333333` and foreground to `#ebe6e2`
 
 optional: set zsh as the default shell
 
