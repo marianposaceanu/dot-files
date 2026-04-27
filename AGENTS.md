@@ -11,7 +11,7 @@
 ## Commands agents should use
 - After clone, initialize plugins/submodules: `git submodule update --init`.
 - Update submodules from `.gitmodules` paths (safer than `git submodule foreach git pull origin master`, which fails for non-`master` plugins).
-- Remove a submodule with repo script (preferred over manual steps): `./remove_submodule.sh <submodule-path>`.
+- Remove a submodule with repo script (preferred over manual steps): `./bootstrap/remove_submodule.sh <submodule-path>`.
 
 ## Editing guardrails
 - Do not hand-edit files inside plugin submodules unless the task is explicitly to patch vendored plugin code.

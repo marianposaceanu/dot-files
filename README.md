@@ -97,7 +97,6 @@ defaults delete NSGlobalDomain InitialKeyRepeat
 
 #### iTerm config
 
-- set the default scheme to base16: load it from iterm-colorschemes
 - set the b/g color from pure black to `#333333` and foreground to `#ebe6e2`
 
 optional: set zsh as the default shell
@@ -151,4 +150,4 @@ service ssh restart
 
 #### tips - fully remove a submodule
 
-    ./remove_submodule.sh <submodule-path>
+    ./bootstrap/remove_submodule.sh <submodule-path>
