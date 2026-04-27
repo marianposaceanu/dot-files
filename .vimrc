@@ -100,6 +100,26 @@ augroup fugitive_lazy
   autocmd CmdUndefined Git,G,Gstatus,Gblame,Glog,Gclog,Gwrite,Gread,Gdiffsplit,Gvdiffsplit,GBrowse packadd fugitive
 augroup END
 
+augroup bufexplorer_lazy
+  autocmd!
+  autocmd CmdUndefined BufExplorer,BufExplorerHorizontalSplit,BufExplorerVerticalSplit packadd bufexplorer
+augroup END
+
+function! s:BcloseCommand(args, bang) abort
+  if !exists('loaded_bclose')
+    packadd bclose
+  endif
+  if !exists('loaded_bclose')
+    echoerr 'bclose plugin not available'
+    return
+  endif
+  let cmd = 'Bclose' . (a:bang ? '!' : '')
+  if a:args !=# ''
+    let cmd .= ' ' . a:args
+  endif
+  execute cmd
+endfunction
+command! -bang -complete=buffer -nargs=? Bclose call <SID>BcloseCommand(<q-args>, <bang>0)
 
 " FZF settings
 " ---------------------------------|
@@ -151,6 +171,10 @@ imap <F5> <ESC>:setlocal spell! spelllang=en_us<cr>
 nnoremap <silent> <M-F12> :BufExplorer<CR>
 nnoremap <silent> <F12> :bn<CR>
 nnoremap <silent> <S-F12> :bp<CR>
+nnoremap <silent> <leader>be :BufExplorer<CR>
+nnoremap <silent> <leader>bs :BufExplorerHorizontalSplit<CR>
+nnoremap <silent> <leader>bv :BufExplorerVerticalSplit<CR>
+nnoremap <silent> <leader>bd :Bclose<CR>
 
 " Ripgrep configs (fzf.vim)
 " ---------------------------------|
@@ -171,18 +195,6 @@ else
         \ echo '----- Complexity -----' && flog % &&
         \ echo '----- Duplication -----' && flay %<cr>
 end
-
-" Rename current file, via Gary Bernhardt
-function! RenameFile()
-  let old_name = expand('%')
-  let new_name = input('New file name: ', expand('%'))
-  if new_name != '' && new_name != old_name
-    exec ':saveas ' . new_name
-    exec ':silent !rm ' . old_name
-    redraw!
-  endif
-endfunction
-nnoremap <leader>n :call RenameFile()<cr>
 
 " OSX Vim clipboard fixes
 "  note: vim needs to be compiled with --enable-clipboard, --enable-xterm_clipboard
