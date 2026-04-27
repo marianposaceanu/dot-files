@@ -1,3 +1,4 @@
 Thumbs.db
 *.swp
 .DS_Store
+.vim/.netrwhist

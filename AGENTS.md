@@ -2,11 +2,11 @@
 
 ## What this repo is
 - Personal dotfiles repo (not an app/library project): there is no build, lint, typecheck, test, or CI workflow to run.
-- Main editable configs live at repo root (`.vimrc`, `.gvimrc`, `.zshrc`, `.tmux.conf`, `.alacritty.yml`, `.gitconfig`).
+- Main editable configs live at repo root (`.vimrc`, `.zshrc`, `.tmux.conf`, `.alacritty.yml`, `.gitconfig`).
 
 ## High-impact structure
 - Vim plugin code under `.vim/pack/**` is mostly Git submodules (third-party upstream code), not first-party config.
-- First-party Vim customizations are primarily `.vimrc`, `.vim/plugin/*.vim`, and `.vim/colors/*.vim`.
+- First-party Vim customizations are primarily `.vimrc`, `.vim/plugin/*.vim`, `.vim/colors/*.vim`, and `.vim/pack/local/opt/**`.
 
 ## Commands agents should use
 - After clone, initialize plugins/submodules: `git submodule update --init`.
