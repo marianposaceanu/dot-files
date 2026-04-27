@@ -38,6 +38,7 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 #### config and benchmark checks
 
+- run environment doctor: `./bootstrap/doctor.sh`
 - run config checks: `./bootstrap/check_configs.sh`
 - single-run Vim profile: `./benchmarks/profile_vim_plugins.sh`
 - median profile (default 7 runs): `./benchmarks/profile_vim_plugins_median.sh`
