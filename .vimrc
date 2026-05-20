@@ -75,7 +75,7 @@ set softtabstop=2                 " This makes the backspace key treat the two
 augroup large_file_perf
   autocmd!
   autocmd BufReadPre * if getfsize(expand('%:p')) > 1024 * 1024 | let b:large_file = 1 | endif
-  autocmd BufReadPost * if exists('b:large_file') | syntax off | setlocal nocursorline | endif
+  autocmd BufReadPost * if exists('b:large_file') | setlocal syntax=OFF nocursorline | endif
 augroup END
 
 " Cursorline only in active window
@@ -132,16 +132,10 @@ let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
 let $FZF_DEFAULT_OPTS='--reverse'
 let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
 
-                                              " Detect the system architecture and set the runtime path accordingly
-let s:arch = system('uname -m')               " Check the system architecture
-let s:arch = trim(s:arch)                     " Remove the trailing newline character
-" echom "Detected architecture: " . s:arch    " Debug message to check the architecture
-if s:arch == "arm64"                          " Apple Silicon (ARM)
-    execute 'set rtp+=/opt/homebrew/opt/fzf'
-elseif s:arch == "x86_64"                     " x86
-    execute 'set rtp+=/usr/local/opt/fzf'
-else
-    echom "Unknown architecture: " . s:arch
+if isdirectory('/opt/homebrew/opt/fzf')
+  set rtp+=/opt/homebrew/opt/fzf
+elseif isdirectory('/usr/local/opt/fzf')
+  set rtp+=/usr/local/opt/fzf
 endif
 
 nnoremap <C-p> :Files<CR>

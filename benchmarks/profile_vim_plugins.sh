@@ -21,9 +21,8 @@ if [ ! -f "$VIMRC" ]; then
 fi
 
 LOG_FILE="$(mktemp -t vim-startuptime.XXXXXX.log)"
-trap 'rm -f "$LOG_FILE"' EXIT
 
-"$VIM_BIN" -Nu "$VIMRC" -i NONE -n --startuptime "$LOG_FILE" +qall >/dev/null 2>&1
+"$VIM_BIN" -Nu "$VIMRC" -i NONE -n -es --startuptime "$LOG_FILE" -c qall >/dev/null 2>&1
 
 echo "Vim startup profile log: $LOG_FILE"
 echo

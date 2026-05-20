@@ -32,7 +32,7 @@ total_values=()
 echo "Running $RUNS startup profile iterations..."
 for i in $(seq 1 "$RUNS"); do
   log_file="$(mktemp -t vim-startuptime.XXXXXX.log)"
-  "$VIM_BIN" -Nu "$VIMRC" -i NONE -n --startuptime "$log_file" +qall >/dev/null 2>&1
+  "$VIM_BIN" -Nu "$VIMRC" -i NONE -n -es --startuptime "$log_file" -c qall >/dev/null 2>&1
 
   plugin_ms="$(awk '
     /sourcing / {
