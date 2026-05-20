@@ -6,9 +6,10 @@ syntax on
 " ---------------------------------|
 " notes tweak the key repeat and latency with https://pqrs.org/osx/karabiner/
 set lazyredraw                    " more info: https://github.com/tpope/vim-sensible/issues/78
-set ttyfast
-set ttyscroll=3
-set ttymouse=xterm2
+" ttyfast/ttyscroll removed — deprecated no-ops since Vim 8
+if has('mouse_sgr')
+  set ttymouse=sgr                " SGR protocol supports terminals wider than 223 columns
+endif
 
 
 " Theme
@@ -22,7 +23,10 @@ set ttymouse=xterm2
 " let base16colorspace=256
 
 " Ruby is an oddball in the family, use special spacing/rules
-autocmd FileType ruby setlocal ts=2 sts=2 sw=2 norelativenumber nocursorline
+augroup ruby_settings
+  autocmd!
+  autocmd FileType ruby setlocal ts=2 sts=2 sw=2 norelativenumber nocursorline
+augroup END
 
 " Theme colors
 " ---------------------------------|
@@ -37,7 +41,9 @@ colorscheme ayu
 
 filetype plugin indent on          " Enable file type detection and do language-dependent indenting.
 
-set pastetoggle=<F2>               " Toggle paste mode with F2 for easier pasting.
+set wildmenu                       " Enhanced command-line completion.
+set wildmode=list:longest,full     " Complete to longest common string, then cycle.
+set hidden                         " Allow switching away from modified buffers without saving.
 set synmaxcol=800                  " Limit syntax highlighting to 800 columns for better performance.
 set number                         " Display line numbers.
 set hlsearch                       " Highlight search matches.
@@ -62,7 +68,6 @@ set ttimeoutlen=50                " fix for slow after INSERT exit mode
 
 set nobackup                      " Don't make a backup.
 set nowritebackup                 " And again.
-set dir=~/tmp                     " save swp files into tmp
 set noswapfile
 
 set tabstop=2                     " Global tab width.
@@ -177,7 +182,8 @@ nnoremap <leader>A :Rg <C-r><C-w><CR>
 
 " Sorting words (not lines) in VIM
 "  via http://stackoverflow.com/questions/1327978/sorting-words-not-lines-in-vim
-vnoremap <F2> d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
+"  moved off F2 (conflicts with pastetoggle) to <leader>sw
+vnoremap <leader>sw d:execute 'normal i' . join(sort(split(getreg('"'))), ' ')<CR>
 
 " Check code complexity and duplication for current file
 if has("gui_win32")
@@ -191,17 +197,11 @@ else
 end
 
 " OSX Vim clipboard fixes
+"  set clipboard=unnamed makes the unnamed register mirror the system clipboard;
+"  explicit "+ mappings below are redundant when this is set — removed.
+" set clipboard=unnamed
 "  note: vim needs to be compiled with --enable-clipboard, --enable-xterm_clipboard
 "  you can easily add them via: brew edit vim
-" via:
-"  https://coderwall.com/p/avmotq
-"  http://stackoverflow.com/questions/13380643/vim-use-as-default-register-only-for-yank-command
-nnoremap <expr> y (v:register ==# '"' ? '"+' : '') . 'y'
-nnoremap <expr> yy (v:register ==# '"' ? '"+' : '') . 'yy'
-nnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
-xnoremap <expr> y (v:register ==# '"' ? '"+' : '') . 'y'
-xnoremap <expr> Y (v:register ==# '"' ? '"+' : '') . 'Y'
-
 " yank text to OS X clipboard
 " http://evertpot.com/osx-tmux-vim-copy-paste-clipboard/
 set clipboard=unnamed
@@ -215,10 +215,10 @@ nnoremap <up> <nop>
 nnoremap <down> <nop>
 nnoremap <left> <nop>
 nnoremap <right> <nop>
-imap <up> <nop>
-imap <down> <nop>
-imap <left> <nop>
-imap <right> <nop>
+inoremap <up> <nop>
+inoremap <down> <nop>
+inoremap <left> <nop>
+inoremap <right> <nop>
 
 " Golden View
 let g:goldenview__enable_default_mapping = 0
@@ -250,4 +250,7 @@ nnoremap <silent> <c-h> :wincmd h<CR>
 nnoremap <silent> <c-l> :wincmd l<CR>
 
 " Map .json.jbuilder files to Ruby syntax
-autocmd BufNewFile,BufRead *.json.jbuilder set syntax=ruby
+augroup jbuilder_syntax
+  autocmd!
+  autocmd BufNewFile,BufRead *.json.jbuilder set syntax=ruby
+augroup END
