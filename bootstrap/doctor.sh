@@ -176,6 +176,13 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
   warn 'oh-my-zsh not installed (~/.oh-my-zsh missing); see https://github.com/ohmyzsh/ohmyzsh'
 fi
 
+BAT_CONFIG_DIR="$HOME/.config/bat"
+if command -v bat >/dev/null 2>&1 || [ -e "$BAT_CONFIG_DIR" ] || [ -L "$BAT_CONFIG_DIR" ]; then
+  check_symlink "$BAT_CONFIG_DIR" "$REPO_ROOT/bat" 'bat config'
+else
+  printf 'Info: skipping bat config symlink check (bat not detected)\n'
+fi
+
 GHOSTTY_SYMLINK="$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 if command -v ghostty >/dev/null 2>&1 || [ -e "$GHOSTTY_SYMLINK" ] || [ -L "$GHOSTTY_SYMLINK" ]; then
   check_symlink "$GHOSTTY_SYMLINK" "$REPO_ROOT/ghostty/config" 'Ghostty config'

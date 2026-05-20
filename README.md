@@ -54,6 +54,10 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 - via Brewfile: `brew bundle --file Brewfile`
 - current formulae: `fzf`, `ripgrep`, `bat`, `universal-ctags`, `tmux`
 
+#### bat
+
+`cat` is aliased to `bat` in `.zshrc`. `bat` uses the TwoDark theme (complements ayu-dark) and shows line numbers and git change indicators. Man pages are also rendered through `bat` via `MANPAGER`. FZF file previews (`Ctrl-T`) use `bat` automatically.
+
 #### config and benchmark checks
 
 - run environment doctor: `./bootstrap/doctor.sh`
@@ -111,6 +115,7 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
     ln -s ~/dot-files/.gitignore_global ~/.gitignore_global
     ln -s ~/dot-files/.tmux.conf ~/.tmux.conf
     ln -s ~/dot-files/.zshrc ~/.zshrc
+    ln -s ~/dot-files/bat ~/.config/bat
     ./bootstrap/backup_ghostty_config.sh
     ln -s ~/dot-files/ghostty/config "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 

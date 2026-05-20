@@ -1,0 +1,14 @@
+# bat configuration
+# https://github.com/sharkdp/bat#configuration-file
+
+# Theme — TwoDark complements the ayu-dark Vim theme
+--theme="TwoDark"
+
+# Show line numbers, git change indicators, and file header
+--style="numbers,changes,header"
+
+# Always use colour output (works well with less -R and fzf)
+--color="always"
+
+# Use italic text where supported
+--italic-text="always"

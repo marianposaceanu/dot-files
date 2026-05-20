@@ -45,5 +45,18 @@ fi
 export PATH="$HOME/bin:/opt/homebrew/bin:/opt/homebrew/opt/curl/bin${JAVA_HOME:+:$JAVA_HOME/bin}:$PATH"
 typeset -U PATH
 
+# bat — cat replacement with syntax highlighting
+if command -v bat >/dev/null 2>&1; then
+  alias cat='bat'
+  # Render man pages through bat
+  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+fi
+
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# FZF — use bat for file previews when available
+if command -v bat >/dev/null 2>&1; then
+  export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :300 {}'"
+  export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --bind 'ctrl-/:toggle-preview'"
+fi
