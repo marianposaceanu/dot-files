@@ -41,3 +41,6 @@
 [submodule ".vim/pack/bundles/start/vim-gitgutter"]
 	path = .vim/pack/bundles/start/vim-gitgutter
 	url = https://github.com/airblade/vim-gitgutter.git
+[submodule ".vim/pack/bundles/opt/vim-rhubarb"]
+	path = .vim/pack/bundles/opt/vim-rhubarb
+	url = https://github.com/tpope/vim-rhubarb.git

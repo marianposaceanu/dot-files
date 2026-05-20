@@ -94,6 +94,7 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 - `<leader>gv`: lazy-load and toggle GoldenView.
 - `:Tabularize /<pattern>`: lazy-load Tabular and align by pattern (example: `:Tabularize /=>`).
 - `:Blame`: show blame info and GitHub commit URL for the current line.
+- `:GBrowse`: open current file, line range (visual), or commit on GitHub (vim-rhubarb).
 - `[c` / `]c`: jump to previous/next git hunk (vim-gitgutter).
 - `<leader>hp` / `<leader>hs` / `<leader>hu`: preview / stage / undo hunk (vim-gitgutter).
 
