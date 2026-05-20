@@ -172,6 +172,10 @@ check_symlink "$HOME/.gitignore_global" "$REPO_ROOT/.gitignore_global" '~/.gitig
 check_symlink "$HOME/.tmux.conf" "$REPO_ROOT/.tmux.conf" '~/.tmux.conf'
 check_symlink "$HOME/.zshrc" "$REPO_ROOT/.zshrc" '~/.zshrc'
 
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  warn 'oh-my-zsh not installed (~/.oh-my-zsh missing); see https://github.com/ohmyzsh/ohmyzsh'
+fi
+
 GHOSTTY_SYMLINK="$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 if command -v ghostty >/dev/null 2>&1 || [ -e "$GHOSTTY_SYMLINK" ] || [ -L "$GHOSTTY_SYMLINK" ]; then
   check_symlink "$GHOSTTY_SYMLINK" "$REPO_ROOT/ghostty/config" 'Ghostty config'

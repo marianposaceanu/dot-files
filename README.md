@@ -21,7 +21,12 @@ Contains my dot-files for easy usage across different OSs.
 
 #### contains
 
-- VIM Config files and bundles
+- Vim config files and bundles
+- Zsh / oh-my-zsh config
+- tmux config
+- Git config and global gitignore
+- Ghostty terminal config
+- Bootstrap scripts and environment doctor
 
 #### set-up ssh keys
 
@@ -47,7 +52,7 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 - via script: `./bootstrap/install_brew_deps.sh`
 - via Brewfile: `brew bundle --file Brewfile`
-- current formulae: `fzf`, `ripgrep`, `bat`, `universal-ctags`, `tmux`, `reattach-to-user-namespace`
+- current formulae: `fzf`, `ripgrep`, `bat`, `universal-ctags`, `tmux`
 
 #### config and benchmark checks
 
@@ -125,22 +130,19 @@ defaults delete NSGlobalDomain InitialKeyRepeat
 
 #### zsh
 
-- install oh-my-zsh from: [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
+- install oh-my-zsh from: [oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh)
 
 optional: set zsh as the default shell
 
 ```
-chsh -s `which zsh`
+chsh -s $(which zsh)
 ```
 
 #### tmux
 
 ```
 brew install tmux
-brew install reattach-to-user-namespace
 ```
-
-via [fix-vim-tmux-yank-paste-on-unnamed-register](https://stackoverflow.com/questions/11404800/fix-vim-tmux-yank-paste-on-unnamed-register)
 
 #### ssh keys
 
@@ -151,7 +153,7 @@ chmod 700 ~/.ssh
 chmod 600 ~/.ssh/id_rsa
 chmod 644 ~/.ssh/id_rsa.pub
 chmod 644 ~/.ssh/authorized_keys
-service ssh restart
+sudo launchctl stop com.openssh.sshd && sudo launchctl start com.openssh.sshd
 ```
 
 #### credits
