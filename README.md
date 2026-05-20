@@ -86,11 +86,16 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 - `<leader>a` (usually `\a`): run `:Rg` and type a ripgrep search query.
 - `<leader>A` (usually `\A`): run `:Rg` for the word under cursor.
-- `<leader>gs`: search git history for current line/selection and print commit URL.
+- `<leader>gc`: browse per-file commit history with diff preview (`:BCommits`).
+- `<leader>gs`: search git log for the line/selection under cursor and print commit URL.
+- `<leader>sw`: sort words in a visual selection (alphabetically).
 - `<C-p>`: open `:Files` via `fzf.vim`.
 - `<C-n>`: lazy-load and toggle NERDTree.
 - `<leader>gv`: lazy-load and toggle GoldenView.
 - `:Tabularize /<pattern>`: lazy-load Tabular and align by pattern (example: `:Tabularize /=>`).
+- `:Blame`: show blame info and GitHub commit URL for the current line.
+- `[c` / `]c`: jump to previous/next git hunk (vim-gitgutter).
+- `<leader>hp` / `<leader>hs` / `<leader>hu`: preview / stage / undo hunk (vim-gitgutter).
 
 #### cleanly remove a module
 

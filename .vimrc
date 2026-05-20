@@ -145,6 +145,21 @@ endif
 
 nnoremap <C-p> :Files<CR>
 
+" FZF git shortcuts
+" ---------------------------------|
+" <leader>gc — browse per-file commit history with diff preview
+nnoremap <leader>gc :BCommits<CR>
+
+" GitGutter settings
+" ---------------------------------|
+" Reduce updatetime so signs refresh promptly (also speeds up CursorHold)
+set updatetime=250
+" Use a clean single-char sign column (always visible to prevent layout shift)
+set signcolumn=yes
+let g:gitgutter_sign_added    = '▎'
+let g:gitgutter_sign_modified = '▎'
+let g:gitgutter_sign_removed  = '▁'
+
 " Lightline settings
 " ---------------------------------|
 let g:lightline = {
