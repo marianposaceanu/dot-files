@@ -13,15 +13,13 @@
 [web]
   browser = open
 [push]
-  config = default
-  default = tracking
+  default = simple
 [color]
   diff = auto
   status = auto
   branch = auto
   interactive = auto
   ui = true
-  pager = true
 [color "branch"]
   current = yellow reverse
   local   = yellow
@@ -53,14 +51,15 @@
   smu = submodule update --remote --recursive
   ap  = add -u -p
   pr  = "!f() { git fetch origin refs/pull/$1/head:pr/$1 && git co pr/$1; } ; f"
-  up  = "!git fetch upstream && git rebase upstream/master"
+  up  = "!git fetch upstream && git rebase upstream/$(git remote show upstream 2>/dev/null | awk '/HEAD branch/ {print $NF}')"
+  # bam/bamr/summary require ~/.githelpers — see https://github.com/garybernhardt/dotfiles/blob/main/.githelpers
   bam = "!source ~/.githelpers && delete_local_merged_branches"
   bamr = "!source ~/.githelpers && delete_remote_merged_branches"
   summary = "!source ~/.githelpers && weekly_summary"
   # original
   # l = log --pretty='format:%C(yellow)%h %C(blue)%ad %C(reset)%s%C(red)%d %C(green)%an%C(reset), %C(cyan)%ar' --date=short
   l = log --pretty='format:%C(yellow)%h %C(reset)%s%C(red)%d %C(green)%an%C(reset), %C(cyan)%ar' --date=short
-  pom = push origin master
-  phm = push heroku master
+  pom = push origin HEAD
+  phm = push heroku HEAD
 [init]
 	defaultBranch = main
