@@ -65,6 +65,21 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 - single-run Vim profile: `./benchmarks/profile_vim_plugins.sh`
 - median profile (default 7 runs): `./benchmarks/profile_vim_plugins_median.sh`
 
+#### vim — native Apple Silicon build (optional)
+
+Recompiles Vim using Homebrew's own formula with `-O3 -mcpu=native -flto` and pins
+the formula so `brew upgrade` does not overwrite the custom binary.
+
+```
+./bootstrap/compile_vim_native.sh
+```
+
+To upgrade Vim later:
+
+```
+brew unpin vim && ./bootstrap/compile_vim_native.sh
+```
+
 #### vim startup improvement map
 
 ```
