@@ -25,11 +25,4 @@ else
   brew bundle --file "$BREWFILE"
 fi
 
-echo "Upgrading Brewfile formulae..."
-while IFS= read -r formula; do
-  [ -n "$formula" ] || continue
-  echo "Upgrading $formula..."
-  brew upgrade "$formula" || true
-done < <(awk '/^brew "/ {print $2}' "$BREWFILE" | tr -d '"')
-
 echo "Done."
