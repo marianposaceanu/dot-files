@@ -103,6 +103,7 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
     ln -s ~/dot-files/.vimrc ~/.vimrc
     ln -s ~/dot-files/.vim ~
     ln -s ~/dot-files/.gitconfig ~/.gitconfig
+    ln -s ~/dot-files/.gitignore_global ~/.gitignore_global
     ln -s ~/dot-files/.tmux.conf ~/.tmux.conf
     ln -s ~/dot-files/.zshrc ~/.zshrc
     ./bootstrap/backup_ghostty_config.sh

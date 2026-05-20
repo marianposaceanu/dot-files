@@ -168,6 +168,7 @@ check_symlink_capability
 check_symlink "$HOME/.vimrc" "$REPO_ROOT/.vimrc" '~/.vimrc'
 check_symlink "$HOME/.vim" "$REPO_ROOT/.vim" '~/.vim'
 check_symlink "$HOME/.gitconfig" "$REPO_ROOT/.gitconfig" '~/.gitconfig'
+check_symlink "$HOME/.gitignore_global" "$REPO_ROOT/.gitignore_global" '~/.gitignore_global'
 check_symlink "$HOME/.tmux.conf" "$REPO_ROOT/.tmux.conf" '~/.tmux.conf'
 check_symlink "$HOME/.zshrc" "$REPO_ROOT/.zshrc" '~/.zshrc'
 

@@ -9,7 +9,7 @@
   whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
   editor = vim -f
 	autocrlf = input
-	excludesfile = .DS_Store
+	excludesfile = ~/.gitignore_global
 [web]
   browser = open
 [push]
@@ -50,7 +50,7 @@
   aa  = add --all :/
   td  = merge --no-ff
   sm  = submodule
-  smu = submodule foreach git pull origin master
+  smu = submodule update --remote --recursive
   ap  = add -u -p
   pr  = "!f() { git fetch origin refs/pull/$1/head:pr/$1 && git co pr/$1; } ; f"
   up  = "!git fetch upstream && git rebase upstream/master"
