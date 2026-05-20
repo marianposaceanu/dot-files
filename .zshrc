@@ -100,12 +100,9 @@ export LC_ALL=en_US.UTF-8
 export JRUBY_OPTS="--dev"
 
 # Java versions
-# JDK@11
-# export PATH="/usr/local/opt/openjdk@11/bin:$PATH"
-# JDK@11 M1 native
-export PATH="/opt/homebrew/opt/openjdk@11/bin:$PATH"
-# JDK@17
-# export PATH="/usr/local/opt/openjdk/bin:$PATH"
+# Current Homebrew JDK
+export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
 
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
