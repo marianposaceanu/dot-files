@@ -6,6 +6,7 @@ syntax on
 " ---------------------------------|
 " notes tweak the key repeat and latency with https://pqrs.org/osx/karabiner/
 set lazyredraw                    " more info: https://github.com/tpope/vim-sensible/issues/78
+set re=0                          " auto-select regex engine; avoids slow NFA on Ruby/TS syntax files
 " ttyfast/ttyscroll removed — deprecated no-ops since Vim 8
 if has('mouse_sgr')
   set ttymouse=sgr                " SGR protocol supports terminals wider than 223 columns
