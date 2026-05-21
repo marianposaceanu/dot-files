@@ -97,6 +97,22 @@ brew unpin vim && ./bootstrap/compile_vim_native.sh
 +---------------------------------------------------------------------------------------+
 ```
 
+#### vim native build benchmark
+
+```
++---------------------------------------------------------------------------------------+
+| VIM NATIVE BUILD  (bottle -O2 -> -O3 -mcpu=apple-m4 -ffp-contract=fast -flto)         |
++---------------------------------------------------------------------------------------+
+| regex scan NFA           0.0362s -> 0.0297s    (1.22x faster)  [####################] |
+| regex replace NFA        0.0811s -> 0.0703s    (1.15x faster)  [###################.] |
+| buffer sort              0.2609s -> 0.2497s    (1.04x faster)  [#################...] |
+| vimscript loop 500k      0.4915s -> 0.4003s    (1.23x faster)  [####################] |
+| regex on ruby code       0.0217s -> 0.0187s    (1.16x faster)  [###################.] |
+|                                                                                       |
+| CPU-bound speedup: ~15-23 %. Buffer sort is memory-bandwidth-bound (+4 % only).       |
++---------------------------------------------------------------------------------------+
+```
+
 #### vim shortcuts
 
 - `<leader>a` (usually `\a`): run `:Rg` and type a ripgrep search query.
