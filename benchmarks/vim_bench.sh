@@ -7,6 +7,13 @@
 # The native build uses -O3 -mcpu=apple-m4 -ffp-contract=fast -flto.
 # This script installs each in turn, runs the same workloads, and compares.
 #
+# NFA (Non-deterministic Finite Automaton): the state-machine algorithm that
+# powers Vim's regex engine (regexp.c).  An NFA explores all possible match
+# paths simultaneously rather than committing to one branch at a time; this
+# lets it handle back-references and complex patterns, but its cost scales
+# with (pattern states × input length).  Optimising the NFA interpreter loop
+# with -O3 / LTO is the main payoff of a native build.
+#
 # Workloads are CPU-bound operations that benefit from -O3 / LTO:
 #
 #   regex_scan      NFA scan over 100k lines, count only (no substitution)
