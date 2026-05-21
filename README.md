@@ -77,7 +77,7 @@ the formula so `brew upgrade` does not overwrite the custom binary.
 To upgrade Vim later:
 
 ```
-brew unpin vim && ./bootstrap/compile_vim_native.sh
+brew unpin vim && brew upgrade vim && ./bootstrap/compile_vim_native.sh
 ```
 
 #### vim startup improvement map

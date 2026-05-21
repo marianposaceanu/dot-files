@@ -28,8 +28,9 @@
 #   -mcpu=native
 #       On ARM this is the single correct flag — it combines -march (ISA) and
 #       -mtune (micro-architecture scheduling) for the detected chip.  On this
-#       machine it resolves to apple-m4.  Do NOT mix with -march or -mtune;
-#       on ARM those flags override parts of -mcpu and produce worse code.
+#       machine it resolves to the current Apple CPU family, such as apple-m1.
+#       Do NOT mix with -march or -mtune; on ARM those flags override parts of
+#       -mcpu and produce worse code.
 #
 #   -ffp-contract=fast
 #       Allows the compiler to fuse a*b+c into a single FMADD instruction
@@ -42,24 +43,17 @@
 #       calls across translation units, eliminates dead functions, and fuses
 #       small globals.  Increases link time but shrinks and speeds up the binary.
 #
-# ── M4-specific ISA extensions enabled by -mcpu=apple-m4 ─────────────────────
+# ── Apple CPU-specific ISA extensions enabled by -mcpu=native ────────────────
 #
-#   +bf16   BFloat16 — 16-bit brain float SIMD ops (ML / vectorised maths).
-#   +i8mm   Int8 matrix multiply — hardware-accelerated 8-bit SIMD matmul.
-#   +sme    Scalable Matrix Extension — large tiled matrix operations.
-#   +sme2   SME version 2 — adds multi-vector and predicated ops over SME.
-#   +v8.7a  ARMv8.7-A extensions including WFXT (efficient event waiting)
-#           and XS (translation system hints for reduced TLB overhead).
-#   +fpac   Pointer Authentication — hardware signing of return addresses
-#           (security hardening; no performance impact for normal code).
+#   The exact feature set depends on the machine. On this M1 Pro, clang resolves
+#   -mcpu=native to apple-m1; newer chips may resolve to apple-m2/apple-m3/etc.
 #
-#   Note: +aes, +sha2, +sha3, +neon, +crc, +dotprod, +fullfp16, +fp16fml
-#   are present in both the Homebrew bottle and the native build.
-#   The extensions above are the delta that -mcpu=apple-m4 adds over armv8-a.
+#   Use clang's -### output to inspect the exact target CPU and features used
+#   on the current machine.
 #
 # ── Upgrade path ──────────────────────────────────────────────────────────────
 #
-#   brew unpin vim && ./bootstrap/compile_vim_native.sh
+#   brew unpin vim && brew upgrade vim && ./bootstrap/compile_vim_native.sh
 #
 # Usage:
 #   ./bootstrap/compile_vim_native.sh
@@ -84,6 +78,7 @@ warn()    { printf '%s==>%s %s\n' "$YELLOW" "$RESET" "$1"; }
 if ! command -v brew >/dev/null 2>&1; then
   printf 'Error: Homebrew is not installed.\n' >&2; exit 1
 fi
+BREW_PREFIX="$(brew --prefix)"
 
 REAL_CLANG="/usr/bin/clang"
 if [ ! -x "$REAL_CLANG" ]; then
@@ -112,8 +107,13 @@ BREW_CACHE="$(brew --cache)"
 SOURCE_TARBALL="$(ls "${BREW_CACHE}/downloads/"*"--vim-${VIM_VERSION}.tar.gz" 2>/dev/null | head -1 || true)"
 if [ -z "$SOURCE_TARBALL" ]; then
   info "Downloading vim ${VIM_VERSION} source …"
-  brew fetch --build-from-source vim
-  SOURCE_TARBALL="$(ls "${BREW_CACHE}/downloads/"*"--vim-${VIM_VERSION}.tar.gz" 2>/dev/null | head -1)"
+  brew fetch --build-from-source vim >/dev/null 2>&1 || true
+  SOURCE_TARBALL="$(ls "${BREW_CACHE}/downloads/"*"--vim-${VIM_VERSION}.tar.gz" 2>/dev/null | head -1 || true)"
+fi
+if [ -z "$SOURCE_TARBALL" ]; then
+  SOURCE_TARBALL="${BREW_CACHE}/downloads/manual-vim-${VIM_VERSION}.tar.gz"
+  info "Downloading matching vim ${VIM_VERSION} source directly …"
+  curl -fL "https://github.com/vim/vim/archive/refs/tags/v${VIM_VERSION}.tar.gz" -o "$SOURCE_TARBALL"
 fi
 if [ -z "$SOURCE_TARBALL" ]; then
   printf 'Error: Could not find vim %s source tarball in Homebrew cache.\n' "$VIM_VERSION" >&2; exit 1
@@ -134,8 +134,8 @@ info "Configuring (same feature flags as Homebrew formula) …"
 cd "$BUILD_DIR"
 CC="$REAL_CLANG" \
 ./configure \
-  --prefix=/opt/homebrew \
-  --mandir=/opt/homebrew/share/man \
+  --prefix="$BREW_PREFIX" \
+  --mandir="$BREW_PREFIX/share/man" \
   --enable-multibyte \
   --with-tlib=ncurses \
   --with-compiledby=native-"${RESOLVED_CPU}" \
@@ -163,7 +163,7 @@ make -j"$(sysctl -n hw.ncpu)" \
 # Only the compiled binary changes between flag sets; the runtime files
 # (syntax, ftplugin, doc, etc.) are identical for the same version.
 
-CELLAR_BIN="/opt/homebrew/Cellar/vim/${VIM_VERSION}/bin"
+CELLAR_BIN="$BREW_PREFIX/Cellar/vim/${VIM_VERSION}/bin"
 info "Installing binary to ${CELLAR_BIN} …"
 chmod u+w "$CELLAR_BIN"
 chmod u+w "$CELLAR_BIN/vim" 2>/dev/null || true   # bottle installs read-only
@@ -189,4 +189,4 @@ strings "$(command -v vim)" 2>/dev/null \
 printf '\n'
 
 warn "vim is now pinned. To upgrade later:"
-printf '    brew unpin vim && ./bootstrap/compile_vim_native.sh\n'
+printf '    brew unpin vim && brew upgrade vim && ./bootstrap/compile_vim_native.sh\n'
