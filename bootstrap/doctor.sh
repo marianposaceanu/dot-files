@@ -171,6 +171,9 @@ check_symlink "$HOME/.gitconfig" "$REPO_ROOT/.gitconfig" '~/.gitconfig'
 check_symlink "$HOME/.gitignore_global" "$REPO_ROOT/.gitignore_global" '~/.gitignore_global'
 check_symlink "$HOME/.tmux.conf" "$REPO_ROOT/.tmux.conf" '~/.tmux.conf'
 check_symlink "$HOME/.zshrc" "$REPO_ROOT/.zshrc" '~/.zshrc'
+check_symlink "$HOME/.bashrc" "$REPO_ROOT/.bashrc" '~/.bashrc'
+check_symlink "$HOME/.screenrc" "$REPO_ROOT/.screenrc" '~/.screenrc'
+check_symlink "$HOME/.alacritty.yml" "$REPO_ROOT/.alacritty.yml" '~/.alacritty.yml'
 
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   warn 'oh-my-zsh not installed (~/.oh-my-zsh missing); see https://github.com/ohmyzsh/ohmyzsh'

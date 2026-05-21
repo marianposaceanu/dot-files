@@ -146,15 +146,23 @@ brew unpin vim && ./bootstrap/compile_vim_native.sh
 
 #### *nix symbolic links
 
-    ln -s ~/dot-files/.vimrc ~/.vimrc
-    ln -s ~/dot-files/.vim ~
-    ln -s ~/dot-files/.gitconfig ~/.gitconfig
-    ln -s ~/dot-files/.gitignore_global ~/.gitignore_global
-    ln -s ~/dot-files/.tmux.conf ~/.tmux.conf
-    ln -s ~/dot-files/.zshrc ~/.zshrc
-    ln -s ~/dot-files/bat ~/.config/bat
-    ./bootstrap/backup_ghostty_config.sh
-    ln -s ~/dot-files/ghostty/config "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+    ./bootstrap/link_configs.sh
+
+The script creates symlinks for the repo-managed configs and backs up any existing local files/directories first using a `.backup.<timestamp>` suffix.
+
+It links:
+
+- `~/.vimrc`
+- `~/.vim`
+- `~/.gitconfig`
+- `~/.gitignore_global`
+- `~/.tmux.conf`
+- `~/.zshrc`
+- `~/.bashrc`
+- `~/.screenrc`
+- `~/.alacritty.yml`
+- `~/.config/bat`
+- `$HOME/Library/Application Support/com.mitchellh.ghostty/config`
 
 #### macOS keyboard key repeat
 
