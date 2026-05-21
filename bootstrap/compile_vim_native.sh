@@ -166,6 +166,7 @@ make -j"$(sysctl -n hw.ncpu)" \
 CELLAR_BIN="/opt/homebrew/Cellar/vim/${VIM_VERSION}/bin"
 info "Installing binary to ${CELLAR_BIN} …"
 chmod u+w "$CELLAR_BIN"
+chmod u+w "$CELLAR_BIN/vim" 2>/dev/null || true   # bottle installs read-only
 cp src/vim "$CELLAR_BIN/vim"
 chmod 755 "$CELLAR_BIN/vim"
 

@@ -49,6 +49,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --bench-only)  BENCH_ONLY=1; shift ;;
     --label)       LABEL="$2"; shift 2 ;;
+    --runs)        RUNS="$2"; shift 2 ;;
     --compare)     COMPARE_MODE=1; COMPARE_BOTTLE="$2"; COMPARE_NATIVE="$3"; shift 3 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; exit 1 ;;
   esac
