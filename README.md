@@ -46,6 +46,7 @@ for the shell running `rz`.
 
 ```sh
 rz --save work                 # save work_YYYYMMDD-HHMMSS
+rz --save work --no-scrollback # fast snapshot without terminal history
 rz --save personal             # save a separate named snapshot
 rz                             # restore the newest snapshot overall
 rz --session work              # restore the newest snapshot named work
@@ -56,6 +57,8 @@ rz --session work --dry-run    # preview without changing Ghostty
 
 Snapshots live in `~/.local/state/ghostty-rz/snapshots`. Reload the shell after
 updating the dotfiles (`source ~/.zshrc` or `source ~/.bashrc`) before using `rz`.
+Use `--no-scrollback` when speed matters; window geometry, tabs, surfaces,
+directories, focus, and Codex IDs are still saved.
 
 Ghostty 1.3 exposes terminals as a flat collection per tab. It does not expose a
 split tree, split directions, or pane proportions, and it has no JSON workspace

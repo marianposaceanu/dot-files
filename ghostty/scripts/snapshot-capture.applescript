@@ -3,8 +3,9 @@
 
 use scripting additions
 
-on run
+on run arguments
     set separator to character id 9
+    set captureScrollback to not (arguments contains "--no-scrollback")
     set reportText to "window_index" & separator & "window_id" & separator & "window_name" & separator & "window_x" & separator & "window_y" & separator & "window_width" & separator & "window_height" & separator & "tab_index" & separator & "tab_id" & separator & "tab_name" & separator & "tab_selected" & separator & "terminal_index" & separator & "terminal_id" & separator & "terminal_name" & separator & "terminal_focused" & separator & "working_directory" & separator & "scrollback_path" & linefeed
     set clipboardWasSaved to false
     set savedClipboard to missing value
@@ -46,21 +47,23 @@ on run
                     set terminalFocused to (terminalId is focusedTerminalId) as text
                     set scrollbackPath to ""
 
-                    try
-                        set the clipboard to ""
-                        perform action "write_scrollback_file:copy" on currentTerminal
+                    if captureScrollback then
+                        try
+                            set the clipboard to ""
+                            perform action "write_scrollback_file:copy" on currentTerminal
 
-                        repeat with attemptIndex from 1 to 20
-                            delay 0.05
-                            try
-                                set clipboardValue to the clipboard as text
-                                if clipboardValue starts with "/" then
-                                    set scrollbackPath to clipboardValue
-                                    exit repeat
-                                end if
-                            end try
-                        end repeat
-                    end try
+                            repeat with attemptIndex from 1 to 20
+                                delay 0.05
+                                try
+                                    set clipboardValue to the clipboard as text
+                                    if clipboardValue starts with "/" then
+                                        set scrollbackPath to clipboardValue
+                                        exit repeat
+                                    end if
+                                end try
+                            end repeat
+                        end try
+                    end if
 
                     set reportText to reportText & windowIndex & separator & my cleanField(windowId) & separator & my cleanField(windowName) & separator & windowX & separator & windowY & separator & windowWidth & separator & windowHeight & separator & tabIndex & separator & my cleanField(tabId) & separator & my cleanField(tabName) & separator & tabSelected & separator & terminalIndex & separator & my cleanField(terminalId) & separator & my cleanField(terminalName) & separator & terminalFocused & separator & my cleanField(terminalDirectory) & separator & my cleanField(scrollbackPath) & linefeed
                 end repeat

@@ -25,8 +25,10 @@ class Rz
   end
 
   def run
-    if @argv.length == 2 && @argv.first == "--save"
-      save(@argv.last)
+    if @argv.length == 3 && @argv[0] == "--save" && @argv[2] == "--no-scrollback"
+      save(@argv[1], capture_scrollback: false)
+    elsif @argv.length == 2 && @argv.first == "--save"
+      save(@argv.last, capture_scrollback: true)
     elsif @argv.length == 2 && @argv.first == "--session"
       restore(@argv.last, dry_run: false)
     elsif @argv.length == 3 && @argv.include?("--session") && @argv.include?("--dry-run")
@@ -56,6 +58,7 @@ class Rz
     <<~TEXT
       Usage:
         rz --save NAME
+        rz --save NAME --no-scrollback
         rz
         rz --session NAME_OR_TIMESTAMP
         rz --session NAME_OR_TIMESTAMP --dry-run
@@ -64,7 +67,7 @@ class Rz
     TEXT
   end
 
-  def save(name)
+  def save(name, capture_scrollback:)
     validate_name!(name)
     ensure_ghostty_running!
 
@@ -78,7 +81,7 @@ class Rz
     FileUtils.mkdir_p(File.join(staging_dir, "scrollback"))
 
     begin
-      rows = capture_ghostty
+      rows = capture_ghostty(capture_scrollback: capture_scrollback)
       raise "Ghostty has no restorable terminal surfaces" if rows.empty?
 
       process_sessions = running_codex_sessions
@@ -100,14 +103,14 @@ class Rz
         row["scrollback_file"] = relative
       end
 
-      snapshot = build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings)
+      snapshot = build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings, capture_scrollback: capture_scrollback)
       File.write(File.join(staging_dir, "state.json"), JSON.pretty_generate(snapshot) + "\n")
       FileUtils.mv(staging_dir, final_dir)
 
       lines = [
         labeled("SNAPSHOT", snapshot_id),
         labeled("LAYOUT", layout_summary(snapshot)),
-        labeled("CONTENT", content_summary(assignments.length, rows.count { |row| row["scrollback_file"] })),
+        labeled("CONTENT", content_summary(assignments.length, rows.count { |row| row["scrollback_file"] }, capture_scrollback: capture_scrollback)),
         labeled("LOCATION", final_dir)
       ]
       warnings.each { |warning| lines << labeled("WARNING", warning) }
@@ -179,8 +182,10 @@ class Rz
     raise "Ghostty must be running to save a snapshot"
   end
 
-  def capture_ghostty
-    output = run_command("osascript", File.join(@script_dir, "snapshot-capture.applescript"))
+  def capture_ghostty(capture_scrollback:)
+    command = ["osascript", File.join(@script_dir, "snapshot-capture.applescript")]
+    command << "--no-scrollback" unless capture_scrollback
+    output = run_command(*command)
     lines = output.lines.map(&:chomp).reject(&:empty?)
     header = lines.shift&.split("\t", -1)
     expected = %w[
@@ -192,6 +197,7 @@ class Rz
 
     lines.map do |line|
       values = line.split("\t", -1)
+      values << "" if values.length == expected.length - 1
       raise "malformed Ghostty capture row" unless values.length == expected.length
 
       row = expected.zip(values).to_h
@@ -296,7 +302,7 @@ class Rz
     rows.find { |row| row["terminal_id"] == terminal_id } || raise("missing terminal #{terminal_id}")
   end
 
-  def build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings)
+  def build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings, capture_scrollback:)
     windows = rows.group_by { |row| row["window_index"] }.sort.map do |window_index, window_rows|
       first_window_row = window_rows.first
       tabs = window_rows.group_by { |row| row["tab_index"] }.sort.map do |tab_index, tab_rows|
@@ -339,12 +345,15 @@ class Rz
       "ghostty_version" => ghostty_version,
       "tabs_count" => windows.sum { |window| window["tabs"].length },
       "terminals_count" => rows.length,
+      "scrollback_captured" => capture_scrollback,
       "windows" => windows,
       "detected_codex_sessions" => process_sessions,
       "warnings" => warnings,
       "limitations" => [
         "Ghostty does not expose split geometry; terminal counts restore as right-hand splits.",
-        "Scrollback restores as plain text output, without original styling or interactive state.",
+        capture_scrollback ?
+          "Scrollback restores as plain text output, without original styling or interactive state." :
+          "Scrollback was intentionally skipped for this fast snapshot.",
         "Only Codex conversations are resumed; arbitrary child processes are not reconstructible."
       ]
     }
@@ -413,8 +422,9 @@ class Rz
     "#{snapshot.fetch("windows").length} window(s)  |  #{snapshot.fetch("tabs_count")} tab(s)  |  #{terminal_count(snapshot)} terminal(s)"
   end
 
-  def content_summary(codex_count, scrollback_count)
-    "#{codex_count} Codex session(s)  |  #{scrollback_count} scrollback file(s)"
+  def content_summary(codex_count, scrollback_count, capture_scrollback:)
+    scrollback = capture_scrollback ? "#{scrollback_count} scrollback file(s)" : "scrollback skipped"
+    "#{codex_count} Codex session(s)  |  #{scrollback}"
   end
 
   def display_time(value)
