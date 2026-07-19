@@ -7,12 +7,12 @@
   <meta name="description" content="Marian's macOS dotfiles: Ghostty workspaces, shell tooling, Vim performance, tmux, Git, and repeatable setup scripts.">
   <meta name="author" content="Marian Posaceanu">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://marianposaceanu.github.io/dot-files/">
-  <link rel="preload" href="https://ark.marianposaceanu.com/fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="https://ark.marianposaceanu.com/fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="canonical" href="https://dot.marianposaceanu.com/index.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="favicon.ico" sizes="any">
-  <link rel="stylesheet" href="assets/site.css?v=57bd997cf142">
-  <link rel="stylesheet" href="assets/dotfiles.css?v=d5427e224699">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
 </head>
 <body>
   <header class="site-header">
@@ -53,42 +53,151 @@
           </li>
           <li>
             <div class="topic-heading">
-              <a href="https://github.com/marianposaceanu/dot-files/tree/main/.vim">Vim startup, profiled and reduced</a>
+              <a href="fugitive.html">fugitive: Git inside Vim</a>
             </div>
             <span>
-              Lazy-loaded plugins, reproducible profiling scripts, and an optional
-              native Apple Silicon build. Recorded plugin startup fell from
-              36.079 ms to 3.325 ms.
+              Stage, diff, blame, browse history, and write Git objects without leaving Vim.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
             </span>
           </li>
           <li>
             <div class="topic-heading">
-              <a href="https://github.com/marianposaceanu/dot-files/blob/main/.zshrc">Shell navigation and daily command-line tools</a>
+              <a href="fzf-vim.html">fzf.vim: fuzzy files, text, buffers, and Git</a>
             </div>
             <span>
-              Zsh and Bash setup with fzf, ripgrep, bat previews, ctags, Git defaults,
-              project-aware prompts, and reload-safe helper functions.
+              The commands and keys for navigating the repository through fzf and ripgrep.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
             </span>
           </li>
           <li>
             <div class="topic-heading">
-              <a href="https://github.com/marianposaceanu/dot-files/blob/main/.tmux.conf">tmux for remote and persistent shells</a>
+              <a href="git-helpers.html">Custom Git helpers for Vim</a>
             </div>
             <span>
-              tmux remains available where process persistence matters. The local
-              workspace flow stays Ghostty-native so its macOS tabs remain visible.
+              Inline blame and log search commands for tracing where a line came from.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
             </span>
           </li>
           <li>
             <div class="topic-heading">
-              <a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap">Bootstrap scripts and environment checks</a>
+              <a href="goldenview.html">GoldenView: keep the active split larger</a>
             </div>
             <span>
-              A machine doctor, configuration validation, dependency installation,
-              safe symlink setup, and explicit backups before existing files are replaced.
+              Automatic golden-ratio resizing for multi-window Vim layouts.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="lightline.html">lightline.vim: the status line</a>
+            </div>
+            <span>
+              What each status-line segment shows and how the current theme is configured.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="nerdtree.html">NERDTree: file navigation and operations</a>
+            </div>
+            <span>
+              Open, navigate, re-root, and manage files from the tree sidebar.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="supertab.html">SuperTab: context-aware completion</a>
+            </div>
+            <span>
+              Insert-mode completion for keywords, paths, language-aware sources, and tags.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="tabular.html">Tabular: align text by a pattern</a>
+            </div>
+            <span>
+              Repeatable alignment for assignments, hashes, lists, and Markdown tables.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="vim-commentary.html">vim-commentary: comment with motions</a>
+            </div>
+            <span>
+              Comment lines, selections, paragraphs, and text objects using normal Vim motions.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="vim-endwise.html">vim-endwise: automatic closing keywords</a>
+            </div>
+            <span>
+              Automatic endings for Ruby, shell, Vim script, Lua, Elixir, and similar languages.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="vim-gitgutter.html">vim-gitgutter: work with changed hunks</a>
+            </div>
+            <span>
+              Navigate, preview, stage, undo, and inspect changes from the sign column.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="vim-repeat.html">vim-repeat: make plugin edits repeatable</a>
+            </div>
+            <span>
+              Extend Vim's dot command to surround, commentary, and other plugin mappings.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="vim-rhubarb.html">vim-rhubarb: open Vim context on GitHub</a>
+            </div>
+            <span>
+              Browse files, selected lines, commits, and branches through fugitive.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="vim-rooter.html">vim-rooter: stay at the project root</a>
+            </div>
+            <span>
+              Keep fuzzy search, ripgrep, and Git commands anchored to the current project.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
+            </span>
+          </li>
+          <li>
+            <div class="topic-heading">
+              <a href="vim-surround.html">vim-surround: add, change, and remove pairs</a>
+            </div>
+            <span>
+              Practical key sequences for quotes, brackets, parentheses, and HTML tags.
+              <time class="thread-date" datetime="2026-07-20">20th July 2026</time>
             </span>
           </li>
         </ol>
+      </section>
+
+      <section id="configuration-source">
+        <h2>Configuration source</h2>
+        <p>The articles explain the workflow. These links go directly to the files that implement it.</p>
+        <ul class="source-list compact-list">
+          <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/.vim"><code>.vim/</code></a><span>Vim plugins and local extensions</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.zshrc"><code>.zshrc</code></a><span>Shell navigation and command-line tools</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.tmux.conf"><code>.tmux.conf</code></a><span>Remote and persistent terminal sessions</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a><span>Installation, validation, backups, and environment checks</span></li>
+        </ul>
       </section>
 
       <section id="start-here">

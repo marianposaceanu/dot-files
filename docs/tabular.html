@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>tabular - dot-files</title>
+  <meta name="description" content="Align text by a pattern. Lazy-loaded on first use of `:Tabularize`.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/tabular.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">tabular</h1>
+      <p class="subtitle">Align text by a pattern. Lazy-loaded on first use of `:Tabularize`.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#basic-usage">Basic usage</a></li>
+        <li><a href="#common-patterns">Common patterns</a></li>
+        <li><a href="#visual-selection-workflow">Visual selection workflow</a></li>
+        <li><a href="#lazy-loading-note">Lazy-loading note</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="basic-usage">
+        <h2>Basic usage</h2>
+        <pre><code>:Tabularize /{pattern}</code></pre>
+        <p>Select lines visually first (or let it detect the paragraph), then run the command.</p>
+      </section>
+      <section id="common-patterns">
+        <h2>Common patterns</h2>
+        <h3>Align by <code>=</code></h3>
+        <pre><code class="language-ruby"># before
+foo = 1
+longer_name = 2
+x = 3
+
+# :Tabularize /=
+
+foo         = 1
+longer_name = 2
+x           = 3</code></pre>
+        <h3>Align by <code>=&gt;</code>  (Ruby hashes)</h3>
+        <pre><code class="language-ruby"># before
+{ foo: 1, bar: 2 }
+{ foo: &#39;a&#39;, longer_key: &#39;b&#39; }
+
+# :Tabularize /=&gt;
+
+{ foo:        =&gt; 1 }
+{ longer_key  =&gt; &#39;b&#39; }</code></pre>
+        <h3>Align by <code>,</code></h3>
+        <pre><code>:Tabularize /,</code></pre>
+        <h3>Align by <code>:</code></h3>
+        <pre><code>:Tabularize /:\zs</code></pre>
+        <p><code>\zs</code> shifts the alignment point to after the <code>:</code>, keeping the colon attached to the left word.</p>
+        <h3>Align Markdown tables</h3>
+        <pre><code>:Tabularize /|</code></pre>
+      </section>
+      <section id="visual-selection-workflow">
+        <h2>Visual selection workflow</h2>
+        <ol>
+          <li>Visually select the lines to align (<code>V</code> + motion or <code>Shift-V</code> + mouse).</li>
+          <li>Run <code>:Tabularize /=&gt;</code></li>
+        </ol>
+        <p>The selection is the most reliable way to scope alignment.</p>
+      </section>
+      <section id="lazy-loading-note">
+        <h2>Lazy-loading note</h2>
+        <p>Tabular lives in <code>pack/bundles/opt/</code> and is loaded automatically the first time <code>:Tabularize</code> is invoked — no startup cost.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

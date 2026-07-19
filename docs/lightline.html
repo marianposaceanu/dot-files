@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>lightline.vim - dot-files</title>
+  <meta name="description" content="A minimal, fast status line. Shows mode, file info, and position. Configured to use the `ayu_dark` colorscheme to match the editor theme.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/lightline.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">lightline.vim</h1>
+      <p class="subtitle">A minimal, fast status line. Shows mode, file info, and position. Configured to use the `ayu_dark` colorscheme to match the editor theme.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#what-the-status-line-shows">What the status line shows</a></li>
+        <li><a href="#current-config-from-vimrc">Current config (from <code>.vimrc</code>)</a></li>
+        <li><a href="#why-set-laststatus-2">Why <code>set laststatus=2</code></a></li>
+        <li><a href="#available-colorschemes">Available colorschemes</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="what-the-status-line-shows">
+        <h2>What the status line shows</h2>
+        <pre><code>[ MODE ]  filename [modified]  ...  percentage  line:col  format  encoding</code></pre>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Section</th><th>Content</th></tr></thead>
+            <tbody>
+              <tr><td>Left 1</td><td>Current mode (NORMAL / INSERT / VISUAL …)</td></tr>
+              <tr><td>Left 2</td><td>Read-only flag, filename, modified flag</td></tr>
+              <tr><td>Right 1</td><td>Percentage through file</td></tr>
+              <tr><td>Right 2</td><td>Line : column</td></tr>
+              <tr><td>Right 3</td><td>File format, file encoding</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="current-config-from-vimrc">
+        <h2>Current config (from <code>.vimrc</code>)</h2>
+        <pre><code class="language-vim">let g:lightline = {
+      \ &#39;colorscheme&#39;: &#39;ayu_dark&#39;,
+      \ &#39;active&#39;: {
+      \   &#39;left&#39;:  [ [ &#39;mode&#39; ], [ &#39;readonly&#39;, &#39;filename&#39;, &#39;modified&#39; ] ],
+      \   &#39;right&#39;: [ [ &#39;percent&#39; ], [ &#39;lineinfo&#39; ], [ &#39;fileformat&#39;, &#39;fileencoding&#39; ] ]
+      \ }
+      \ }</code></pre>
+      </section>
+      <section id="why-set-laststatus-2">
+        <h2>Why <code>set laststatus=2</code></h2>
+        <p>The <code>.vimrc</code> sets <code>laststatus=2</code>, which means the status line is always visible even when only one window is open. Without this, lightline only appears in split views.</p>
+      </section>
+      <section id="available-colorschemes">
+        <h2>Available colorschemes</h2>
+        <p>Lightline ships with many built-in colorschemes. To preview one:</p>
+        <pre><code class="language-vim">:let g:lightline.colorscheme = &#39;wombat&#39;
+:call lightline#init()
+:call lightline#colorscheme()
+:call lightline#update()</code></pre>
+        <p>Other options: <code>powerline</code>, <code>jellybeans</code>, <code>solarized</code>, <code>one</code>, <code>nord</code>, <code>dracula</code>, <code>darcula</code>, <code>molokai</code>.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

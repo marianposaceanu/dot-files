@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vim-surround - dot-files</title>
+  <meta name="description" content="Add, change, or delete surrounding characters — quotes, brackets, tags — with single keypresses.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/vim-surround.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">vim-surround</h1>
+      <p class="subtitle">Add, change, or delete surrounding characters — quotes, brackets, tags — with single keypresses.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#add-a-surrounding-ys">Add a surrounding (<code>ys</code>)</a></li>
+        <li><a href="#change-a-surrounding-cs">Change a surrounding (<code>cs</code>)</a></li>
+        <li><a href="#delete-a-surrounding-ds">Delete a surrounding (<code>ds</code>)</a></li>
+        <li><a href="#visual-mode-s">Visual mode (<code>S</code>)</a></li>
+        <li><a href="#common-patterns">Common patterns</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="add-a-surrounding-ys">
+        <h2>Add a surrounding (<code>ys</code>)</h2>
+        <pre><code>ys{motion}{char}</code></pre>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Keypress</th><th>Before</th><th>After</th></tr></thead>
+            <tbody>
+              <tr><td><code>ysiw&quot;</code></td><td><code>hello</code></td><td><code>&quot;hello&quot;</code></td></tr>
+              <tr><td><code>ysiw&#39;</code></td><td><code>hello</code></td><td><code>&#39;hello&#39;</code></td></tr>
+              <tr><td><code>ysiw(</code></td><td><code>hello</code></td><td><code>( hello )</code></td></tr>
+              <tr><td><code>ysiw)</code></td><td><code>hello</code></td><td><code>(hello)</code></td></tr>
+              <tr><td><code>ysiw[</code></td><td><code>hello</code></td><td><code>[ hello ]</code></td></tr>
+              <tr><td><code>ysiw]</code></td><td><code>hello</code></td><td><code>[hello]</code></td></tr>
+              <tr><td><code>ysiw{</code></td><td><code>hello</code></td><td><code>{ hello }</code></td></tr>
+              <tr><td><code>ysiw}</code></td><td><code>hello</code></td><td><code>{hello}</code></td></tr>
+              <tr><td><code>ysiwt</code></td><td><code>hello</code></td><td>prompts for a tag, e.g. <code>&lt;em&gt;hello&lt;/em&gt;</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <blockquote><p>Opening bracket adds spaces; closing bracket does not.</p></blockquote>
+        <h3>Surround a whole line</h3>
+        <pre><code>yss&quot;    →   surrounds the entire line (ignoring indent)</code></pre>
+      </section>
+      <section id="change-a-surrounding-cs">
+        <h2>Change a surrounding (<code>cs</code>)</h2>
+        <pre><code>cs{old}{new}</code></pre>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Keypress</th><th>Before</th><th>After</th></tr></thead>
+            <tbody>
+              <tr><td><code>cs&quot;&#39;</code></td><td><code>&quot;hello&quot;</code></td><td><code>&#39;hello&#39;</code></td></tr>
+              <tr><td><code>cs&#39;(</code></td><td><code>&#39;hello&#39;</code></td><td><code>( hello )</code></td></tr>
+              <tr><td><code>cs[{</code></td><td><code>[hello]</code></td><td><code>{hello}</code></td></tr>
+              <tr><td><code>cst&quot;</code></td><td><code>&lt;em&gt;hello&lt;/em&gt;</code></td><td><code>&quot;hello&quot;</code></td></tr>
+              <tr><td><code>cs&quot;t</code></td><td><code>&quot;hello&quot;</code></td><td>prompts for a tag</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="delete-a-surrounding-ds">
+        <h2>Delete a surrounding (<code>ds</code>)</h2>
+        <pre><code>ds{char}</code></pre>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Keypress</th><th>Before</th><th>After</th></tr></thead>
+            <tbody>
+              <tr><td><code>ds&quot;</code></td><td><code>&quot;hello&quot;</code></td><td><code>hello</code></td></tr>
+              <tr><td><code>ds(</code></td><td><code>( hello )</code></td><td><code>hello</code></td></tr>
+              <tr><td><code>dst</code></td><td><code>&lt;em&gt;hello&lt;/em&gt;</code></td><td><code>hello</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="visual-mode-s">
+        <h2>Visual mode (<code>S</code>)</h2>
+        <p>Select text visually, then press <code>S{char}</code>:</p>
+        <pre><code>v + select + S&quot;    →   wraps selection in double quotes
+v + select + St    →   wraps selection in an HTML tag</code></pre>
+      </section>
+      <section id="common-patterns">
+        <h2>Common patterns</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Task</th><th>Keys</th></tr></thead>
+            <tbody>
+              <tr><td>Wrap word in double quotes</td><td><code>ysiw&quot;</code></td></tr>
+              <tr><td>Wrap word in backticks</td><td><code>ysiw</code> followed by a backtick</td></tr>
+              <tr><td>Remove quotes from string</td><td><code>ds&quot;</code></td></tr>
+              <tr><td>Switch single to double quotes</td><td><code>cs&#39;&quot;</code></td></tr>
+              <tr><td>Wrap line in parentheses</td><td><code>yss)</code></td></tr>
+              <tr><td>Wrap selection in a tag</td><td><code>VS&lt;div&gt;</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

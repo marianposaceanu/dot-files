@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>fzf.vim - dot-files</title>
+  <meta name="description" content="Fuzzy finder integration for files, buffers, git objects, and search results. Powered by fzf and ripgrep.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/fzf-vim.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">fzf.vim</h1>
+      <p class="subtitle">Fuzzy finder integration for files, buffers, git objects, and search results. Powered by fzf and ripgrep.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#files">Files</a></li>
+        <li><a href="#search-inside-files">Search inside files</a></li>
+        <li><a href="#buffers-and-history">Buffers and history</a></li>
+        <li><a href="#git">Git</a></li>
+        <li><a href="#other">Other</a></li>
+        <li><a href="#keys-inside-any-fzf-window">Keys inside any fzf window</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+        <p>The popup opens centered at 90% width / 60% height. Press <code>Ctrl-/</code> to toggle the preview panel.</p>
+      <section id="files">
+        <h2>Files</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command / Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;C-p&gt;</code> / <code>:Files</code></td><td>Fuzzy-find all files in the repo</td></tr>
+              <tr><td><code>:GFiles</code></td><td>Files tracked by git (<code>git ls-files</code>)</td></tr>
+              <tr><td><code>:GFiles?</code></td><td>Files with uncommitted changes (<code>git status</code>)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="search-inside-files">
+        <h2>Search inside files</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command / Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;leader&gt;a</code></td><td><code>:Rg</code> — open ripgrep prompt, type a query</td></tr>
+              <tr><td><code>&lt;leader&gt;A</code></td><td><code>:Rg</code> pre-filled with the word under cursor</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Inside the ripgrep results window you can keep filtering the list by typing.</p>
+      </section>
+      <section id="buffers-and-history">
+        <h2>Buffers and history</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>:Buffers</code></td><td>Open buffer list</td></tr>
+              <tr><td><code>:History</code></td><td>Recently opened files</td></tr>
+              <tr><td><code>:History:</code></td><td>Command history</td></tr>
+              <tr><td><code>:History/</code></td><td>Search history</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="git">
+        <h2>Git</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command / Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;leader&gt;gc</code></td><td><code>:BCommits</code> — commit history for the current file with diff preview</td></tr>
+              <tr><td><code>:Commits</code></td><td>Full repo commit history</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="other">
+        <h2>Other</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>:Lines</code></td><td>Fuzzy search across all open buffers</td></tr>
+              <tr><td><code>:BLines</code></td><td>Fuzzy search within the current buffer</td></tr>
+              <tr><td><code>:Marks</code></td><td>Jump to a Vim mark</td></tr>
+              <tr><td><code>:Maps</code></td><td>Search all active key mappings</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="keys-inside-any-fzf-window">
+        <h2>Keys inside any fzf window</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>Ctrl-j</code> / <code>Ctrl-k</code></td><td>Move down / up</td></tr>
+              <tr><td><code>Ctrl-t</code></td><td>Open in new tab</td></tr>
+              <tr><td><code>Ctrl-x</code></td><td>Open in horizontal split</td></tr>
+              <tr><td><code>Ctrl-v</code></td><td>Open in vertical split</td></tr>
+              <tr><td><code>Ctrl-/</code></td><td>Toggle preview panel</td></tr>
+              <tr><td><code>Tab</code></td><td>Mark multiple items</td></tr>
+              <tr><td><code>Esc</code></td><td>Close</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

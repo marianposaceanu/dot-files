@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vim-rooter - dot-files</title>
+  <meta name="description" content="Automatically changes Vim&#39;s working directory to the project root when you open a file. Works silently in the background.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/vim-rooter.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">vim-rooter</h1>
+      <p class="subtitle">Automatically changes Vim&#39;s working directory to the project root when you open a file. Works silently in the background.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#what-it-does">What it does</a></li>
+        <li><a href="#root-markers">Root markers</a></li>
+        <li><a href="#useful-commands">Useful commands</a></li>
+        <li><a href="#when-it-doesn-t-find-a-root">When it doesn&#39;t find a root</a></li>
+        <li><a href="#why-it-matters-in-this-setup">Why it matters in this setup</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="what-it-does">
+        <h2>What it does</h2>
+        <p>When you open a file, vim-rooter walks up the directory tree to find a root marker and runs <code>:cd</code> to that directory. This means:</p>
+        <ul>
+          <li><code>:Files</code> and <code>&lt;C-p&gt;</code> search from the project root, not wherever you launched Vim</li>
+          <li><code>:Rg</code> / <code>&lt;leader&gt;a</code> searches the whole project</li>
+          <li><code>:Git</code> (fugitive) works correctly regardless of which subdirectory you opened from</li>
+        </ul>
+      </section>
+      <section id="root-markers">
+        <h2>Root markers</h2>
+        <p>By default vim-rooter looks for these markers (in order):</p>
+        <pre><code>.git  .git/  _darcs  .hg  .bzr  .svn  Makefile  package.json</code></pre>
+        <p>The first ancestor directory containing any of these is the root.</p>
+      </section>
+      <section id="useful-commands">
+        <h2>Useful commands</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>:Rooter</code></td><td>Manually trigger root detection for the current file</td></tr>
+              <tr><td><code>:pwd</code></td><td>Confirm the current working directory</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="when-it-doesn-t-find-a-root">
+        <h2>When it doesn&#39;t find a root</h2>
+        <p>If no root marker is found, vim-rooter changes to the file&#39;s own directory instead of leaving the cwd unchanged. This keeps relative paths predictable.</p>
+      </section>
+      <section id="why-it-matters-in-this-setup">
+        <h2>Why it matters in this setup</h2>
+        <p>The FZF default command is:</p>
+        <pre><code class="language-vim">let $FZF_DEFAULT_COMMAND=&#39;git ls-files --exclude-standard -co&#39;</code></pre>
+        <p>Without vim-rooter, this command would only list files under whichever directory Vim happened to start in. With vim-rooter, it always lists files from the project root.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

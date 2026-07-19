@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>git_helpers (custom) - dot-files</title>
+  <meta name="description" content="A small custom plugin (`plugin/git_helpers.vim`) that adds two git commands not covered by fugitive or fzf.vim.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/git-helpers.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">git_helpers (custom)</h1>
+      <p class="subtitle">A small custom plugin (`plugin/git_helpers.vim`) that adds two git commands not covered by fugitive or fzf.vim.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#blame-inline-blame-for-the-current-line">:Blame — inline blame for the current line</a></li>
+        <li><a href="#logsearch-leader-gs-find-which-commit-introduced-a-line">:LogSearch / <code>&lt;leader&gt;gs</code> — find which commit introduced a line</a></li>
+        <li><a href="#relation-to-vim-rhubarb-s-gbrowse">Relation to vim-rhubarb&#39;s :GBrowse</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="blame-inline-blame-for-the-current-line">
+        <h2>:Blame — inline blame for the current line</h2>
+        <pre><code>:Blame</code></pre>
+        <p>Prints the commit hash, author, subject, and GitHub URL for the line under the cursor — all in the Vim message area without leaving the file.</p>
+        <p>Example output:</p>
+        <pre><code>Commit:
+https://github.com/you/repo/commit/3b753cf8
+ - 3b753cf (Marian P) fix: handle edge case in parser</code></pre>
+        <h3>How it differs from fugitive&#39;s <code>:Git blame</code></h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th></th><th><code>:Blame</code> (custom)</th><th><code>:Git blame</code> (fugitive)</th></tr></thead>
+            <tbody>
+              <tr><td>Output</td><td>Inline message, stays in current buffer</td><td>Opens a full interactive split</td></tr>
+              <tr><td>Navigation</td><td>None</td><td>Full commit browsing with <code>&lt;Enter&gt;</code></td></tr>
+              <tr><td>Speed</td><td>Instant</td><td>Loads full blame for the file</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Use <code>:Blame</code> for a quick &quot;who wrote this line?&quot; check. Use <code>:Git blame</code> when you want to navigate the history.</p>
+      </section>
+      <section id="logsearch-leader-gs-find-which-commit-introduced-a-line">
+        <h2>:LogSearch / <code>&lt;leader&gt;gs</code> — find which commit introduced a line</h2>
+        <p>Searches <code>git log -S</code> (the &quot;pickaxe&quot;) for the exact text of the current line or visual selection, then prints the first matching commit URL.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key / Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;leader&gt;gs</code></td><td>Search for current line (normal mode)</td></tr>
+              <tr><td><code>&lt;leader&gt;gs</code></td><td>Search for selected text (visual mode)</td></tr>
+              <tr><td><code>:&#39;&lt;,&#39;&gt;LogSearch</code></td><td>Same, via command</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>When to use it</h3>
+        <p>Use <code>&lt;leader&gt;gs</code> when you want to know <strong>which commit first added or removed a specific string</strong>, rather than who last touched the line (that&#39;s <code>:Blame</code>). It is especially useful for tracking down when a particular value, function call, or bug was introduced.</p>
+        <p>Example: cursor on a line containing <code>MAX_RETRIES = 5</code>:</p>
+        <pre><code>&lt;leader&gt;gs    →   finds the commit that first introduced that exact text</code></pre>
+      </section>
+      <section id="relation-to-vim-rhubarb-s-gbrowse">
+        <h2>Relation to vim-rhubarb&#39;s :GBrowse</h2>
+        <p>Both tools build a GitHub URL, but for different purposes:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Tool</th><th>Opens / shows</th></tr></thead>
+            <tbody>
+              <tr><td><code>:Blame</code></td><td>Commit URL in the message area (stay in Vim)</td></tr>
+              <tr><td><code>:GBrowse</code></td><td>Opens file / line / commit in the browser</td></tr>
+              <tr><td><code>&lt;leader&gt;gs</code></td><td>Commit URL for the line&#39;s origin in the message area</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

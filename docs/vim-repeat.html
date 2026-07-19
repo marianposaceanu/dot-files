@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vim-repeat - dot-files</title>
+  <meta name="description" content="Makes the `.` repeat command work with plugin mappings, not just built-in Vim edits.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/vim-repeat.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">vim-repeat</h1>
+      <p class="subtitle">Makes the `.` repeat command work with plugin mappings, not just built-in Vim edits.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#what-it-fixes">What it fixes</a></li>
+        <li><a href="#examples">Examples</a></li>
+        <li><a href="#no-configuration-needed">No configuration needed</a></li>
+        <li><a href="#which-plugins-benefit">Which plugins benefit</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="what-it-fixes">
+        <h2>What it fixes</h2>
+        <p>Vim&#39;s <code>.</code> key repeats the last change. Without vim-repeat, plugin mappings (like those from vim-surround or vim-commentary) are not repeatable — <code>.</code> either does nothing or repeats only the last native edit.</p>
+        <p>With vim-repeat installed, those mappings register themselves properly and <code>.</code> works as expected.</p>
+      </section>
+      <section id="examples">
+        <h2>Examples</h2>
+        <h3>With vim-surround</h3>
+        <pre><code>ysiw&quot;    →   wrap word in quotes
+.        →   wrap the next word in quotes too</code></pre>
+        <h3>With vim-commentary</h3>
+        <pre><code>gcc      →   comment out a line
+j.       →   move down, comment out that line too</code></pre>
+      </section>
+      <section id="no-configuration-needed">
+        <h2>No configuration needed</h2>
+        <p>vim-repeat has no commands or mappings of its own. It works automatically as long as it is loaded before the plugins it supports.</p>
+      </section>
+      <section id="which-plugins-benefit">
+        <h2>Which plugins benefit</h2>
+        <p>Any plugin that calls <code>repeat#set()</code> in its mappings. In this setup:</p>
+        <ul>
+          <li>vim-surround</li>
+          <li>vim-commentary</li>
+          <li>vim-unimpaired (if added later)</li>
+          <li>vim-speeddating (if added later)</li>
+        </ul>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

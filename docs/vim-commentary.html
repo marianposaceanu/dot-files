@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vim-commentary - dot-files</title>
+  <meta name="description" content="Comment and uncomment code with a single motion. Works with any filetype that has a `commentstring` set.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/vim-commentary.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">vim-commentary</h1>
+      <p class="subtitle">Comment and uncomment code with a single motion. Works with any filetype that has a `commentstring` set.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#comment-a-line-gcc">Comment a line (<code>gcc</code>)</a></li>
+        <li><a href="#comment-a-motion-gc">Comment a motion (<code>gc</code>)</a></li>
+        <li><a href="#visual-mode">Visual mode</a></li>
+        <li><a href="#how-comments-are-formatted">How comments are formatted</a></li>
+        <li><a href="#works-with-vim-repeat">Works with vim-repeat</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="comment-a-line-gcc">
+        <h2>Comment a line (<code>gcc</code>)</h2>
+        <pre><code>gcc    toggle comment on current line</code></pre>
+      </section>
+      <section id="comment-a-motion-gc">
+        <h2>Comment a motion (<code>gc</code>)</h2>
+        <pre><code>gc{motion}</code></pre>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Keypress</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>gcj</code></td><td>Comment current line + line below</td></tr>
+              <tr><td><code>gcap</code></td><td>Comment around paragraph</td></tr>
+              <tr><td><code>gc3j</code></td><td>Comment current line + 3 lines below</td></tr>
+              <tr><td><code>gci{</code></td><td>Comment everything inside <code>{...}</code></td></tr>
+              <tr><td><code>gcG</code></td><td>Comment from current line to end of file</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="visual-mode">
+        <h2>Visual mode</h2>
+        <p>Select lines visually, then press <code>gc</code>:</p>
+        <pre><code>V + select lines + gc    →   toggles comments on all selected lines</code></pre>
+      </section>
+      <section id="how-comments-are-formatted">
+        <h2>How comments are formatted</h2>
+        <p>Uses the filetype&#39;s <code>commentstring</code>. Examples:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Filetype</th><th>Comment style</th></tr></thead>
+            <tbody>
+              <tr><td>Ruby</td><td><code># code</code></td></tr>
+              <tr><td>JavaScript</td><td><code>// code</code></td></tr>
+              <tr><td>HTML</td><td><code>&lt;!-- code --&gt;</code></td></tr>
+              <tr><td>Vim</td><td><code>&quot; code</code></td></tr>
+              <tr><td>Python</td><td><code># code</code></td></tr>
+              <tr><td>SQL</td><td><code>-- code</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>No configuration needed — it picks up the right style automatically.</p>
+      </section>
+      <section id="works-with-vim-repeat">
+        <h2>Works with vim-repeat</h2>
+        <p>Pressing <code>.</code> after a <code>gc</code> operation repeats the same comment toggle on the same number of lines.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

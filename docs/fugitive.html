@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>fugitive - dot-files</title>
+  <meta name="description" content="Full git porcelain inside Vim. Lazy-loaded on first use of any `:Git` command.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/fugitive.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">fugitive</h1>
+      <p class="subtitle">Full git porcelain inside Vim. Lazy-loaded on first use of any `:Git` command.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#the-status-window">The status window</a></li>
+        <li><a href="#diff">Diff</a></li>
+        <li><a href="#blame">Blame</a></li>
+        <li><a href="#log">Log</a></li>
+        <li><a href="#reading-and-writing">Reading and writing</a></li>
+        <li><a href="#lazy-loading-note">Lazy-loading note</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="the-status-window">
+        <h2>The status window</h2>
+        <pre><code>:Git</code></pre>
+        <p>Opens a status buffer. Everything you need is one key away from here:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>s</code></td><td>Stage file / hunk under cursor</td></tr>
+              <tr><td><code>u</code></td><td>Unstage file / hunk</td></tr>
+              <tr><td><code>=</code></td><td>Toggle inline diff for file under cursor</td></tr>
+              <tr><td><code>dv</code></td><td>Open a vertical diff split</td></tr>
+              <tr><td><code>cc</code></td><td>Commit staged changes (opens message buffer)</td></tr>
+              <tr><td><code>ca</code></td><td>Amend last commit</td></tr>
+              <tr><td><code>cz</code></td><td>Stash</td></tr>
+              <tr><td><code>X</code></td><td>Discard change</td></tr>
+              <tr><td><code>&lt;Enter&gt;</code></td><td>Open file</td></tr>
+              <tr><td><code>g?</code></td><td>Show all available keys</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="diff">
+        <h2>Diff</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>:Gdiffsplit</code></td><td>Vertical diff of current file vs index</td></tr>
+              <tr><td><code>:Gdiffsplit HEAD</code></td><td>Diff vs last commit</td></tr>
+              <tr><td><code>:Gdiffsplit main</code></td><td>Diff vs a branch</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>In the diff view, use standard Vim diff motions:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>]c</code></td><td>Next difference</td></tr>
+              <tr><td><code>[c</code></td><td>Previous difference</td></tr>
+              <tr><td><code>do</code></td><td>Obtain change from other buffer</td></tr>
+              <tr><td><code>dp</code></td><td>Put change into other buffer</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="blame">
+        <h2>Blame</h2>
+        <pre><code>:Git blame</code></pre>
+        <p>Opens an interactive blame split. Navigate with:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;Enter&gt;</code></td><td>Open the blamed commit</td></tr>
+              <tr><td><code>o</code></td><td>Open commit in a split</td></tr>
+              <tr><td><code>~</code></td><td>Jump to grandparent commit</td></tr>
+              <tr><td><code>q</code></td><td>Close blame</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <blockquote><p>For a quick inline summary of who last touched the current line, use the custom <code>:Blame</code> command (<code>plugin/git_helpers.vim</code>).</p></blockquote>
+      </section>
+      <section id="log">
+        <h2>Log</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>:Git log</code></td><td>Full repo log</td></tr>
+              <tr><td><code>:Git log %</code></td><td>Log for the current file only</td></tr>
+              <tr><td><code>:Gclog</code></td><td>Load file log into the quickfix list</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Press <code>&lt;Enter&gt;</code> on any commit in the log to open it.</p>
+      </section>
+      <section id="reading-and-writing">
+        <h2>Reading and writing</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>:Gwrite</code></td><td>Stage current file (equivalent to <code>git add %</code>)</td></tr>
+              <tr><td><code>:Gread</code></td><td>Revert current file to index (equivalent to <code>git checkout %</code>)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="lazy-loading-note">
+        <h2>Lazy-loading note</h2>
+        <p>Fugitive and vim-rhubarb are loaded together the first time any of these commands is used:</p>
+        <pre><code>:Git  :G  :Gblame  :Glog  :Gclog  :Gdiffsplit  :Gvdiffsplit  :GBrowse  …</code></pre>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

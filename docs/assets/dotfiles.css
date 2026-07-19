@@ -26,6 +26,16 @@
   margin-bottom: 0;
 }
 
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+  min-width: 36rem;
+}
+
 @media (max-width: 540px) {
   .shortcut-table td:first-child,
   .performance-table td:first-child {

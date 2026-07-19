@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>supertab - dot-files</title>
+  <meta name="description" content="Tab completion in insert mode. Pressing `&lt;Tab&gt;` triggers completion using whatever completion method is currently active.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/supertab.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">supertab</h1>
+      <p class="subtitle">Tab completion in insert mode. Pressing `&lt;Tab&gt;` triggers completion using whatever completion method is currently active.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#basic-use">Basic use</a></li>
+        <li><a href="#completion-context">Completion context</a></li>
+        <li><a href="#manual-completion-methods">Manual completion methods</a></li>
+        <li><a href="#with-universal-ctags">With universal-ctags</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="basic-use">
+        <h2>Basic use</h2>
+        <p>In insert mode, start typing and press <code>&lt;Tab&gt;</code>:</p>
+        <pre><code>def lo&lt;Tab&gt;    →   completes to  def load_something   (if it&#39;s in scope)</code></pre>
+        <p>Press <code>&lt;Tab&gt;</code> again to cycle through candidates. <code>&lt;S-Tab&gt;</code> cycles backwards.</p>
+      </section>
+      <section id="completion-context">
+        <h2>Completion context</h2>
+        <p>Supertab detects the context and picks the right <code>completefunc</code> automatically:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Context</th><th>Completion source</th></tr></thead>
+            <tbody>
+              <tr><td>After <code>.</code> or <code>::</code></td><td>Omni-completion (<code>&lt;C-x&gt;&lt;C-o&gt;</code>)</td></tr>
+              <tr><td>Inside a path (<code>/</code>)</td><td>File path completion</td></tr>
+              <tr><td>Elsewhere</td><td>Keyword completion from open buffers</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="manual-completion-methods">
+        <h2>Manual completion methods</h2>
+        <p>If you want to force a specific completion type, use the standard Vim insert-mode shortcuts directly:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Completion type</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;C-n&gt;</code> / <code>&lt;C-p&gt;</code></td><td>Keywords in open buffers</td></tr>
+              <tr><td><code>&lt;C-x&gt;&lt;C-o&gt;</code></td><td>Omni-completion (language-aware)</td></tr>
+              <tr><td><code>&lt;C-x&gt;&lt;C-f&gt;</code></td><td>File paths</td></tr>
+              <tr><td><code>&lt;C-x&gt;&lt;C-l&gt;</code></td><td>Whole lines</td></tr>
+              <tr><td><code>&lt;C-x&gt;&lt;C-]&gt;</code></td><td>Tags (requires ctags — <code>universal-ctags</code> is in the Brewfile)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="with-universal-ctags">
+        <h2>With universal-ctags</h2>
+        <p>Since <code>universal-ctags</code> is installed, tag-based completion is available. Generate tags for a project:</p>
+        <pre><code class="language-sh">ctags -R .</code></pre>
+        <p>Then <code>&lt;C-x&gt;&lt;C-]&gt;</code> (or <code>&lt;Tab&gt;</code> after a known symbol) will complete against the tags file.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

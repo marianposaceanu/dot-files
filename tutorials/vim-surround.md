@@ -78,7 +78,7 @@ v + select + St    →   wraps selection in an HTML tag
 | Task | Keys |
 |------|------|
 | Wrap word in double quotes | `ysiw"` |
-| Wrap word in backticks | `ysiw`` ` |
+| Wrap word in backticks | `ysiw` followed by a backtick |
 | Remove quotes from string | `ds"` |
 | Switch single to double quotes | `cs'"` |
 | Wrap line in parentheses | `yss)` |

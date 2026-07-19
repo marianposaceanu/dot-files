@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vim-rhubarb - dot-files</title>
+  <meta name="description" content="GitHub extension for fugitive. Adds `:GBrowse` to open files, lines, and commits on github.com, and enables auto-completing GitHub issue/PR numbers in commit messages.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/vim-rhubarb.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">vim-rhubarb</h1>
+      <p class="subtitle">GitHub extension for fugitive. Adds `:GBrowse` to open files, lines, and commits on github.com, and enables auto-completing GitHub issue/PR numbers in commit messages.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#opening-things-on-github">Opening things on GitHub</a></li>
+        <li><a href="#commit-messages-issue-pr-auto-complete">Commit messages — issue/PR auto-complete</a></li>
+        <li><a href="#how-it-relates-to-the-custom-blame-helper">How it relates to the custom :Blame helper</a></li>
+        <li><a href="#lazy-loading-note">Lazy-loading note</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+        <p>Both fugitive and rhubarb are lazy-loaded together on first use of any <code>:Git</code> command.</p>
+      <section id="opening-things-on-github">
+        <h2>Opening things on GitHub</h2>
+        <h3>Current file</h3>
+        <pre><code>:GBrowse</code></pre>
+        <p>Opens the current file on GitHub at the current branch/commit.</p>
+        <h3>Specific line or selection</h3>
+        <pre><code>:GBrowse          (normal mode — current line)
+:&#39;&lt;,&#39;&gt;GBrowse     (visual mode — selected lines)</code></pre>
+        <p>In visual mode, GitHub opens with the line range highlighted (e.g. <code>#L10-L25</code>).</p>
+        <h3>A specific commit</h3>
+        <p>From fugitive&#39;s log (<code>:Git log</code>) or blame (<code>:Git blame</code>), place the cursor on a commit hash and run:</p>
+        <pre><code>:GBrowse</code></pre>
+        <p>Opens that commit&#39;s page on GitHub.</p>
+        <h3>A file from a specific commit or branch</h3>
+        <pre><code>:GBrowse main:path/to/file.rb
+:GBrowse HEAD~3:path/to/file.rb</code></pre>
+      </section>
+      <section id="commit-messages-issue-pr-auto-complete">
+        <h2>Commit messages — issue/PR auto-complete</h2>
+        <p>When writing a commit message (e.g. after <code>:Git commit</code>), type <code>#</code> in insert mode to trigger auto-complete for GitHub issues and PRs in the current repo:</p>
+        <pre><code>Fixes #&lt;Tab&gt;   →   shows open issues to complete</code></pre>
+        <p>Requires a GitHub token in the environment (<code>GITHUB_TOKEN</code>) or via the system keychain for private repos.</p>
+      </section>
+      <section id="how-it-relates-to-the-custom-blame-helper">
+        <h2>How it relates to the custom :Blame helper</h2>
+        <p>This repo also has a custom <code>:Blame</code> command (<code>plugin/git_helpers.vim</code>) that prints the commit URL for the current line. The two are complementary:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code>:Blame</code> (custom)</td><td>Prints hash + author + subject + URL inline in Vim</td></tr>
+              <tr><td><code>:Git blame</code> (fugitive)</td><td>Opens an interactive blame split; navigate commits</td></tr>
+              <tr><td><code>:GBrowse</code> (rhubarb)</td><td>Opens the file/line/commit directly in the browser</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="lazy-loading-note">
+        <h2>Lazy-loading note</h2>
+        <p>Both <code>fugitive</code> and <code>vim-rhubarb</code> live in <code>pack/bundles/opt/</code> and are loaded together the first time any of these commands is used:</p>
+        <pre><code>:Git  :G  :Gblame  :Glog  :Gdiffsplit  :GBrowse  …</code></pre>
+        <p>There is no startup cost until you invoke one of them.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GoldenView.Vim - dot-files</title>
+  <meta name="description" content="Automatically resizes Vim splits so the active window is larger than inactive ones — the &quot;golden ratio&quot; proportion. Lazy-loaded on first use.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/goldenview.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">GoldenView.Vim</h1>
+      <p class="subtitle">Automatically resizes Vim splits so the active window is larger than inactive ones — the &quot;golden ratio&quot; proportion. Lazy-loaded on first use.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#toggle">Toggle</a></li>
+        <li><a href="#what-it-does">What it does</a></li>
+        <li><a href="#default-mappings-provided-by-plugin">Default mappings (provided by plugin)</a></li>
+        <li><a href="#tips">Tips</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="toggle">
+        <h2>Toggle</h2>
+        <pre><code>&lt;leader&gt;gv    toggle GoldenView on / off</code></pre>
+        <p>The first keypress loads the plugin and enables auto-resizing. A second press disables it and restores equal split sizes.</p>
+      </section>
+      <section id="what-it-does">
+        <h2>What it does</h2>
+        <p>When enabled, the active split takes up roughly 62% of the available space. Inactive splits share the rest. As you move between splits (<code>&lt;C-h/j/k/l&gt;</code>), the layout rebalances automatically.</p>
+        <p>This is useful when you have several splits open (e.g. file + fugitive diff + NERDTree) and want reading space in whichever one you&#39;re editing.</p>
+      </section>
+      <section id="default-mappings-provided-by-plugin">
+        <h2>Default mappings (provided by plugin)</h2>
+        <p>GoldenView&#39;s own default mappings are disabled in this config:</p>
+        <pre><code class="language-vim">let g:goldenview__enable_default_mapping = 0</code></pre>
+        <p>Only the toggle is wired up via <code>&lt;leader&gt;gv</code>. This avoids conflicts with split-navigation keys.</p>
+      </section>
+      <section id="tips">
+        <h2>Tips</h2>
+        <ul>
+          <li>Works best with 3+ splits open.</li>
+          <li>Combine with <code>&lt;C-h/j/k/l&gt;</code> (wired in <code>.vimrc</code>) to navigate splits — the layout rebalances on every focus change.</li>
+          <li>If you temporarily want equal splits, toggle GoldenView off, run <code>:wincmd =</code>, then toggle back on.</li>
+        </ul>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

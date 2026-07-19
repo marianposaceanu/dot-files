@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vim-gitgutter - dot-files</title>
+  <meta name="description" content="Shows which lines you have added, modified, or removed since the last git commit, directly in the sign column.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/vim-gitgutter.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">vim-gitgutter</h1>
+      <p class="subtitle">Shows which lines you have added, modified, or removed since the last git commit, directly in the sign column.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#navigating-hunks">Navigating hunks</a></li>
+        <li><a href="#working-with-hunks">Working with hunks</a></li>
+        <li><a href="#viewing-commit-history">Viewing commit history</a></li>
+        <li><a href="#text-objects">Text objects</a></li>
+        <li><a href="#commands">Commands</a></li>
+        <li><a href="#config-from-vimrc">Config (from <code>.vimrc</code>)</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+        <pre><code>▎ added line
+▎ modified line
+▁ removed below this line</code></pre>
+      <section id="navigating-hunks">
+        <h2>Navigating hunks</h2>
+        <p>A <strong>hunk</strong> is a contiguous block of changed lines.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>]c</code></td><td>Jump to next hunk</td></tr>
+              <tr><td><code>[c</code></td><td>Jump to previous hunk</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="working-with-hunks">
+        <h2>Working with hunks</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;leader&gt;hp</code></td><td>Preview hunk diff in a floating window</td></tr>
+              <tr><td><code>&lt;leader&gt;hs</code></td><td>Stage hunk (without leaving Vim)</td></tr>
+              <tr><td><code>&lt;leader&gt;hu</code></td><td>Undo hunk (revert to HEAD)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <blockquote><p>Staging individual hunks is useful when a file has multiple unrelated changes and you want to commit them separately.</p></blockquote>
+      </section>
+      <section id="viewing-commit-history">
+        <h2>Viewing commit history</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;leader&gt;gc</code></td><td>Browse per-file commit history with diff preview (<code>:BCommits</code> via fzf)</td></tr>
+              <tr><td><code>&lt;leader&gt;gs</code></td><td>Search git log for the exact line or visual selection under cursor</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="text-objects">
+        <h2>Text objects</h2>
+        <p>Gitgutter registers <code>ic</code> and <code>ac</code> as hunk text objects:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>vic</code></td><td>Select inside hunk (visual)</td></tr>
+              <tr><td><code>vac</code></td><td>Select around hunk (visual)</td></tr>
+              <tr><td><code>dic</code></td><td>Delete inside hunk</td></tr>
+              <tr><td><code>yic</code></td><td>Yank inside hunk</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="commands">
+        <h2>Commands</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>:GitGutterToggle</code></td><td>Toggle signs on/off</td></tr>
+              <tr><td><code>:GitGutterLineHighlightsToggle</code></td><td>Toggle full-line background highlights</td></tr>
+              <tr><td><code>:GitGutterFold</code></td><td>Fold all unchanged lines (focus on the diff)</td></tr>
+              <tr><td><code>:GitGutterQuickFix</code></td><td>Load all hunks into the quickfix list</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="config-from-vimrc">
+        <h2>Config (from <code>.vimrc</code>)</h2>
+        <pre><code class="language-vim">set updatetime=250        &quot; refresh signs within 250ms of stopping edits
+set signcolumn=yes        &quot; always show the sign column (prevents layout shift)
+let g:gitgutter_sign_added    = &#39;▎&#39;
+let g:gitgutter_sign_modified = &#39;▎&#39;
+let g:gitgutter_sign_removed  = &#39;▁&#39;</code></pre>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

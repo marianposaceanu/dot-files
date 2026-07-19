@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vim-endwise - dot-files</title>
+  <meta name="description" content="Automatically adds closing keywords after you press `&lt;Enter&gt;` in insert mode. Works for Ruby, Bash, Vim script, Lua, Elixir, and more.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/vim-endwise.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim field guide · dot-files</p>
+      <h1 id="page-title">vim-endwise</h1>
+      <p class="subtitle">Automatically adds closing keywords after you press `&lt;Enter&gt;` in insert mode. Works for Ruby, Bash, Vim script, Lua, Elixir, and more.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Vim tutorial</li>
+        <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#how-it-works">How it works</a></li>
+        <li><a href="#no-configuration-needed">No configuration needed</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="how-it-works">
+        <h2>How it works</h2>
+        <p>Type an opening keyword and press <code>&lt;Enter&gt;</code> — vim-endwise appends the matching closer and positions the cursor in between.</p>
+        <h3>Ruby</h3>
+        <pre><code class="language-ruby">def greet        →  &lt;Enter&gt;  →   def greet
+                                   |          (cursor here)
+                                 end</code></pre>
+        <pre><code class="language-ruby">if condition     →  &lt;Enter&gt;  →   if condition
+                                   |
+                                 end</code></pre>
+        <pre><code class="language-ruby">do               →  &lt;Enter&gt;  →   do
+                                   |
+                                 end</code></pre>
+        <h3>Bash / Zsh</h3>
+        <pre><code class="language-sh">if [ ... ]; then    →  &lt;Enter&gt;  →   if [ ... ]; then
+                                       |
+                                     fi</code></pre>
+        <pre><code class="language-sh">for i in ...; do    →  &lt;Enter&gt;  →   for i in ...; do
+                                       |
+                                     done</code></pre>
+        <h3>Vim script</h3>
+        <pre><code class="language-vim">function! Foo()    →  &lt;Enter&gt;  →   function! Foo()
+                                     |
+                                   endfunction</code></pre>
+      </section>
+      <section id="no-configuration-needed">
+        <h2>No configuration needed</h2>
+        <p>vim-endwise detects the filetype automatically and applies the right closer. It does nothing in filetypes it doesn&#39;t recognise.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>
