@@ -26,10 +26,7 @@ macos-auto-secure-input = true
 window-save-state = always
 undo-timeout = 15s
 
-# Global scratch terminal. This is Ghostty's documented macOS binding and
-# requires Ghostty Accessibility permission.
-keybind = global:super+backquote=toggle_quick_terminal
-# Focused-app fallback that does not require global shortcut registration.
+# Scratch terminal while Ghostty is focused.
 keybind = super+shift+backquote=toggle_quick_terminal
 quick-terminal-position = top
 quick-terminal-size = 35%

@@ -38,10 +38,11 @@ Contains my dot-files for easy usage across different OSs.
 
 ### Ghostty named workspaces (`rz`)
 
-`rz` saves and restores the Ghostty state exposed by its AppleScript API: windows,
-tabs, terminal surfaces, focus, working directories, Codex conversation IDs, and
+`rz` saves and restores Ghostty windows, their macOS position and size, tabs,
+terminal surfaces, focus, working directories, Codex conversation IDs, and
 non-empty scrollback. Restores always create new Ghostty windows, so existing tabs
-are left alone.
+are left alone. Window geometry capture requires macOS Accessibility permission
+for the shell running `rz`.
 
 ```sh
 rz --save work                 # save work_YYYYMMDD-HHMMSS

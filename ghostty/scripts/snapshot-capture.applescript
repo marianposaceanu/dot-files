@@ -5,7 +5,7 @@ use scripting additions
 
 on run
     set separator to character id 9
-    set reportText to "window_index" & separator & "window_id" & separator & "window_name" & separator & "tab_index" & separator & "tab_id" & separator & "tab_name" & separator & "tab_selected" & separator & "terminal_index" & separator & "terminal_id" & separator & "terminal_name" & separator & "terminal_focused" & separator & "working_directory" & separator & "scrollback_path" & linefeed
+    set reportText to "window_index" & separator & "window_id" & separator & "window_name" & separator & "window_x" & separator & "window_y" & separator & "window_width" & separator & "window_height" & separator & "tab_index" & separator & "tab_id" & separator & "tab_name" & separator & "tab_selected" & separator & "terminal_index" & separator & "terminal_id" & separator & "terminal_name" & separator & "terminal_focused" & separator & "working_directory" & separator & "scrollback_path" & linefeed
     set clipboardWasSaved to false
     set savedClipboard to missing value
 
@@ -20,6 +20,11 @@ on run
             set windowIndex to windowIndex + 1
             set windowId to id of currentWindow as text
             set windowName to name of currentWindow as text
+            set windowGeometry to my geometryForWindow(windowIndex)
+            set windowX to item 1 of windowGeometry
+            set windowY to item 2 of windowGeometry
+            set windowWidth to item 3 of windowGeometry
+            set windowHeight to item 4 of windowGeometry
 
             repeat with currentTab in tabs of currentWindow
                 set tabIndex to index of currentTab as integer
@@ -57,7 +62,7 @@ on run
                         end repeat
                     end try
 
-                    set reportText to reportText & windowIndex & separator & my cleanField(windowId) & separator & my cleanField(windowName) & separator & tabIndex & separator & my cleanField(tabId) & separator & my cleanField(tabName) & separator & tabSelected & separator & terminalIndex & separator & my cleanField(terminalId) & separator & my cleanField(terminalName) & separator & terminalFocused & separator & my cleanField(terminalDirectory) & separator & my cleanField(scrollbackPath) & linefeed
+                    set reportText to reportText & windowIndex & separator & my cleanField(windowId) & separator & my cleanField(windowName) & separator & windowX & separator & windowY & separator & windowWidth & separator & windowHeight & separator & tabIndex & separator & my cleanField(tabId) & separator & my cleanField(tabName) & separator & tabSelected & separator & terminalIndex & separator & my cleanField(terminalId) & separator & my cleanField(terminalName) & separator & terminalFocused & separator & my cleanField(terminalDirectory) & separator & my cleanField(scrollbackPath) & linefeed
                 end repeat
             end repeat
         end repeat
@@ -71,6 +76,20 @@ on run
 
     return reportText
 end run
+
+on geometryForWindow(windowIndex)
+    try
+        tell application "System Events"
+            tell process "Ghostty"
+                set windowPosition to position of window windowIndex
+                set windowSize to size of window windowIndex
+            end tell
+        end tell
+        return {item 1 of windowPosition, item 2 of windowPosition, item 1 of windowSize, item 2 of windowSize}
+    on error
+        return {"", "", "", ""}
+    end try
+end geometryForWindow
 
 on cleanField(rawValue)
     set cleanedValue to rawValue as text

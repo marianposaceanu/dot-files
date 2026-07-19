@@ -10,6 +10,7 @@ require "time"
 class Rz
   SNAPSHOT_VERSION = 1
   TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
+  BOX_WIDTH = 92
   NAME_PATTERN = /\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
   UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
 
@@ -38,14 +39,14 @@ class Rz
     elsif @argv.empty?
       restore(nil, dry_run: false)
     else
-      warn usage
+      print_box("USAGE", usage.lines(chomp: true), io: $stderr)
       exit 64
     end
   rescue Interrupt
-    warn "rz: interrupted"
+    print_box("INTERRUPTED", ["No changes were completed."], io: $stderr)
     exit 130
   rescue StandardError => error
-    warn "rz: #{error.message}"
+    print_box("ERROR", [error.message], io: $stderr)
     exit 1
   end
 
@@ -82,6 +83,9 @@ class Rz
 
       process_sessions = running_codex_sessions
       assignments, warnings = assign_codex_sessions(rows, process_sessions)
+      unless rows.group_by { |row| row["window_index"] }.values.all? { |window_rows| window_geometry?(window_rows.first) }
+        warnings << "window geometry unavailable; grant your shell Accessibility permission"
+      end
       assignments.each { |terminal_id, session| terminal_row(rows, terminal_id)["codex"] = session }
 
       rows.each do |row|
@@ -100,11 +104,14 @@ class Rz
       File.write(File.join(staging_dir, "state.json"), JSON.pretty_generate(snapshot) + "\n")
       FileUtils.mv(staging_dir, final_dir)
 
-      puts "saved #{snapshot_id}"
-      puts "  #{snapshot.fetch("windows").length} window(s), #{snapshot.fetch("tabs_count")} tab(s), #{rows.length} terminal(s)"
-      puts "  #{assignments.length} Codex session(s), #{rows.count { |row| row["scrollback_file"] }} scrollback file(s)"
-      warnings.each { |warning| warn "  warning: #{warning}" }
-      puts "  #{final_dir}"
+      lines = [
+        labeled("SNAPSHOT", snapshot_id),
+        labeled("LAYOUT", layout_summary(snapshot)),
+        labeled("CONTENT", content_summary(assignments.length, rows.count { |row| row["scrollback_file"] })),
+        labeled("LOCATION", final_dir)
+      ]
+      warnings.each { |warning| lines << labeled("WARNING", warning) }
+      print_box("WORKSPACE SAVED", lines)
     rescue StandardError
       FileUtils.rm_rf(staging_dir) if staging_dir.start_with?(@snapshots_dir + File::SEPARATOR)
       raise
@@ -129,23 +136,35 @@ class Rz
     end
     output = run_command("osascript", "-e", script)
 
-    puts "restored #{snapshot.fetch("id")}"
-    puts "  #{snapshot.fetch("windows").length} window(s), #{snapshot.fetch("tabs_count")} tab(s), #{terminal_count(snapshot)} terminal(s)"
-    duplicate_ids.each { |id| warn "  warning: Codex session already running, opened a shell instead: #{id}" }
-    puts output unless output.empty?
+    lines = [
+      labeled("SNAPSHOT", snapshot.fetch("id")),
+      labeled("LAYOUT", layout_summary(snapshot)),
+      labeled("STATUS", "Restored into new Ghostty window(s)")
+    ]
+    duplicate_ids.each do |id|
+      lines << labeled("WARNING", "Codex session already running; opened a shell: #{id}")
+    end
+    lines << labeled("GHOSTTY", output) unless output.empty?
+    print_box("WORKSPACE RESTORED", lines)
   end
 
   def list
     snapshots = snapshot_directories
     if snapshots.empty?
-      puts "No rz snapshots in #{@snapshots_dir}"
+      print_box("SAVED WORKSPACES", ["No snapshots found.", labeled("LOCATION", @snapshots_dir)])
       return
     end
 
-    snapshots.reverse_each do |directory|
+    lines = snapshots.reverse_each.with_index(1).flat_map do |directory, index|
       state = JSON.parse(File.read(File.join(directory, "state.json")))
-      puts [state["id"], state["saved_at"], "#{state["tabs_count"]} tab(s)", "#{state["terminals_count"]} terminal(s)"].join("\t")
+      [
+        format("%02d  %s", index, state.fetch("id")),
+        "    #{display_time(state.fetch("saved_at"))}  |  #{layout_summary(state)}"
+      ]
     end
+    lines << ""
+    lines << labeled("LOCATION", @snapshots_dir)
+    print_box("SAVED WORKSPACES", lines)
   end
 
   def validate_name!(name)
@@ -165,8 +184,9 @@ class Rz
     lines = output.lines.map(&:chomp).reject(&:empty?)
     header = lines.shift&.split("\t", -1)
     expected = %w[
-      window_index window_id window_name tab_index tab_id tab_name tab_selected
-      terminal_index terminal_id terminal_name terminal_focused working_directory scrollback_path
+      window_index window_id window_name window_x window_y window_width window_height
+      tab_index tab_id tab_name tab_selected terminal_index terminal_id terminal_name
+      terminal_focused working_directory scrollback_path
     ]
     raise "unexpected Ghostty capture format" unless header == expected
 
@@ -176,6 +196,9 @@ class Rz
 
       row = expected.zip(values).to_h
       %w[window_index tab_index terminal_index].each { |key| row[key] = Integer(row[key], 10) }
+      %w[window_x window_y window_width window_height].each do |key|
+        row[key] = row[key].empty? ? nil : Integer(row[key], 10)
+      end
       %w[tab_selected terminal_focused].each { |key| row[key] = row[key].casecmp?("true") }
       row
     end
@@ -301,8 +324,10 @@ class Rz
         "index" => window_index,
         "id" => first_window_row["window_id"],
         "name" => first_window_row["window_name"],
+        "position" => window_position(first_window_row),
+        "size" => window_size(first_window_row),
         "tabs" => tabs
-      }
+      }.compact
     end
 
     {
@@ -370,13 +395,83 @@ class Rz
   end
 
   def print_restore_preview(snapshot, snapshot_dir)
-    puts "would restore #{snapshot.fetch("id")}"
-    puts "  saved: #{snapshot.fetch("saved_at")} with Ghostty #{snapshot.fetch("ghostty_version")}"
-    puts "  #{snapshot.fetch("windows").length} window(s), #{snapshot.fetch("tabs_count")} tab(s), #{terminal_count(snapshot)} terminal(s)"
     ids = snapshot.fetch("windows").flat_map { |window| window.fetch("tabs") }.flat_map { |tab| tab.fetch("terminals") }.filter_map { |terminal| terminal["codex_session_id"] }
-    puts "  Codex sessions: #{ids.empty? ? "none" : ids.join(", ")}"
-    puts "  #{snapshot_dir}"
-    snapshot.fetch("limitations", []).each { |limitation| puts "  limitation: #{limitation}" }
+    lines = [
+      labeled("STATUS", "Dry run - Ghostty will not be changed"),
+      labeled("SNAPSHOT", snapshot.fetch("id")),
+      labeled("SAVED", "#{display_time(snapshot.fetch("saved_at"))}  |  Ghostty #{snapshot.fetch("ghostty_version")}"),
+      labeled("LAYOUT", layout_summary(snapshot)),
+      labeled("CODEX", ids.empty? ? "none" : "#{ids.length} session(s)"),
+      labeled("LOCATION", snapshot_dir)
+    ]
+    ids.each { |id| lines << "              #{id}" }
+    snapshot.fetch("limitations", []).each { |limitation| lines << labeled("NOTE", limitation) }
+    print_box("RESTORE PREVIEW", lines)
+  end
+
+  def layout_summary(snapshot)
+    "#{snapshot.fetch("windows").length} window(s)  |  #{snapshot.fetch("tabs_count")} tab(s)  |  #{terminal_count(snapshot)} terminal(s)"
+  end
+
+  def content_summary(codex_count, scrollback_count)
+    "#{codex_count} Codex session(s)  |  #{scrollback_count} scrollback file(s)"
+  end
+
+  def display_time(value)
+    Time.iso8601(value).strftime("%Y-%m-%d %H:%M:%S %:z")
+  rescue ArgumentError
+    value
+  end
+
+  def labeled(label, value)
+    format("%-11s  %s", label, value)
+  end
+
+  def print_box(title, lines, io: $stdout)
+    inner_width = BOX_WIDTH - 4
+    border = "+#{"-" * (BOX_WIDTH - 2)}+"
+
+    io.puts border
+    io.puts box_line("RZ :: #{title}", inner_width)
+    io.puts border
+    lines.each do |line|
+      wrap_line(line.to_s, inner_width).each { |part| io.puts box_line(part, inner_width) }
+    end
+    io.puts border
+  end
+
+  def box_line(text, width)
+    "| #{text.ljust(width)} |"
+  end
+
+  def wrap_line(text, width)
+    return [""] if text.empty?
+
+    continuation = if text.match?(/\A[A-Z][A-Z ]{0,10}\s{2}/)
+      " " * 13
+    else
+      text[/\A\s+/].to_s
+    end
+    lines = []
+    remaining = text.dup
+    first_line = true
+
+    until remaining.empty?
+      prefix = first_line ? "" : continuation
+      available = width - prefix.length
+      if remaining.length <= available
+        lines << prefix + remaining
+        break
+      end
+
+      break_at = remaining.rindex(" ", available)
+      break_at = available if break_at.nil? || break_at < (available / 2)
+      lines << prefix + remaining.slice!(0, break_at).rstrip
+      remaining = remaining.lstrip
+      first_line = false
+    end
+
+    lines
   end
 
   def terminal_count(snapshot)
@@ -432,11 +527,41 @@ class Rz
       end
 
       lines << "select tab #{selected_tab_var}" if selected_tab_var
+      append_window_geometry(lines, window)
     end
 
     lines << "focus #{final_focus}" if final_focus
     lines << "end tell"
     [lines.join("\n"), duplicates.uniq]
+  end
+
+  def append_window_geometry(lines, window)
+    position = window["position"]
+    size = window["size"]
+    return unless position && size
+
+    lines << 'tell application "System Events"'
+    lines << 'tell process "Ghostty"'
+    lines << "set size of front window to {#{Integer(size.fetch("width"))}, #{Integer(size.fetch("height"))}}"
+    lines << "set position of front window to {#{Integer(position.fetch("x"))}, #{Integer(position.fetch("y"))}}"
+    lines << "end tell"
+    lines << "end tell"
+  end
+
+  def window_position(row)
+    return unless row["window_x"] && row["window_y"]
+
+    {"x" => row["window_x"], "y" => row["window_y"]}
+  end
+
+  def window_size(row)
+    return unless row["window_width"] && row["window_height"]
+
+    {"width" => row["window_width"], "height" => row["window_height"]}
+  end
+
+  def window_geometry?(row)
+    row.values_at("window_x", "window_y", "window_width", "window_height").all?
   end
 
   def append_configuration(lines, variable, terminal, snapshot_dir, running_ids, duplicates)
