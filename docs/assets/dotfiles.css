@@ -1,0 +1,35 @@
+.article kbd {
+  padding: 0.12rem 0.4rem;
+  border: 1px solid #d8d8d8;
+  border-bottom-width: 2px;
+  background: #fafafa;
+  color: var(--color-text);
+  font-family: var(--font-code);
+  font-size: 0.82em;
+  white-space: nowrap;
+}
+
+.shortcut-table td:first-child {
+  width: 8rem;
+  white-space: nowrap;
+}
+
+.performance-table td:first-child {
+  width: 11rem;
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  white-space: nowrap;
+}
+
+.article .compact-list {
+  margin-bottom: 0;
+}
+
+@media (max-width: 540px) {
+  .shortcut-table td:first-child,
+  .performance-table td:first-child {
+    width: auto;
+    white-space: normal;
+  }
+}
