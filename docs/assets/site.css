@@ -3,7 +3,7 @@
   font-style: normal;
   font-weight: normal;
   src: local("Lora Regular"), local("Lora-Regular"),
-    url("https://ark.marianposaceanu.com/fonts/lora-v24-latin-ext_latin-regular.woff2") format("woff2");
+    url("../fonts/lora-v24-latin-ext_latin-regular.woff2") format("woff2");
   font-display: optional;
 }
 
@@ -12,7 +12,7 @@
   font-style: normal;
   font-weight: 500;
   src: local("Fira Sans Medium"), local("FiraSans-Medium"),
-    url("https://ark.marianposaceanu.com/fonts/Fira_Sans_500.woff2") format("woff2");
+    url("../fonts/Fira_Sans_500.woff2") format("woff2");
   font-display: optional;
 }
 
