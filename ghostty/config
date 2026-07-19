@@ -1,47 +1,126 @@
-# theme = OneHalfDark
+# ==============================================================================
+# TYPOGRAPHY
+# ==============================================================================
+
+# Primary macOS CoreText font and comfortable HiDPI size.
 font-family = "Berkeley Mono Trial Regular"
 font-size = 16
+
+# Disable contextual alternates such as programming ligature substitutions.
 font-feature = -calt
-window-height = 50
-window-width = 180
+
+# ==============================================================================
+# SHELL + TERMINAL BEHAVIOR
+# ==============================================================================
+
+# Inject Ghostty integration automatically for zsh, bash, and supported shells.
 shell-integration = detect
+
+# Keep prompt tracking, titles, paths, and safe-close detection without changing
+# the cursor shape selected by the shell or terminal application.
 shell-integration-features = no-cursor
+
+# Copy a mouse selection directly to the macOS system clipboard.
 copy-on-select = clipboard
+
+# Keep up to 20 MB of in-memory history per terminal surface.
 scrollback-limit = 20000000
+
+# Remove the pointer while typing and allow prompt-aware cursor placement.
 mouse-hide-while-typing = true
 cursor-click-to-move = true
 
-# Notify only for long-running shell commands that finish in the background.
+# Make the active split obvious by strongly dimming its siblings.
+unfocused-split-opacity = 0.3
+
+# ==============================================================================
+# NOTIFICATIONS
+# ==============================================================================
+
+# Notify only when an unfocused command has been running for at least 30 seconds;
+# use a macOS notification without an additional terminal bell.
 notify-on-command-finish = unfocused
 notify-on-command-finish-action = no-bell,notify
 notify-on-command-finish-after = 30s
 
-# from https://github.com/cnavajas/.dotfiles/blob/master/ghostty/config
-unfocused-split-opacity = 0.3
+# ==============================================================================
+# WINDOW + NATIVE macOS INTEGRATION
+# ==============================================================================
 
-# window
-# macos-titlebar-style = hidden
-macos-option-as-alt = true
-macos-auto-secure-input = true
+# Initial size for brand-new windows, measured in terminal rows and columns.
+window-height = 50
+window-width = 180
+
+# Synchronize Metal rendering with the display to avoid tearing and excess work.
+window-vsync = true
+
+# Persist native windows, tabs, splits, dimensions, and working directories on quit.
+# Running processes still require `rz`, Codex resume, or an external multiplexer.
 window-save-state = always
+
+# Preserve workspace ordering by appending new tabs instead of inserting nearby.
+window-new-tab-position = end
+
+# Keep pixel-precise sizing so `rz` can restore the exact saved dimensions.
+window-step-resize = false
+
+# Keep recently closed surfaces alive for 15 seconds so Cmd-Z can recover them.
 undo-timeout = 15s
 
-# Scratch terminal while Ghostty is focused.
+# Merge the tab strip into the macOS titlebar to save vertical space.
+macos-titlebar-style = tabs
+
+# Treat both Option keys as terminal Alt keys instead of macOS character composers.
+macos-option-as-alt = true
+
+# Protect detected password prompts with macOS Secure Input and show its indicator.
+macos-auto-secure-input = true
+macos-secure-input-indication = true
+
+# Keep AppleScript enabled because `rz` uses it to inspect and rebuild workspaces.
+macos-applescript = true
+
+# Block the separate Shortcuts automation surface; AppleScript remains available.
+macos-shortcuts = deny
+
+# ==============================================================================
+# QUICK TERMINAL
+# ==============================================================================
+
+# Toggle the scratch terminal while Ghostty is focused with Cmd-Shift-Backquote.
 keybind = super+shift+backquote=toggle_quick_terminal
+
+# Drop from the top of the active main screen at 35% of its height.
 quick-terminal-position = top
 quick-terminal-size = 35%
 quick-terminal-screen = main
-quick-terminal-autohide = true
 
-# One-shot native navigation mode: Cmd-Shift-Space, then one key.
+# Hide on focus loss, follow the active macOS Space, and skip slide animation.
+quick-terminal-autohide = true
+quick-terminal-space-behavior = move
+quick-terminal-animation-duration = 0
+
+# ==============================================================================
+# ONE-SHOT NAVIGATION
+# ==============================================================================
+
+# Press Cmd-Shift-Space once, then choose exactly one navigation/layout action.
 keybind = super+shift+space=activate_key_table_once:navigate
+
+# Vim-style split navigation.
 keybind = navigate/h=goto_split:left
 keybind = navigate/j=goto_split:down
 keybind = navigate/k=goto_split:up
 keybind = navigate/l=goto_split:right
+
+# Create a native tab, a right split, or a lower split.
 keybind = navigate/n=new_tab
 keybind = navigate/v=new_split:right
 keybind = navigate/s=new_split:down
 
-# Export the focused terminal's complete scrollback before quitting Ghostty.
+# ==============================================================================
+# SCROLLBACK EXPORT
+# ==============================================================================
+
+# Open the focused terminal's complete scrollback in the default text editor.
 keybind = super+shift+e=write_scrollback_file:open
