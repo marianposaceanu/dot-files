@@ -19,6 +19,8 @@
 
 Contains my dot-files for easy usage across different OSs.
 
+**Website:** [dotfiles overview](https://marianposaceanu.github.io/dot-files/) · [Ghostty + `rz` quick start](https://marianposaceanu.github.io/dot-files/ghostty.html)
+
 #### contains
 
 - Vim config files and bundles

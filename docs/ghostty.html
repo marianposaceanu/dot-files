@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Quick start for Marian's native Ghostty workspace and rz session snapshots on macOS.">
+  <meta name="author" content="Marian Posaceanu">
+  <title>Ghostty + rz quick start — dot-files</title>
+  <style>
+    :root {
+      --text: #303030;
+      --body: #333332;
+      --muted: #66696f;
+      --soft: #f6f6f6;
+      --line: #eeeeee;
+      --nav: #fbfbfb;
+      --link: #b30600;
+      --heading: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --content: Georgia, "Times New Roman", serif;
+      --code: Menlo, Monaco, "DejaVu Sans Mono", Consolas, monospace;
+      --main: 800px;
+      --gutter: 42px;
+    }
+    * { box-sizing: border-box; }
+    html { background: #fff; color: var(--text); scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: #fff; color: var(--body); font-family: var(--content); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+    a { color: var(--link); text-decoration-thickness: .08em; text-underline-offset: 5px; transition: color .2s ease-out; }
+    a:hover, a:focus { color: var(--text); }
+    .site-header { background: var(--nav); }
+    nav { display: flex; align-items: center; gap: 25px; width: min(1120px, calc(100% - var(--gutter))); min-height: 80px; margin: 0 auto; padding: 1rem 0; font-family: var(--heading); }
+    nav a { color: var(--text); text-decoration: none; }
+    nav .active, nav a:hover { color: var(--link); }
+    main { width: min(var(--main), calc(100% - var(--gutter))); margin: 0 auto; padding: 36px 0 80px; }
+    .hero { padding-bottom: 2.75rem; border-bottom: 1px solid var(--line); }
+    .eyebrow { margin: 0 0 1rem; color: var(--link); font-family: var(--heading); font-size: 1rem; line-height: 1.5; text-transform: uppercase; }
+    h1, h2, h3 { margin: 0; color: var(--text); font-family: var(--heading); font-weight: 500; }
+    h1 { max-width: 760px; font-size: clamp(3.3rem, 9vw, 5.2rem); line-height: 1.06; text-wrap: balance; }
+    h1 code { padding: 0; background: transparent; color: var(--link); font-size: inherit; }
+    .subtitle { max-width: 760px; margin: 1.15rem 0 0; color: var(--muted); font-size: 1.25rem; line-height: 1.55; }
+    .meta { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+    .meta li { color: var(--muted); font-family: var(--heading); font-size: .875rem; line-height: 1.4; }
+    .meta li + li::before { margin-right: 1rem; color: #cfcfcf; content: "/"; }
+    article { margin-top: 2.4rem; }
+    section + section { margin-top: 3.5rem; padding-top: 3.5rem; border-top: 1px solid var(--line); }
+    h2 { margin-bottom: 1rem; font-size: 2.45rem; line-height: 1.16; text-wrap: balance; }
+    h3 { margin: 2rem 0 .65rem; font-size: 1.5rem; line-height: 1.25; }
+    p, li { font-size: 1.1875rem; line-height: 1.65; }
+    p { margin: 0 0 1rem; }
+    ul { margin: 0 0 2rem; padding-left: 1.4rem; }
+    li + li { margin-top: .4rem; }
+    code, kbd, pre { font-family: var(--code); }
+    code { padding: .08rem .25rem; background: var(--soft); font-size: .9em; }
+    kbd { padding: .15rem .42rem; border: 1px solid #d8d8d8; border-bottom-width: 2px; background: #fafafa; color: var(--text); font-size: .82em; white-space: nowrap; }
+    pre { overflow-x: auto; margin: 1.5rem 0; padding: 1rem; background: #2f2f2f; color: #f7f7f7; font-size: .95rem; line-height: 1.55; }
+    .key-list { display: grid; grid-template-columns: auto 1fr; gap: .7rem 1.25rem; align-items: baseline; margin: 1.5rem 0 0; }
+    .key-list span { color: var(--muted); font-size: 1.05rem; line-height: 1.5; }
+    .callout { margin: 1.75rem 0; padding: 1rem 1.25rem; border: 1px solid var(--line); border-left: 4px solid var(--link); background: #f9f9f9; }
+    .callout p { margin: 0; font-size: 1rem; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+    .metric { padding: 1rem; border-top: 3px solid var(--link); background: var(--soft); }
+    .metric strong { display: block; color: var(--text); font: 500 1.8rem/1.2 var(--heading); }
+    .metric span { color: var(--muted); font: .9rem/1.45 var(--heading); }
+    .sources { margin: 0; padding: 0; list-style: none; }
+    .sources li { padding: .8rem 0; border-bottom: 1px solid var(--line); font-size: 1rem; }
+    .sources li:last-child { border-bottom: 0; }
+    footer { width: min(var(--main), calc(100% - var(--gutter))); margin: 0 auto; padding: 0 0 80px; color: var(--muted); text-align: center; }
+    footer::before { display: block; height: 1px; margin-bottom: 2rem; background: linear-gradient(to right, transparent, rgba(0, 0, 0, .12), transparent); content: ""; }
+    footer p { margin: 0; font: .8125rem/1.5 var(--heading); }
+    @media (max-width: 700px) {
+      :root { --gutter: 28px; }
+      nav { min-height: 64px; }
+      main { padding-top: 28px; }
+      h1 { font-size: 3.35rem; }
+      h2 { font-size: 2rem; }
+      .meta { display: block; }
+      .meta li + li { margin-top: .35rem; }
+      .meta li + li::before { content: none; }
+      .key-list, .metrics { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav aria-label="Main navigation">
+      <a href="./">dot-files</a>
+      <a class="active" href="ghostty.html" aria-current="page">Ghostty + rz</a>
+      <a href="https://github.com/marianposaceanu/dot-files">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">native Ghostty workflow · macOS</p>
+      <h1>Ghostty + <code>rz</code></h1>
+      <p class="subtitle">Keep Ghostty's native tabs and splits for daily work, then save named snapshots that restore the workspace after Ghostty is completely closed.</p>
+      <ul class="meta" aria-label="Guide metadata">
+        <li>Dotfiles 1.1.07.2026</li>
+        <li>Ghostty 1.3.1</li>
+        <li>Existing tabs are never replaced</li>
+      </ul>
+    </header>
+
+    <article>
+      <section>
+        <h2>Daily shortcuts</h2>
+        <div class="key-list">
+          <kbd>⌘ F</kbd><span>Search native scrollback</span>
+          <kbd>⌘ G</kbd><span>Move to the next search result</span>
+          <kbd>⌘ ⇧ G</kbd><span>Move to the previous search result</span>
+          <kbd>⌘ ⇧ P</kbd><span>Find a terminal by title or working directory</span>
+          <kbd>⌘ ⇧ `</kbd><span>Toggle the scratch terminal while Ghostty is focused</span>
+          <kbd>⌘ ⇧ E</kbd><span>Open a complete scrollback export for saving</span>
+          <kbd>⌘ Z</kbd><span>Restore a recently closed tab or split</span>
+        </div>
+
+        <h3>One-shot split navigation</h3>
+        <p>Press <kbd>⌘ ⇧ Space</kbd>, then one key. Use <kbd>h</kbd>, <kbd>j</kbd>, <kbd>k</kbd>, or <kbd>l</kbd> to move; <kbd>n</kbd> for a tab; <kbd>v</kbd> to split right; or <kbd>s</kbd> to split down. Ghostty exits the mode after the action.</p>
+      </section>
+
+      <section>
+        <h2>Save before quitting</h2>
+        <pre>rz --save work                 # full snapshot with scrollback
+rz --save work --no-scrollback # faster snapshot
+rz --save personal             # a separate named workspace</pre>
+        <div class="metrics" aria-label="Measured snapshot performance">
+          <div class="metric"><strong>about 2.21s</strong><span>Full snapshot · 8 tabs · 14 surfaces</span></div>
+          <div class="metric"><strong>about 1.06s</strong><span>Fast snapshot · no scrollback capture</span></div>
+        </div>
+        <div class="callout"><p><strong>Why full saves take longer.</strong> Ghostty exposes scrollback through synchronous AppleScript actions. Surfaces are captured concurrently where possible, but exporting text from every terminal remains the expensive part.</p></div>
+
+        <h3>Restore after reopening Ghostty</h3>
+        <pre>rz                    # newest snapshot overall
+rz --session work     # newest snapshot named work
+rz --list             # inspect available snapshots
+rz --session work --dry-run</pre>
+        <p><code>rz</code> restores window position and size, tabs, terminal counts, focus, working directories, exact Codex conversation IDs, and any captured scrollback.</p>
+      </section>
+
+      <section>
+        <h2>Inspect or repair the live workspace</h2>
+        <p>The launcher claims existing tabs by working directory and creates only missing ones. It does not inject commands into an existing terminal.</p>
+        <h3>Guaranteed read-only preview</h3>
+        <pre>osascript ~/dot-files/ghostty/scripts/workspace-open.applescript --dry-run</pre>
+        <h3>Ensure declared tabs and print the inventory</h3>
+        <pre>osascript ~/dot-files/ghostty/scripts/workspace-open.applescript
+osascript ~/dot-files/ghostty/scripts/workspace-inventory.applescript</pre>
+      </section>
+
+      <section>
+        <h2>macOS choices</h2>
+        <ul>
+          <li>Native titlebar tabs and restored window state.</li>
+          <li>AppleScript support for inspection and snapshots.</li>
+          <li>Exact pixel resizing instead of cell-step resizing.</li>
+          <li>Secure-input indication during password entry.</li>
+          <li>macOS shortcuts denied so configured Ghostty bindings win.</li>
+          <li>An instant scratch terminal at 35% of screen height.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Honest restoration limits</h2>
+        <ul>
+          <li>Ghostty exposes terminal surfaces, not split trees or pane proportions.</li>
+          <li>Additional surfaces therefore restore as right-hand splits.</li>
+          <li>Scrollback replays as plain text, not as a running process.</li>
+          <li>Codex resumes from its conversation ID; arbitrary programs cannot be reconstructed.</li>
+          <li>Window geometry needs macOS Accessibility permission for the shell that runs <code>rz</code>.</li>
+        </ul>
+        <div class="callout"><p><strong>The safe boundary:</strong> every restore creates new Ghostty windows. It does not close, rename, rearrange, or replace tabs that already exist.</p></div>
+      </section>
+
+      <section>
+        <h2>Source files</h2>
+        <ul class="sources">
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/config">ghostty/config</a> — commented Ghostty configuration</li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/rz">ghostty/scripts/rz</a> — snapshot save, selection, and restore</li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/snapshot-capture.applescript">snapshot-capture.applescript</a> — live Ghostty and scrollback capture</li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/workspace-open.applescript">workspace-open.applescript</a> — idempotent workspace repair</li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/workspace-inventory.applescript">workspace-inventory.applescript</a> — read-only TSV inventory</li>
+        </ul>
+      </section>
+    </article>
+  </main>
+
+  <footer><p>Updated 20 July 2026 · Ghostty-only workflow; tmux remains optional.</p></footer>
+</body>
+</html>
