@@ -46,6 +46,7 @@ export PATH="$HOME/bin:/opt/homebrew/bin:/opt/homebrew/opt/curl/bin${JAVA_HOME:+
 typeset -U PATH
 
 # Save and restore named Ghostty workspaces.
+unalias rz 2>/dev/null
 rz() {
   "$HOME/dot-files/ghostty/scripts/rz" "$@"
 }
