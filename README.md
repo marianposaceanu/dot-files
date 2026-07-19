@@ -58,7 +58,10 @@ rz --session work --dry-run    # preview without changing Ghostty
 Snapshots live in `~/.local/state/ghostty-rz/snapshots`. Reload the shell after
 updating the dotfiles (`source ~/.zshrc` or `source ~/.bashrc`) before using `rz`.
 Use `--no-scrollback` when speed matters; window geometry, tabs, surfaces,
-directories, focus, and Codex IDs are still saved.
+directories, focus, and Codex IDs are still saved. Scrollback exports are read
+immediately when Ghostty's synchronous action returns, with one short compatibility
+retry for asynchronous implementations; empty terminals no longer incur a
+one-second timeout.
 
 Ghostty 1.3 exposes terminals as a flat collection per tab. It does not expose a
 split tree, split directions, or pane proportions, and it has no JSON workspace

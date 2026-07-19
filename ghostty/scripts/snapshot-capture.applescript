@@ -1,5 +1,5 @@
 -- Capture the Ghostty state that is exposed through its AppleScript API.
--- The TSV output includes a temporary full-scrollback file for every surface.
+-- The TSV output optionally includes a temporary full-scrollback file per surface.
 
 use scripting additions
 
@@ -19,8 +19,9 @@ on run arguments
         set windowIndex to 0
         repeat with currentWindow in windows
             set windowIndex to windowIndex + 1
-            set windowId to id of currentWindow as text
-            set windowName to name of currentWindow as text
+            set windowProperties to properties of currentWindow
+            set windowId to id of windowProperties as text
+            set windowName to name of windowProperties as text
             set windowGeometry to my geometryForWindow(windowIndex)
             set windowX to item 1 of windowGeometry
             set windowY to item 2 of windowGeometry
@@ -28,22 +29,24 @@ on run arguments
             set windowHeight to item 4 of windowGeometry
 
             repeat with currentTab in tabs of currentWindow
-                set tabIndex to index of currentTab as integer
-                set tabId to id of currentTab as text
-                set tabName to name of currentTab as text
-                set tabSelected to selected of currentTab as text
+                set tabProperties to properties of currentTab
+                set tabIndex to index of tabProperties as integer
+                set tabId to id of tabProperties as text
+                set tabName to name of tabProperties as text
+                set tabSelected to selected of tabProperties as text
                 set focusedTerminalId to ""
 
                 try
-                    set focusedTerminalId to id of focused terminal of currentTab as text
+                    set focusedTerminalId to id of focused terminal of tabProperties as text
                 end try
 
                 set terminalIndex to 0
                 repeat with currentTerminal in terminals of currentTab
                     set terminalIndex to terminalIndex + 1
-                    set terminalId to id of currentTerminal as text
-                    set terminalName to name of currentTerminal as text
-                    set terminalDirectory to working directory of currentTerminal as text
+                    set terminalProperties to properties of currentTerminal
+                    set terminalId to id of terminalProperties as text
+                    set terminalName to name of terminalProperties as text
+                    set terminalDirectory to working directory of terminalProperties as text
                     set terminalFocused to (terminalId is focusedTerminalId) as text
                     set scrollbackPath to ""
 
@@ -52,16 +55,23 @@ on run arguments
                             set the clipboard to ""
                             perform action "write_scrollback_file:copy" on currentTerminal
 
-                            repeat with attemptIndex from 1 to 20
+                            try
+                                set clipboardValue to the clipboard as text
+                                if clipboardValue starts with "/" then set scrollbackPath to clipboardValue
+                            end try
+
+                            -- Ghostty currently completes this action synchronously. Keep
+                            -- one short retry for compatibility without imposing a one-second
+                            -- timeout on every terminal that has no scrollback.
+                            if scrollbackPath is "" then
                                 delay 0.05
                                 try
                                     set clipboardValue to the clipboard as text
                                     if clipboardValue starts with "/" then
                                         set scrollbackPath to clipboardValue
-                                        exit repeat
                                     end if
                                 end try
-                            end repeat
+                            end if
                         end try
                     end if
 
