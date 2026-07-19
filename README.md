@@ -36,6 +36,33 @@ Contains my dot-files for easy usage across different OSs.
 
     git clone git@github.com:marianposaceanu/dot-files.git
 
+### Ghostty named workspaces (`rz`)
+
+`rz` saves and restores the Ghostty state exposed by its AppleScript API: windows,
+tabs, terminal surfaces, focus, working directories, Codex conversation IDs, and
+non-empty scrollback. Restores always create new Ghostty windows, so existing tabs
+are left alone.
+
+```sh
+rz --save work                 # save work_YYYYMMDD-HHMMSS
+rz --save personal             # save a separate named snapshot
+rz                             # restore the newest snapshot overall
+rz --session work              # restore the newest snapshot named work
+rz --session 20260719-230140   # restore a specific timestamp
+rz --list                      # list snapshots
+rz --session work --dry-run    # preview without changing Ghostty
+```
+
+Snapshots live in `~/.local/state/ghostty-rz/snapshots`. Reload the shell after
+updating the dotfiles (`source ~/.zshrc` or `source ~/.bashrc`) before using `rz`.
+
+Ghostty 1.3 exposes terminals as a flat collection per tab. It does not expose a
+split tree, split directions, or pane proportions, and it has no JSON workspace
+export/import API. `rz` therefore preserves the number of terminal surfaces but
+recreates additional surfaces as right-hand splits. Scrollback is replayed as
+plain text; arbitrary running programs cannot be reconstructed. Codex sessions
+are resumed by their exact conversation ID.
+
 ### Submodules and bundles
 
 #### update the bundles

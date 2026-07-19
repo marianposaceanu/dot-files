@@ -45,6 +45,11 @@ fi
 export PATH="$HOME/bin:/opt/homebrew/bin:/opt/homebrew/opt/curl/bin${JAVA_HOME:+:$JAVA_HOME/bin}:$PATH"
 typeset -U PATH
 
+# Save and restore named Ghostty workspaces.
+rz() {
+  "$HOME/dot-files/ghostty/scripts/rz" "$@"
+}
+
 # bat — cat replacement with syntax highlighting
 if command -v bat >/dev/null 2>&1; then
   alias cat='bat'

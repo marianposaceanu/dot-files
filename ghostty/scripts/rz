@@ -1,0 +1,482 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+require "json"
+require "open3"
+require "pathname"
+require "shellwords"
+require "time"
+
+class Rz
+  SNAPSHOT_VERSION = 1
+  TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
+  NAME_PATTERN = /\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
+  UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+
+  def initialize(argv)
+    @argv = argv.dup
+    @home = Dir.home
+    @script_dir = File.expand_path(__dir__)
+    @state_root = File.expand_path(
+      ENV.fetch("RZ_STATE_DIR", File.join(@home, ".local", "state", "ghostty-rz"))
+    )
+    @snapshots_dir = File.join(@state_root, "snapshots")
+  end
+
+  def run
+    if @argv.length == 2 && @argv.first == "--save"
+      save(@argv.last)
+    elsif @argv.length == 2 && @argv.first == "--session"
+      restore(@argv.last, dry_run: false)
+    elsif @argv.length == 3 && @argv.include?("--session") && @argv.include?("--dry-run")
+      selector = @argv[@argv.index("--session") + 1]
+      restore(selector, dry_run: true)
+    elsif @argv == ["--dry-run"]
+      restore(nil, dry_run: true)
+    elsif @argv == ["--list"]
+      list
+    elsif @argv.empty?
+      restore(nil, dry_run: false)
+    else
+      warn usage
+      exit 64
+    end
+  rescue Interrupt
+    warn "rz: interrupted"
+    exit 130
+  rescue StandardError => error
+    warn "rz: #{error.message}"
+    exit 1
+  end
+
+  private
+
+  def usage
+    <<~TEXT
+      Usage:
+        rz --save NAME
+        rz
+        rz --session NAME_OR_TIMESTAMP
+        rz --session NAME_OR_TIMESTAMP --dry-run
+        rz --dry-run
+        rz --list
+    TEXT
+  end
+
+  def save(name)
+    validate_name!(name)
+    ensure_ghostty_running!
+
+    timestamp = Time.now.strftime(TIMESTAMP_FORMAT)
+    snapshot_id = "#{name}_#{timestamp}"
+    FileUtils.mkdir_p(@snapshots_dir)
+    final_dir = File.join(@snapshots_dir, snapshot_id)
+    raise "snapshot already exists: #{snapshot_id}" if File.exist?(final_dir)
+
+    staging_dir = File.join(@snapshots_dir, ".#{snapshot_id}.#{Process.pid}.tmp")
+    FileUtils.mkdir_p(File.join(staging_dir, "scrollback"))
+
+    begin
+      rows = capture_ghostty
+      raise "Ghostty has no restorable terminal surfaces" if rows.empty?
+
+      process_sessions = running_codex_sessions
+      assignments, warnings = assign_codex_sessions(rows, process_sessions)
+      assignments.each { |terminal_id, session| terminal_row(rows, terminal_id)["codex"] = session }
+
+      rows.each do |row|
+        source = row.delete("scrollback_path")
+        next if source.nil? || source.empty? || !File.file?(source)
+
+        relative = File.join(
+          "scrollback",
+          format("window-%02d-tab-%02d-terminal-%02d.txt", row["window_index"], row["tab_index"], row["terminal_index"])
+        )
+        FileUtils.cp(source, File.join(staging_dir, relative))
+        row["scrollback_file"] = relative
+      end
+
+      snapshot = build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings)
+      File.write(File.join(staging_dir, "state.json"), JSON.pretty_generate(snapshot) + "\n")
+      FileUtils.mv(staging_dir, final_dir)
+
+      puts "saved #{snapshot_id}"
+      puts "  #{snapshot.fetch("windows").length} window(s), #{snapshot.fetch("tabs_count")} tab(s), #{rows.length} terminal(s)"
+      puts "  #{assignments.length} Codex session(s), #{rows.count { |row| row["scrollback_file"] }} scrollback file(s)"
+      warnings.each { |warning| warn "  warning: #{warning}" }
+      puts "  #{final_dir}"
+    rescue StandardError
+      FileUtils.rm_rf(staging_dir) if staging_dir.start_with?(@snapshots_dir + File::SEPARATOR)
+      raise
+    end
+  end
+
+  def restore(selector, dry_run:)
+    snapshot_dir = resolve_snapshot(selector)
+    snapshot = JSON.parse(File.read(File.join(snapshot_dir, "state.json")))
+    validate_snapshot!(snapshot)
+
+    if dry_run
+      print_restore_preview(snapshot, snapshot_dir)
+      return
+    end
+
+    running_ids = running_codex_sessions.filter_map { |session| session["session_id"] }.uniq
+    script, duplicate_ids = restore_applescript(snapshot, snapshot_dir, running_ids)
+    if ENV["RZ_PRINT_APPLESCRIPT"] == "1"
+      puts script
+      return
+    end
+    output = run_command("osascript", "-e", script)
+
+    puts "restored #{snapshot.fetch("id")}"
+    puts "  #{snapshot.fetch("windows").length} window(s), #{snapshot.fetch("tabs_count")} tab(s), #{terminal_count(snapshot)} terminal(s)"
+    duplicate_ids.each { |id| warn "  warning: Codex session already running, opened a shell instead: #{id}" }
+    puts output unless output.empty?
+  end
+
+  def list
+    snapshots = snapshot_directories
+    if snapshots.empty?
+      puts "No rz snapshots in #{@snapshots_dir}"
+      return
+    end
+
+    snapshots.reverse_each do |directory|
+      state = JSON.parse(File.read(File.join(directory, "state.json")))
+      puts [state["id"], state["saved_at"], "#{state["tabs_count"]} tab(s)", "#{state["terminals_count"]} terminal(s)"].join("\t")
+    end
+  end
+
+  def validate_name!(name)
+    return if NAME_PATTERN.match?(name)
+
+    raise "invalid snapshot name #{name.inspect}; use letters, numbers, dot, underscore, or dash"
+  end
+
+  def ensure_ghostty_running!
+    run_command("osascript", "-e", 'tell application "Ghostty" to get version')
+  rescue StandardError
+    raise "Ghostty must be running to save a snapshot"
+  end
+
+  def capture_ghostty
+    output = run_command("osascript", File.join(@script_dir, "snapshot-capture.applescript"))
+    lines = output.lines.map(&:chomp).reject(&:empty?)
+    header = lines.shift&.split("\t", -1)
+    expected = %w[
+      window_index window_id window_name tab_index tab_id tab_name tab_selected
+      terminal_index terminal_id terminal_name terminal_focused working_directory scrollback_path
+    ]
+    raise "unexpected Ghostty capture format" unless header == expected
+
+    lines.map do |line|
+      values = line.split("\t", -1)
+      raise "malformed Ghostty capture row" unless values.length == expected.length
+
+      row = expected.zip(values).to_h
+      %w[window_index tab_index terminal_index].each { |key| row[key] = Integer(row[key], 10) }
+      %w[tab_selected terminal_focused].each { |key| row[key] = row[key].casecmp?("true") }
+      row
+    end
+  end
+
+  def running_codex_sessions
+    output = run_command("ps", "-axo", "pid=,tty=,command=")
+    output.lines.filter_map do |line|
+      line = line.chomp
+      match = line.match(/\A\s*(\d+)\s+(\S+)\s+(.+)\z/)
+      next unless match
+
+      pid = Integer(match[1], 10)
+      tty = match[2]
+      command = match[3]
+      next unless command.include?("/bin/codex")
+      next if command.include?("codex-code-mode-host")
+      next if command.start_with?("node ")
+
+      cwd = process_cwd(pid)
+      session_id = command[/\bresume\s+(#{UUID_PATTERN})/, 1] || newest_open_session_id(pid)
+      next unless cwd && session_id
+
+      {
+        "pid" => pid,
+        "tty" => tty,
+        "cwd" => cwd,
+        "session_id" => session_id,
+        "command" => command
+      }
+    end
+  end
+
+  def process_cwd(pid)
+    output, status = Open3.capture2e("lsof", "-nP", "-a", "-p", pid.to_s, "-d", "cwd", "-Fn")
+    return unless status.success?
+
+    output.lines.find { |line| line.start_with?("n/") }&.delete_prefix("n")&.chomp
+  end
+
+  def newest_open_session_id(pid)
+    output, status = Open3.capture2e("lsof", "-nP", "-p", pid.to_s)
+    return unless status.success?
+
+    files = output.lines.filter_map do |line|
+      path = line[/\s(\/.*rollout-[^ ]+-(#{UUID_PATTERN})\.jsonl)\s*\z/, 1]
+      next unless path && File.file?(path)
+
+      [File.mtime(path), path]
+    end
+    path = files.max_by(&:first)&.last
+    path && File.basename(path)[UUID_PATTERN]
+  end
+
+  def assign_codex_sessions(rows, sessions)
+    assignments = {}
+    warnings = []
+
+    sessions.group_by { |session| session["cwd"] }.each do |cwd, cwd_sessions|
+      cwd_rows = rows.select { |row| row["working_directory"] == cwd }
+      candidates = cwd_rows.select { |row| codex_title?(row["terminal_name"], cwd) }
+      candidates += (cwd_rows - candidates) if candidates.length < cwd_sessions.length
+      candidates = candidates.first(cwd_sessions.length)
+
+      sorted_sessions = cwd_sessions.sort_by { |session| tty_number(session["tty"]) }
+      if candidates.length < sorted_sessions.length
+        warnings << "could not place every Codex session in #{cwd}; unplaced sessions will not auto-resume"
+      end
+
+      candidates.zip(sorted_sessions).each do |row, session|
+        next unless row && session
+
+        assignments[row["terminal_id"]] = session
+      end
+    end
+
+    [assignments, warnings]
+  end
+
+  def codex_title?(title, cwd)
+    basename = File.basename(cwd)
+    first = title.each_codepoint.first
+    title.include?("Action Required") ||
+      title.downcase.include?("codex") ||
+      title == basename ||
+      title.end_with?("| #{basename}") ||
+      (first && first.between?(0x2800, 0x28ff))
+  end
+
+  def tty_number(tty)
+    tty[/\d+\z/]&.to_i || 1_000_000
+  end
+
+  def terminal_row(rows, terminal_id)
+    rows.find { |row| row["terminal_id"] == terminal_id } || raise("missing terminal #{terminal_id}")
+  end
+
+  def build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings)
+    windows = rows.group_by { |row| row["window_index"] }.sort.map do |window_index, window_rows|
+      first_window_row = window_rows.first
+      tabs = window_rows.group_by { |row| row["tab_index"] }.sort.map do |tab_index, tab_rows|
+        first_tab_row = tab_rows.first
+        {
+          "index" => tab_index,
+          "id" => first_tab_row["tab_id"],
+          "name" => first_tab_row["tab_name"],
+          "selected" => first_tab_row["tab_selected"],
+          "terminals" => tab_rows.sort_by { |row| row["terminal_index"] }.map do |row|
+            {
+              "index" => row["terminal_index"],
+              "id" => row["terminal_id"],
+              "name" => row["terminal_name"],
+              "focused" => row["terminal_focused"],
+              "working_directory" => row["working_directory"],
+              "scrollback_file" => row["scrollback_file"],
+              "codex_session_id" => row.dig("codex", "session_id")
+            }.compact
+          end
+        }
+      end
+
+      {
+        "index" => window_index,
+        "id" => first_window_row["window_id"],
+        "name" => first_window_row["window_name"],
+        "tabs" => tabs
+      }
+    end
+
+    {
+      "version" => SNAPSHOT_VERSION,
+      "name" => name,
+      "id" => snapshot_id,
+      "saved_at" => Time.now.iso8601,
+      "timestamp" => timestamp,
+      "ghostty_version" => ghostty_version,
+      "tabs_count" => windows.sum { |window| window["tabs"].length },
+      "terminals_count" => rows.length,
+      "windows" => windows,
+      "detected_codex_sessions" => process_sessions,
+      "warnings" => warnings,
+      "limitations" => [
+        "Ghostty does not expose split geometry; terminal counts restore as right-hand splits.",
+        "Scrollback restores as plain text output, without original styling or interactive state.",
+        "Only Codex conversations are resumed; arbitrary child processes are not reconstructible."
+      ]
+    }
+  end
+
+  def ghostty_version
+    run_command("osascript", "-e", 'tell application "Ghostty" to get version').strip
+  end
+
+  def snapshot_directories
+    return [] unless Dir.exist?(@snapshots_dir)
+
+    Dir.children(@snapshots_dir).filter_map do |entry|
+      next if entry.start_with?(".")
+
+      directory = File.join(@snapshots_dir, entry)
+      next unless File.directory?(directory) && File.file?(File.join(directory, "state.json"))
+
+      directory
+    end.sort_by do |directory|
+      state = JSON.parse(File.read(File.join(directory, "state.json")))
+      [state.fetch("saved_at"), state.fetch("id")]
+    rescue JSON::ParserError, KeyError
+      ["", File.basename(directory)]
+    end
+  end
+
+  def resolve_snapshot(selector)
+    snapshots = snapshot_directories
+    raise "no saved sessions; create one with rz --save NAME" if snapshots.empty?
+    return snapshots.last if selector.nil?
+
+    exact = snapshots.find { |directory| File.basename(directory) == selector }
+    return exact if exact
+
+    matching = snapshots.select do |directory|
+      state = JSON.parse(File.read(File.join(directory, "state.json")))
+      state["name"] == selector || state["timestamp"] == selector
+    end
+    raise "no saved session matches #{selector.inspect}; run rz --list" if matching.empty?
+
+    matching.last
+  end
+
+  def validate_snapshot!(snapshot)
+    raise "unsupported snapshot version #{snapshot["version"].inspect}" unless snapshot["version"] == SNAPSHOT_VERSION
+    raise "snapshot has no windows" unless snapshot["windows"].is_a?(Array) && !snapshot["windows"].empty?
+  end
+
+  def print_restore_preview(snapshot, snapshot_dir)
+    puts "would restore #{snapshot.fetch("id")}"
+    puts "  saved: #{snapshot.fetch("saved_at")} with Ghostty #{snapshot.fetch("ghostty_version")}"
+    puts "  #{snapshot.fetch("windows").length} window(s), #{snapshot.fetch("tabs_count")} tab(s), #{terminal_count(snapshot)} terminal(s)"
+    ids = snapshot.fetch("windows").flat_map { |window| window.fetch("tabs") }.flat_map { |tab| tab.fetch("terminals") }.filter_map { |terminal| terminal["codex_session_id"] }
+    puts "  Codex sessions: #{ids.empty? ? "none" : ids.join(", ")}"
+    puts "  #{snapshot_dir}"
+    snapshot.fetch("limitations", []).each { |limitation| puts "  limitation: #{limitation}" }
+  end
+
+  def terminal_count(snapshot)
+    snapshot.fetch("windows").sum do |window|
+      window.fetch("tabs").sum { |tab| tab.fetch("terminals").length }
+    end
+  end
+
+  def restore_applescript(snapshot, snapshot_dir, running_ids)
+    lines = ['tell application "Ghostty"', "activate"]
+    duplicates = []
+    final_focus = nil
+
+    snapshot.fetch("windows").each_with_index do |window, window_offset|
+      window_number = window_offset + 1
+      window_var = "rzWindow#{window_number}"
+      selected_tab_var = nil
+
+      window.fetch("tabs").each_with_index do |tab, tab_offset|
+        tab_number = tab_offset + 1
+        terminals = tab.fetch("terminals")
+        next if terminals.empty?
+
+        first_config = "rzConfig#{window_number}_#{tab_number}_1"
+        append_configuration(lines, first_config, terminals.first, snapshot_dir, running_ids, duplicates)
+
+        tab_var = "rzTab#{window_number}_#{tab_number}"
+        if tab_offset.zero?
+          lines << "set #{window_var} to new window with configuration #{first_config}"
+          lines << "set #{tab_var} to selected tab of #{window_var}"
+        else
+          lines << "set #{tab_var} to new tab in #{window_var} with configuration #{first_config}"
+        end
+
+        terminal_vars = ["rzTerminal#{window_number}_#{tab_number}_1"]
+        lines << "set #{terminal_vars.first} to focused terminal of #{tab_var}"
+
+        terminals.drop(1).each_with_index do |terminal, terminal_offset|
+          terminal_number = terminal_offset + 2
+          config_var = "rzConfig#{window_number}_#{tab_number}_#{terminal_number}"
+          terminal_var = "rzTerminal#{window_number}_#{tab_number}_#{terminal_number}"
+          append_configuration(lines, config_var, terminal, snapshot_dir, running_ids, duplicates)
+          lines << "set #{terminal_var} to split #{terminal_vars.first} direction right with configuration #{config_var}"
+          terminal_vars << terminal_var
+        end
+
+        title = tab.fetch("name", "")
+        lines << "perform action #{applescript_string("set_tab_title:#{title}")} on #{terminal_vars.first}" unless title.empty?
+
+        focused_offset = terminals.index { |terminal| terminal["focused"] } || 0
+        final_focus = terminal_vars[focused_offset] if tab["selected"]
+        selected_tab_var = tab_var if tab["selected"]
+      end
+
+      lines << "select tab #{selected_tab_var}" if selected_tab_var
+    end
+
+    lines << "focus #{final_focus}" if final_focus
+    lines << "end tell"
+    [lines.join("\n"), duplicates.uniq]
+  end
+
+  def append_configuration(lines, variable, terminal, snapshot_dir, running_ids, duplicates)
+    lines << "set #{variable} to new surface configuration"
+    cwd = terminal.fetch("working_directory", @home)
+    lines << "set initial working directory of #{variable} to #{applescript_string(cwd)}"
+    lines << "set command of #{variable} to #{applescript_string(restore_command(terminal, snapshot_dir, running_ids, duplicates))}"
+    lines << "set wait after command of #{variable} to true"
+  end
+
+  def restore_command(terminal, snapshot_dir, running_ids, duplicates)
+    commands = []
+    scrollback = terminal["scrollback_file"] && File.join(snapshot_dir, terminal["scrollback_file"])
+    commands << "/bin/cat -- #{Shellwords.escape(scrollback)}" if scrollback && File.file?(scrollback)
+
+    session_id = terminal["codex_session_id"]
+    if session_id && !running_ids.include?(session_id)
+      commands << "exec codex resume #{Shellwords.escape(session_id)}"
+    else
+      if session_id
+        duplicates << session_id
+        commands << "/usr/bin/printf '\\n[rz] Codex session already running: %s\\n' #{Shellwords.escape(session_id)}"
+      end
+      commands << "exec /bin/zsh -l"
+    end
+
+    "/bin/zsh -lc #{Shellwords.escape(commands.join("; "))}"
+  end
+
+  def applescript_string(value)
+    escaped = value.to_s.gsub("\\") { "\\\\" }.gsub('"', '\\"').gsub("\r", " ").gsub("\n", " ")
+    %Q{"#{escaped}"}
+  end
+
+  def run_command(*command)
+    output, status = Open3.capture2e(*command)
+    raise "#{command.first} failed: #{output.strip}" unless status.success?
+
+    output.strip
+  end
+end
+
+Rz.new(ARGV).run

@@ -4,11 +4,17 @@ font-size = 16
 font-feature = -calt
 window-height = 50
 window-width = 180
-shell-integration = none
+shell-integration = detect
+shell-integration-features = no-cursor
 copy-on-select = clipboard
-scrollback-limit = 50000000
+scrollback-limit = 20000000
 mouse-hide-while-typing = true
 cursor-click-to-move = true
+
+# Notify only for long-running shell commands that finish in the background.
+notify-on-command-finish = unfocused
+notify-on-command-finish-action = no-bell,notify
+notify-on-command-finish-after = 30s
 
 # from https://github.com/cnavajas/.dotfiles/blob/master/ghostty/config
 unfocused-split-opacity = 0.3
@@ -18,7 +24,27 @@ unfocused-split-opacity = 0.3
 macos-option-as-alt = true
 macos-auto-secure-input = true
 window-save-state = always
+undo-timeout = 15s
 
-# improvised search
-# via https://github.com/ghostty-org/ghostty/issues/189#issuecomment-2564157291
-keybind = super+f=write_screen_file:open
+# Global scratch terminal. This is Ghostty's documented macOS binding and
+# requires Ghostty Accessibility permission.
+keybind = global:super+backquote=toggle_quick_terminal
+# Focused-app fallback that does not require global shortcut registration.
+keybind = super+shift+backquote=toggle_quick_terminal
+quick-terminal-position = top
+quick-terminal-size = 35%
+quick-terminal-screen = main
+quick-terminal-autohide = true
+
+# One-shot native navigation mode: Cmd-Shift-Space, then one key.
+keybind = super+shift+space=activate_key_table_once:navigate
+keybind = navigate/h=goto_split:left
+keybind = navigate/j=goto_split:down
+keybind = navigate/k=goto_split:up
+keybind = navigate/l=goto_split:right
+keybind = navigate/n=new_tab
+keybind = navigate/v=new_split:right
+keybind = navigate/s=new_split:down
+
+# Export the focused terminal's complete scrollback before quitting Ghostty.
+keybind = super+shift+e=write_scrollback_file:open
