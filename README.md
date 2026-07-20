@@ -49,7 +49,11 @@ for the shell running `rz`.
 ```sh
 rz --save work                 # save work_YYYYMMDD-HHMMSS
 rz --save work --no-scrollback # fast snapshot without terminal history
+rz --save work --current-window # save only the front Ghostty window
 rz --save personal             # save a separate named snapshot
+rz --watch backup --every 15m  # fast auto-save, bound to this window and shell
+rz --watch-status              # inspect this shell's watcher
+rz --watch-stop                # stop this shell's watcher
 rz                             # restore the newest snapshot overall
 rz --session work              # restore the newest snapshot named work
 rz --session 20260719-230140   # restore a specific timestamp
@@ -64,6 +68,21 @@ directories, focus, and Codex IDs are still saved. Scrollback exports are read
 immediately when Ghostty's synchronous action returns, with one short compatibility
 retry for asynchronous implementations; empty terminals no longer incur a
 one-second timeout.
+
+Automatic watchers are opt-in and shell-scoped; there is no global daemon. A
+watcher saves immediately and then at the requested interval, uses fast snapshots
+without scrollback, and exits when the shell that started it disappears. Its
+default scope is the Ghostty window that was frontmost at startup, and that window
+ID stays bound even if focus later moves elsewhere. Use `--all-windows` only when
+you explicitly want the broader scope:
+
+```sh
+rz --watch backup --every 15m               # current window, recommended
+rz --watch backup --every 30m --all-windows # explicit full-app scope
+```
+
+Watcher state and logs live under `~/.local/state/ghostty-rz/watchers`. Periodic
+snapshots accumulate normally; `rz` does not delete old snapshots automatically.
 
 Ghostty 1.3 exposes terminals as a flat collection per tab. It does not expose a
 split tree, split directions, or pane proportions, and it has no JSON workspace

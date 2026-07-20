@@ -42,6 +42,7 @@
       <ol>
         <li><a href="#daily-shortcuts">Daily shortcuts</a></li>
         <li><a href="#save-and-restore">Save and restore</a></li>
+        <li><a href="#automatic-backups">Automatic backups</a></li>
         <li><a href="#inspect-workspace">Inspect the workspace</a></li>
         <li><a href="#macos-choices">macOS choices</a></li>
         <li><a href="#restoration-limits">Restoration limits</a></li>
@@ -77,6 +78,7 @@
         <h2>Save before quitting</h2>
         <pre><code>rz --save work                 # full snapshot with scrollback
 rz --save work --no-scrollback # faster snapshot
+rz --save work --current-window # only the front Ghostty window
 rz --save personal             # a separate named workspace</code></pre>
 
         <table class="performance-table">
@@ -103,6 +105,32 @@ rz --session work --dry-run</code></pre>
           <code>rz</code> restores window position and size, tabs, terminal counts,
           focus, working directories, exact Codex conversation IDs, and any
           captured scrollback.
+        </p>
+      </section>
+
+      <section id="automatic-backups">
+        <h2>Automatic, without a global service</h2>
+        <p>
+          Start a watcher from the shell that should own it. It saves immediately,
+          then repeats at the requested interval. The watcher uses fast snapshots
+          without scrollback and stops when its owning shell or Ghostty tab exits.
+        </p>
+        <pre><code>rz --watch backup --every 15m
+rz --watch-status
+rz --watch-stop</code></pre>
+        <div class="callout ok">
+          <strong>Current window by default</strong>
+          The watcher binds the front Ghostty window ID when it starts. Moving focus
+          later does not change which window it saves. Use
+          <code>--all-windows</code> only when that broader scope is intentional.
+        </div>
+        <pre><code>rz --watch backup --every 30m --all-windows</code></pre>
+        <p>
+          Intervals accept seconds, minutes, or hours, such as <code>30s</code>,
+          <code>15m</code>, or <code>1h</code>, with a ten-second minimum. Watcher
+          state and logs live in <code>~/.local/state/ghostty-rz/watchers</code>.
+          Snapshots accumulate until you remove them; the watcher does not prune
+          previous backups automatically.
         </p>
       </section>
 
@@ -139,6 +167,7 @@ osascript ~/dot-files/ghostty/scripts/workspace-inventory.applescript</code></pr
           <li>Scrollback replays as plain text, not as a running process.</li>
           <li>Codex resumes from its conversation ID; arbitrary programs cannot be reconstructed.</li>
           <li>Window geometry needs macOS Accessibility permission for the shell that runs <code>rz</code>.</li>
+          <li>A window-scoped snapshot restores that saved window into one new Ghostty window.</li>
         </ul>
         <div class="callout ok">
           <strong>The safe boundary</strong>
