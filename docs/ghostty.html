@@ -104,7 +104,30 @@ rz --session work --dry-run</code></pre>
         <p>
           <code>rz</code> restores window position and size, tabs, terminal counts,
           focus, working directories, exact Codex conversation IDs, and any
-          captured scrollback.
+          captured scrollback. The save confirmation lists each captured tab title
+          with its window and tab position, such as <code>TAB 1.3</code>.
+        </p>
+        <div class="callout ok">
+          <strong>Conservative Codex matching</strong>
+          <code>rz</code> considers only Codex processes launched under Ghostty. It
+          matches an exact working directory first, then uses a unique project
+          title or the same session ID's unique title from a previous snapshot
+          when Ghostty reports a blank directory. Restored terminals report their
+          directory back to Ghostty before Codex starts. Ambiguous matches are
+          left as shells and the warning includes the session ID and TTY.
+        </div>
+
+        <h3>Remove old snapshots</h3>
+        <pre><code>rz --clean         # purge snapshots older than 7 days
+rz --clean 30d     # keep the last 30 days
+rz --clean 2.weeks # friendly long-form duration</code></pre>
+        <p>
+          Cleanup uses the recorded <code>saved_at</code> time and permanently
+          removes the complete snapshot directory, including captured scrollback.
+          Ages accept seconds, minutes, hours, days, or weeks in forms such as
+          <code>12h</code>, <code>7d</code>, <code>7.days</code>, and
+          <code>2.weeks</code>. The result lists every purged snapshot. Malformed
+          or unsafe entries are kept and reported as warnings.
         </p>
       </section>
 

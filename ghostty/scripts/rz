@@ -7,6 +7,7 @@ require "pathname"
 require "rbconfig"
 require "securerandom"
 require "shellwords"
+require "socket"
 require "time"
 
 class Rz
@@ -15,6 +16,8 @@ class Rz
   BOX_WIDTH = 92
   NAME_PATTERN = /\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
   INTERVAL_PATTERN = /\A(\d+(?:\.\d+)?)([smh]?)\z/i
+  CLEAN_AGE_PATTERN = /\A(\d+(?:\.\d+)?)\.?(s|m|h|d|w|seconds?|minutes?|hours?|days?|weeks?)?\z/i
+  DEFAULT_CLEAN_AGE = 7 * 24 * 60 * 60
   MINIMUM_WATCH_INTERVAL = 10
   UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
 
@@ -39,6 +42,8 @@ class Rz
       watch_status
     elsif @argv == ["--watch-stop"]
       stop_watch
+    elsif @argv.first == "--clean"
+      clean(**parse_clean_arguments(@argv.drop(1)))
     elsif @argv.first == "--watch-worker"
       run_watch_worker(@argv.drop(1))
     elsif @argv == ["--help"]
@@ -76,6 +81,7 @@ class Rz
         rz --watch NAME --every INTERVAL [--current-window | --all-windows]
         rz --watch-status
         rz --watch-stop
+        rz --clean [AGE]
         rz
         rz --session NAME_OR_TIMESTAMP
         rz --session NAME_OR_TIMESTAMP --dry-run
@@ -141,6 +147,27 @@ class Rz
     {name: name, interval_seconds: interval, scope: scope}
   end
 
+  def parse_clean_arguments(arguments)
+    raise "use rz --clean [AGE] with a single age such as 7d or 2.weeks" if arguments.length > 1
+
+    value = arguments.first || "7.days"
+    match = CLEAN_AGE_PATTERN.match(value)
+    raise "invalid cleanup age #{value.inspect}; use values such as 12h, 7d, 7.days, or 2.weeks" unless match
+
+    unit = match[2].to_s.downcase
+    multiplier = case unit
+    when "", "s", "second", "seconds" then 1
+    when "m", "minute", "minutes" then 60
+    when "h", "hour", "hours" then 60 * 60
+    when "d", "day", "days" then 24 * 60 * 60
+    when "w", "week", "weeks" then 7 * 24 * 60 * 60
+    end
+    age_seconds = (Float(match[1]) * multiplier).round
+    raise "cleanup age must be at least one second" if age_seconds < 1
+
+    {age_seconds: age_seconds}
+  end
+
   def parse_interval(value)
     match = INTERVAL_PATTERN.match(value)
     raise "invalid interval #{value.inspect}; use seconds, minutes, or hours such as 30s, 15m, or 1h" unless match
@@ -176,11 +203,19 @@ class Rz
       raise "Ghostty has no restorable terminal surfaces" if rows.empty?
 
       process_sessions = running_codex_sessions
-      assignments, warnings = assign_codex_sessions(rows, process_sessions)
+      assignments, warnings = assign_codex_sessions(
+        rows,
+        process_sessions,
+        warn_for_all_sessions: target_window_id.nil?
+      )
       unless rows.group_by { |row| row["window_index"] }.values.all? { |window_rows| window_geometry?(window_rows.first) }
         warnings << "window geometry unavailable; grant your shell Accessibility permission"
       end
-      assignments.each { |terminal_id, session| terminal_row(rows, terminal_id)["codex"] = session }
+      assignments.each do |terminal_id, session|
+        row = terminal_row(rows, terminal_id)
+        row["codex"] = session
+        row["working_directory"] = session.fetch("cwd") if row["working_directory"].to_s.empty?
+      end
 
       rows.each do |row|
         source = row.delete("scrollback_path")
@@ -212,6 +247,7 @@ class Rz
         labeled("SNAPSHOT", snapshot_id),
         labeled("SCOPE", target_window_id ? "Ghostty window #{target_window_id}" : "all Ghostty windows"),
         labeled("LAYOUT", layout_summary(snapshot)),
+        *saved_tab_lines(snapshot),
         labeled("CONTENT", content_summary(assignments.length, rows.count { |row| row["scrollback_file"] }, capture_scrollback: capture_scrollback)),
         labeled("LOCATION", final_dir)
       ]
@@ -270,6 +306,39 @@ class Rz
     lines << ""
     lines << labeled("LOCATION", @snapshots_dir)
     print_box("SAVED WORKSPACES", lines)
+  end
+
+  def clean(age_seconds: DEFAULT_CLEAN_AGE)
+    cutoff = Time.now - age_seconds
+    removed = []
+    kept = 0
+    warnings = []
+
+    snapshot_directories.each do |directory|
+      state = JSON.parse(File.read(File.join(directory, "state.json")))
+      saved_at = Time.iso8601(state.fetch("saved_at"))
+      if saved_at < cutoff
+        remove_snapshot_directory(directory)
+        removed << [state.fetch("id"), saved_at]
+      else
+        kept += 1
+      end
+    rescue JSON::ParserError, KeyError, ArgumentError, SystemCallError => error
+      warnings << "kept #{File.basename(directory)}: #{error.message}"
+    end
+
+    lines = [
+      labeled("OLDER THAN", human_duration(age_seconds)),
+      labeled("CUTOFF", cutoff.iso8601),
+      labeled("REMOVED", "#{removed.length} snapshot(s)"),
+      labeled("KEPT", "#{kept} newer snapshot(s)"),
+      labeled("LOCATION", @snapshots_dir)
+    ]
+    removed.each do |id, saved_at|
+      lines << labeled("PURGED", "#{id}  |  #{display_time(saved_at.iso8601)}")
+    end
+    warnings.each { |warning| lines << labeled("WARNING", warning) }
+    print_box("SNAPSHOTS CLEANED", lines)
   end
 
   def start_watch(options)
@@ -596,18 +665,33 @@ class Rz
   end
 
   def running_codex_sessions
-    output = run_command("ps", "-axo", "pid=,tty=,command=")
-    output.lines.filter_map do |line|
+    output = run_command("ps", "-axo", "pid=,ppid=,tty=,command=")
+    processes = output.lines.filter_map do |line|
       line = line.chomp
-      match = line.match(/\A\s*(\d+)\s+(\S+)\s+(.+)\z/)
+      match = line.match(/\A\s*(\d+)\s+(\d+)\s+(\S+)\s+(.+)\z/)
       next unless match
 
-      pid = Integer(match[1], 10)
-      tty = match[2]
-      command = match[3]
+      {
+        "pid" => Integer(match[1], 10),
+        "ppid" => Integer(match[2], 10),
+        "tty" => match[3],
+        "command" => match[4]
+      }
+    end
+
+    process_by_pid = processes.to_h { |process| [process.fetch("pid"), process] }
+    ghostty_pids = processes.filter_map do |process|
+      process.fetch("pid") if ghostty_process?(process.fetch("command"))
+    end
+
+    processes.filter_map do |process|
+      pid = process.fetch("pid")
+      tty = process.fetch("tty")
+      command = process.fetch("command")
       next unless command.include?("/bin/codex")
       next if command.include?("codex-code-mode-host")
       next if command.start_with?("node ")
+      next if ghostty_pids.any? && !descendant_of?(process, ghostty_pids, process_by_pid)
 
       cwd = process_cwd(pid)
       session_id = command[/\bresume\s+(#{UUID_PATTERN})/, 1] || newest_open_session_id(pid)
@@ -621,6 +705,27 @@ class Rz
         "command" => command
       }
     end
+  end
+
+  def ghostty_process?(command)
+    command.include?("/Ghostty.app/Contents/MacOS/ghostty")
+  end
+
+  def descendant_of?(process, ancestor_pids, process_by_pid)
+    seen = {}
+    parent_pid = process.fetch("ppid")
+
+    while parent_pid.positive? && !seen[parent_pid]
+      return true if ancestor_pids.include?(parent_pid)
+
+      seen[parent_pid] = true
+      parent = process_by_pid[parent_pid]
+      return false unless parent
+
+      parent_pid = parent.fetch("ppid")
+    end
+
+    false
   end
 
   def process_cwd(pid)
@@ -644,9 +749,10 @@ class Rz
     path && File.basename(path)[UUID_PATTERN]
   end
 
-  def assign_codex_sessions(rows, sessions)
+  def assign_codex_sessions(rows, sessions, warn_for_all_sessions: true)
     assignments = {}
     warnings = []
+    unassigned = {}
 
     sessions.group_by { |session| session["cwd"] }.each do |cwd, cwd_sessions|
       cwd_rows = rows.select { |row| row["working_directory"] == cwd }
@@ -655,18 +761,119 @@ class Rz
       candidates = candidates.first(cwd_sessions.length)
 
       sorted_sessions = cwd_sessions.sort_by { |session| tty_number(session["tty"]) }
-      if candidates.length < sorted_sessions.length
-        warnings << "could not place every Codex session in #{cwd}; unplaced sessions will not auto-resume"
-      end
-
       candidates.zip(sorted_sessions).each do |row, session|
         next unless row && session
 
         assignments[row["terminal_id"]] = session
       end
+
+      unassigned[cwd] = sorted_sessions.drop(candidates.length)
+    end
+
+    unassigned.each do |cwd, cwd_sessions|
+      next if cwd_sessions.empty?
+
+      available_rows = rows.reject { |row| assignments.key?(row["terminal_id"]) }
+      title_candidates = available_rows.select do |row|
+        row["working_directory"].to_s.empty? && title_matches_cwd?(row["terminal_name"], cwd)
+      end
+
+      if cwd_sessions.one? && title_candidates.one?
+        assignments[title_candidates.first.fetch("terminal_id")] = cwd_sessions.first
+        unassigned[cwd] = []
+      end
+    end
+
+    remaining_sessions = unassigned.values.flatten
+    historical_names = historical_terminal_names(remaining_sessions.map { |session| session.fetch("session_id") })
+    unassigned.each do |cwd, cwd_sessions|
+      unassigned[cwd] = cwd_sessions.reject do |session|
+        previous_name = historical_names[session.fetch("session_id")]
+        next false if previous_name.to_s.empty?
+
+        available_rows = rows.reject { |row| assignments.key?(row["terminal_id"]) }
+        historical_candidates = available_rows.select do |row|
+          row["working_directory"].to_s.empty? &&
+            stable_terminal_title(row["terminal_name"]) == stable_terminal_title(previous_name)
+        end
+        next false unless historical_candidates.one?
+
+        assignments[historical_candidates.first.fetch("terminal_id")] = session
+        true
+      end
+    end
+
+    unassigned.each do |cwd, cwd_sessions|
+      next if cwd_sessions.empty?
+
+      available_rows = rows.reject { |row| assignments.key?(row["terminal_id"]) }
+      title_candidates = available_rows.select do |row|
+        row["working_directory"].to_s.empty? && title_matches_cwd?(row["terminal_name"], cwd)
+      end
+
+      next unless warn_for_all_sessions || title_candidates.any?
+
+      reason = if title_candidates.length > 1
+        "multiple blank-directory Ghostty terminals have matching project titles"
+      else
+        "Ghostty exposed no terminal with that directory, a unique matching project title, or a unique prior session title"
+      end
+      cwd_sessions.each do |session|
+        warnings << "Codex session #{session.fetch("session_id")} on #{session.fetch("tty")} in #{cwd} was not matched: #{reason}; it will not auto-resume"
+      end
     end
 
     [assignments, warnings]
+  end
+
+  def historical_terminal_names(session_ids)
+    wanted = session_ids.to_h { |session_id| [session_id, true] }
+    names = {}
+    return names if wanted.empty? || !Dir.exist?(@snapshots_dir)
+
+    state_paths = Dir.children(@snapshots_dir).filter_map do |entry|
+      path = File.join(@snapshots_dir, entry, "state.json")
+      path if File.file?(path)
+    end.sort_by { |path| File.mtime(path) }.reverse
+
+    state_paths.each do |path|
+      snapshot = JSON.parse(File.read(path))
+      snapshot.fetch("windows", []).each do |window|
+        window.fetch("tabs", []).each do |tab|
+          tab.fetch("terminals", []).each do |terminal|
+            session_id = terminal["codex_session_id"]
+            next unless wanted.key?(session_id)
+
+            name = terminal["name"].to_s
+            next if name.empty?
+
+            names[session_id] = name
+            wanted.delete(session_id)
+          end
+        end
+      end
+      break if wanted.empty?
+    rescue JSON::ParserError, SystemCallError
+      next
+    end
+
+    names
+  end
+
+  def stable_terminal_title(title)
+    title.to_s.strip.sub(/\A[\u2800-\u28ff]\s*/, "")
+  end
+
+  def title_matches_cwd?(title, cwd)
+    basename = File.basename(cwd)
+    title = title.to_s.strip
+    first = title.each_codepoint.first
+
+    title == basename ||
+      title.end_with?("| #{basename}") ||
+      (first && first.between?(0x2800, 0x28ff) && title.end_with?(" #{basename}")) ||
+      (title.downcase.include?("codex") && title.include?(basename)) ||
+      (title.include?("Action Required") && title.include?(basename))
   end
 
   def codex_title?(title, cwd)
@@ -767,6 +974,16 @@ class Rz
     end
   end
 
+  def remove_snapshot_directory(directory)
+    expanded_directory = File.expand_path(directory)
+    snapshots_root = File.expand_path(@snapshots_dir)
+    unless File.dirname(expanded_directory) == snapshots_root && !File.symlink?(expanded_directory)
+      raise ArgumentError, "refusing to remove unsafe snapshot path #{directory.inspect}"
+    end
+
+    FileUtils.remove_entry(expanded_directory)
+  end
+
   def resolve_snapshot(selector)
     snapshots = snapshot_directories
     raise "no saved sessions; create one with rz --save NAME" if snapshots.empty?
@@ -808,6 +1025,16 @@ class Rz
     "#{snapshot.fetch("windows").length} window(s)  |  #{snapshot.fetch("tabs_count")} tab(s)  |  #{terminal_count(snapshot)} terminal(s)"
   end
 
+  def saved_tab_lines(snapshot)
+    snapshot.fetch("windows").flat_map do |window|
+      window.fetch("tabs").map do |tab|
+        name = tab.fetch("name", "").strip
+        name = "(untitled)" if name.empty?
+        labeled("TAB #{window.fetch("index")}.#{tab.fetch("index")}", name)
+      end
+    end
+  end
+
   def content_summary(codex_count, scrollback_count, capture_scrollback:)
     scrollback = capture_scrollback ? "#{scrollback_count} scrollback file(s)" : "scrollback skipped"
     "#{codex_count} Codex session(s)  |  #{scrollback}"
@@ -817,6 +1044,21 @@ class Rz
     Time.iso8601(value).strftime("%Y-%m-%d %H:%M:%S %:z")
   rescue ArgumentError
     value
+  end
+
+  def human_duration(seconds)
+    [
+      [24 * 60 * 60, "day"],
+      [60 * 60, "hour"],
+      [60, "minute"]
+    ].each do |unit_seconds, unit_name|
+      next unless seconds >= unit_seconds && (seconds % unit_seconds).zero?
+
+      count = seconds / unit_seconds
+      return "#{count} #{unit_name}#{"s" unless count == 1}"
+    end
+
+    "#{seconds} second#{"s" unless seconds == 1}"
   end
 
   def labeled(label, value)
@@ -962,14 +1204,17 @@ class Rz
 
   def append_configuration(lines, variable, terminal, snapshot_dir, running_ids, duplicates)
     lines << "set #{variable} to new surface configuration"
-    cwd = terminal.fetch("working_directory", @home)
+    cwd = terminal["working_directory"].to_s
+    cwd = @home if cwd.empty?
     lines << "set initial working directory of #{variable} to #{applescript_string(cwd)}"
-    lines << "set command of #{variable} to #{applescript_string(restore_command(terminal, snapshot_dir, running_ids, duplicates))}"
+    lines << "set command of #{variable} to #{applescript_string(restore_command(terminal, snapshot_dir, running_ids, duplicates, cwd: cwd))}"
     lines << "set wait after command of #{variable} to true"
   end
 
-  def restore_command(terminal, snapshot_dir, running_ids, duplicates)
-    commands = []
+  def restore_command(terminal, snapshot_dir, running_ids, duplicates, cwd: nil)
+    cwd = terminal["working_directory"].to_s if cwd.nil?
+    cwd = @home if cwd.empty?
+    commands = [working_directory_report_command(cwd)]
     scrollback = terminal["scrollback_file"] && File.join(snapshot_dir, terminal["scrollback_file"])
     commands << "/bin/cat -- #{Shellwords.escape(scrollback)}" if scrollback && File.file?(scrollback)
 
@@ -985,6 +1230,10 @@ class Rz
     end
 
     "/bin/zsh -lc #{Shellwords.escape(commands.join("; "))}"
+  end
+
+  def working_directory_report_command(cwd)
+    "/usr/bin/printf '\\033]7;kitty-shell-cwd://%s%s\\007' #{Shellwords.escape(Socket.gethostname)} #{Shellwords.escape(cwd)}"
   end
 
   def applescript_string(value)

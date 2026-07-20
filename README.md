@@ -54,6 +54,9 @@ rz --save personal             # save a separate named snapshot
 rz --watch backup --every 15m  # fast auto-save, bound to this window and shell
 rz --watch-status              # inspect this shell's watcher
 rz --watch-stop                # stop this shell's watcher
+rz --clean                     # purge snapshots older than 7 days
+rz --clean 30d                 # choose a different maximum age
+rz --clean 2.weeks             # friendly long-form durations also work
 rz                             # restore the newest snapshot overall
 rz --session work              # restore the newest snapshot named work
 rz --session 20260719-230140   # restore a specific timestamp
@@ -67,7 +70,8 @@ Use `--no-scrollback` when speed matters; window geometry, tabs, surfaces,
 directories, focus, and Codex IDs are still saved. Scrollback exports are read
 immediately when Ghostty's synchronous action returns, with one short compatibility
 retry for asynchronous implementations; empty terminals no longer incur a
-one-second timeout.
+one-second timeout. The save confirmation lists every captured tab title, using
+its window and tab position such as `TAB 1.3`.
 
 Automatic watchers are opt-in and shell-scoped; there is no global daemon. A
 watcher saves immediately and then at the requested interval, uses fast snapshots
@@ -83,13 +87,24 @@ rz --watch backup --every 30m --all-windows # explicit full-app scope
 
 Watcher state and logs live under `~/.local/state/ghostty-rz/watchers`. Periodic
 snapshots accumulate normally; `rz` does not delete old snapshots automatically.
+Run `rz --clean` to permanently remove snapshot directories whose recorded
+`saved_at` time is more than seven days old, including their captured scrollback.
+Pass another age when needed; cleanup accepts seconds, minutes, hours, days, or
+weeks in forms such as `12h`, `7d`, `7.days`, and `2.weeks`. The result lists each
+purged snapshot and keeps malformed or unsafe entries with a warning.
 
 Ghostty 1.3 exposes terminals as a flat collection per tab. It does not expose a
 split tree, split directions, or pane proportions, and it has no JSON workspace
 export/import API. `rz` therefore preserves the number of terminal surfaces but
 recreates additional surfaces as right-hand splits. Scrollback is replayed as
 plain text; arbitrary running programs cannot be reconstructed. Codex sessions
-are resumed by their exact conversation ID.
+are resumed by their exact conversation ID. Session matching is restricted to
+Codex processes launched under Ghostty. It uses an exact working directory first,
+then a unique project title or the same session ID's unique title from a previous
+snapshot when Ghostty reports a blank directory. A successful fallback repairs
+the saved directory, and restored terminals report that directory back to Ghostty
+before Codex starts. Ambiguous sessions are never guessed; the warning identifies
+the exact session ID and TTY for manual recovery.
 
 ### Submodules and bundles
 
