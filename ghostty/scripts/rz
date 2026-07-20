@@ -4,6 +4,8 @@ require "fileutils"
 require "json"
 require "open3"
 require "pathname"
+require "rbconfig"
+require "securerandom"
 require "shellwords"
 require "time"
 
@@ -12,6 +14,8 @@ class Rz
   TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
   BOX_WIDTH = 92
   NAME_PATTERN = /\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
+  INTERVAL_PATTERN = /\A(\d+(?:\.\d+)?)([smh]?)\z/i
+  MINIMUM_WATCH_INTERVAL = 10
   UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
 
   def initialize(argv)
@@ -22,13 +26,23 @@ class Rz
       ENV.fetch("RZ_STATE_DIR", File.join(@home, ".local", "state", "ghostty-rz"))
     )
     @snapshots_dir = File.join(@state_root, "snapshots")
+    @watchers_dir = File.join(@state_root, "watchers")
   end
 
   def run
-    if @argv.length == 3 && @argv[0] == "--save" && @argv[2] == "--no-scrollback"
-      save(@argv[1], capture_scrollback: false)
-    elsif @argv.length == 2 && @argv.first == "--save"
-      save(@argv.last, capture_scrollback: true)
+    if @argv.first == "--save"
+      options = parse_save_arguments(@argv.drop(1))
+      save(**options)
+    elsif @argv.first == "--watch"
+      start_watch(parse_watch_arguments(@argv.drop(1)))
+    elsif @argv == ["--watch-status"]
+      watch_status
+    elsif @argv == ["--watch-stop"]
+      stop_watch
+    elsif @argv.first == "--watch-worker"
+      run_watch_worker(@argv.drop(1))
+    elsif @argv == ["--help"]
+      puts usage
     elsif @argv.length == 2 && @argv.first == "--session"
       restore(@argv.last, dry_run: false)
     elsif @argv.length == 3 && @argv.include?("--session") && @argv.include?("--dry-run")
@@ -58,7 +72,10 @@ class Rz
     <<~TEXT
       Usage:
         rz --save NAME
-        rz --save NAME --no-scrollback
+        rz --save NAME [--no-scrollback] [--current-window]
+        rz --watch NAME --every INTERVAL [--current-window | --all-windows]
+        rz --watch-status
+        rz --watch-stop
         rz
         rz --session NAME_OR_TIMESTAMP
         rz --session NAME_OR_TIMESTAMP --dry-run
@@ -67,9 +84,80 @@ class Rz
     TEXT
   end
 
-  def save(name, capture_scrollback:)
+  def parse_save_arguments(arguments)
+    name = arguments.shift
+    raise "missing snapshot name" unless name
+
+    options = {
+      name: name,
+      capture_scrollback: true,
+      current_window: false,
+      window_id: nil
+    }
+
+    until arguments.empty?
+      option = arguments.shift
+      case option
+      when "--no-scrollback"
+        options[:capture_scrollback] = false
+      when "--current-window"
+        options[:current_window] = true
+      when "--window-id"
+        options[:window_id] = arguments.shift || raise("missing value for --window-id")
+      else
+        raise "unknown save option #{option.inspect}"
+      end
+    end
+
+    if options[:current_window] && options[:window_id]
+      raise "use either --current-window or --window-id, not both"
+    end
+
+    options
+  end
+
+  def parse_watch_arguments(arguments)
+    name = arguments.shift
+    raise "missing watcher snapshot name" unless name
+
+    interval = nil
+    scope = "current-window"
+    until arguments.empty?
+      option = arguments.shift
+      case option
+      when "--every"
+        interval = parse_interval(arguments.shift || raise("missing value for --every"))
+      when "--current-window"
+        scope = "current-window"
+      when "--all-windows"
+        scope = "all-windows"
+      else
+        raise "unknown watcher option #{option.inspect}"
+      end
+    end
+
+    raise "missing --every INTERVAL" unless interval
+
+    {name: name, interval_seconds: interval, scope: scope}
+  end
+
+  def parse_interval(value)
+    match = INTERVAL_PATTERN.match(value)
+    raise "invalid interval #{value.inspect}; use seconds, minutes, or hours such as 30s, 15m, or 1h" unless match
+
+    multiplier = {"" => 1, "s" => 1, "m" => 60, "h" => 3600}.fetch(match[2].downcase)
+    seconds = (Float(match[1]) * multiplier).round
+    raise "watch interval must be at least #{MINIMUM_WATCH_INTERVAL} seconds" if seconds < MINIMUM_WATCH_INTERVAL
+
+    seconds
+  end
+
+  def save(name:, capture_scrollback:, current_window: false, window_id: nil)
     validate_name!(name)
     ensure_ghostty_running!
+
+    target_window_id = window_id
+    target_window_id ||= current_ghostty_window_id if current_window
 
     timestamp = Time.now.strftime(TIMESTAMP_FORMAT)
     snapshot_id = "#{name}_#{timestamp}"
@@ -81,7 +169,10 @@ class Rz
     FileUtils.mkdir_p(File.join(staging_dir, "scrollback"))
 
     begin
-      rows = capture_ghostty(capture_scrollback: capture_scrollback)
+      rows = capture_ghostty(capture_scrollback: capture_scrollback, window_id: target_window_id)
+      if rows.empty? && target_window_id
+        raise "Ghostty window #{target_window_id.inspect} is no longer available"
+      end
       raise "Ghostty has no restorable terminal surfaces" if rows.empty?
 
       process_sessions = running_codex_sessions
@@ -103,12 +194,23 @@ class Rz
         row["scrollback_file"] = relative
       end
 
-      snapshot = build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings, capture_scrollback: capture_scrollback)
+      detected_sessions = target_window_id ? assignments.values : process_sessions
+      snapshot = build_snapshot(
+        name,
+        snapshot_id,
+        timestamp,
+        rows,
+        detected_sessions,
+        warnings,
+        capture_scrollback: capture_scrollback,
+        target_window_id: target_window_id
+      )
       File.write(File.join(staging_dir, "state.json"), JSON.pretty_generate(snapshot) + "\n")
       FileUtils.mv(staging_dir, final_dir)
 
       lines = [
         labeled("SNAPSHOT", snapshot_id),
+        labeled("SCOPE", target_window_id ? "Ghostty window #{target_window_id}" : "all Ghostty windows"),
         labeled("LAYOUT", layout_summary(snapshot)),
         labeled("CONTENT", content_summary(assignments.length, rows.count { |row| row["scrollback_file"] }, capture_scrollback: capture_scrollback)),
         labeled("LOCATION", final_dir)
@@ -170,6 +272,280 @@ class Rz
     print_box("SAVED WORKSPACES", lines)
   end
 
+  def start_watch(options)
+    worker_pid = nil
+    validate_name!(options.fetch(:name))
+    ensure_ghostty_running!
+
+    owner_pid = Process.ppid
+    owner_started_at = process_start_marker(owner_pid)
+    raise "could not identify the owning shell" if owner_started_at.empty?
+
+    FileUtils.mkdir_p(@watchers_dir)
+    state_path = watch_state_path(owner_pid)
+    existing = read_watch_state(state_path)
+    if existing && watcher_alive?(existing)
+      raise "this shell already owns watcher #{existing.fetch("name").inspect}; run rz --watch-status"
+    end
+    FileUtils.rm_f(state_path)
+
+    window_id = options.fetch(:scope) == "current-window" ? current_ghostty_window_id : nil
+    token = SecureRandom.hex(16)
+    log_path = File.join(@watchers_dir, "shell-#{owner_pid}.log")
+    worker_arguments = [
+      "--watch-worker",
+      token,
+      options.fetch(:name),
+      options.fetch(:interval_seconds).to_s,
+      owner_pid.to_s,
+      owner_started_at,
+      options.fetch(:scope),
+      window_id || "-",
+      state_path
+    ]
+
+    log = File.open(log_path, "a")
+    worker_pid = Process.spawn(
+      RbConfig.ruby,
+      File.expand_path(__FILE__),
+      *worker_arguments,
+      in: File::NULL,
+      out: log,
+      err: log,
+      pgroup: true
+    )
+    Process.detach(worker_pid)
+    log.close
+
+    state = {
+      "version" => 1,
+      "token" => token,
+      "name" => options.fetch(:name),
+      "interval_seconds" => options.fetch(:interval_seconds),
+      "scope" => options.fetch(:scope),
+      "window_id" => window_id,
+      "owner_pid" => owner_pid,
+      "owner_started_at" => owner_started_at,
+      "worker_pid" => worker_pid,
+      "started_at" => Time.now.iso8601,
+      "log_path" => log_path
+    }.compact
+    write_watch_state(state_path, state)
+
+    lines = [
+      labeled("NAME", options.fetch(:name)),
+      labeled("EVERY", display_interval(options.fetch(:interval_seconds))),
+      labeled("SCOPE", window_id ? "bound to Ghostty window #{window_id}" : "all Ghostty windows"),
+      labeled("MODE", "fast snapshots; scrollback skipped"),
+      labeled("OWNER", "shell PID #{owner_pid}; watcher stops when this shell exits"),
+      labeled("LOG", log_path)
+    ]
+    print_box("WATCHER STARTED", lines)
+  rescue StandardError
+    log&.close unless log&.closed?
+    begin
+      Process.kill("TERM", worker_pid) if worker_pid && process_alive?(worker_pid)
+    rescue Errno::ESRCH
+      nil
+    end
+    raise
+  end
+
+  def watch_status
+    state_path = watch_state_path(Process.ppid)
+    state = read_watch_state(state_path)
+    unless state && watcher_alive?(state)
+      FileUtils.rm_f(state_path)
+      print_box("WATCHER STATUS", ["No active watcher belongs to this shell."])
+      return
+    end
+
+    lines = [
+      labeled("STATUS", "running"),
+      labeled("NAME", state.fetch("name")),
+      labeled("EVERY", display_interval(state.fetch("interval_seconds"))),
+      labeled("SCOPE", watch_scope_label(state)),
+      labeled("WORKER", "PID #{state.fetch("worker_pid")}"),
+      labeled("STARTED", display_time(state.fetch("started_at"))),
+      labeled("LAST SAVE", state["last_success_at"] ? display_time(state["last_success_at"]) : "pending"),
+      labeled("SNAPSHOT", state["last_snapshot_id"] || "pending"),
+      labeled("NEXT SAVE", state["next_attempt_at"] ? display_time(state["next_attempt_at"]) : "pending"),
+      labeled("LAST ERROR", state["last_error"] || "none"),
+      labeled("LOG", state.fetch("log_path"))
+    ]
+    print_box("WATCHER STATUS", lines)
+  end
+
+  def stop_watch
+    state_path = watch_state_path(Process.ppid)
+    state = read_watch_state(state_path)
+    unless state && watcher_alive?(state)
+      FileUtils.rm_f(state_path)
+      print_box("WATCHER STOPPED", ["No active watcher belonged to this shell."])
+      return
+    end
+
+    worker_pid = Integer(state.fetch("worker_pid"))
+    Process.kill("TERM", worker_pid)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+    while process_alive?(worker_pid) && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+      sleep 0.1
+    end
+
+    if process_alive?(worker_pid)
+      print_box("WATCHER STOP REQUESTED", [labeled("WORKER", "PID #{worker_pid}"), labeled("LOG", state.fetch("log_path"))])
+    else
+      FileUtils.rm_f(state_path)
+      print_box("WATCHER STOPPED", [labeled("NAME", state.fetch("name")), labeled("WORKER", "PID #{worker_pid}")])
+    end
+  end
+
+  def run_watch_worker(arguments)
+    token, name, interval_value, owner_value, owner_started_at, scope, raw_window_id, state_path = arguments
+    raise "malformed watcher worker arguments" unless state_path
+
+    interval_seconds = Integer(interval_value, 10)
+    owner_pid = Integer(owner_value, 10)
+    window_id = raw_window_id == "-" ? nil : raw_window_id
+    validate_name!(name)
+    raise "invalid watcher token" unless token.match?(/\A[0-9a-f]{32}\z/)
+    raise "invalid watcher interval" if interval_seconds < MINIMUM_WATCH_INTERVAL
+    raise "invalid watcher scope" unless %w[current-window all-windows].include?(scope)
+    raise "current-window watcher is missing its bound window ID" if scope == "current-window" && !window_id
+    raise "all-windows watcher cannot have a bound window ID" if scope == "all-windows" && window_id
+    raise "invalid watcher state path" unless File.expand_path(state_path) == watch_state_path(owner_pid)
+
+    stop_requested = false
+    %w[HUP INT TERM].each { |signal| Signal.trap(signal) { stop_requested = true } }
+
+    sleep 0.1
+    while !stop_requested && owner_alive?(owner_pid, owner_started_at)
+      attempted_at = Time.now.iso8601
+      update_watch_state(state_path, token, "last_attempt_at" => attempted_at, "last_error" => nil)
+
+      save_arguments = ["--save", name, "--no-scrollback"]
+      save_arguments.concat(["--window-id", window_id]) if window_id
+      success = system(RbConfig.ruby, File.expand_path(__FILE__), *save_arguments)
+      completed_at = Time.now
+      updates = if success
+        {
+          "last_success_at" => completed_at.iso8601,
+          "last_snapshot_id" => newest_snapshot_id(name),
+          "last_error" => nil,
+          "next_attempt_at" => (completed_at + interval_seconds).iso8601
+        }
+      else
+        {
+          "last_error" => "save failed at #{completed_at.iso8601}; see watcher log",
+          "next_attempt_at" => (completed_at + interval_seconds).iso8601
+        }
+      end
+      update_watch_state(state_path, token, updates)
+
+      break unless wait_for_watch_interval(interval_seconds, owner_pid, owner_started_at) { stop_requested }
+    end
+  ensure
+    remove_watch_state(state_path, token) if state_path && token
+  end
+
+  def watch_state_path(owner_pid)
+    File.join(@watchers_dir, "shell-#{owner_pid}.json")
+  end
+
+  def read_watch_state(path)
+    JSON.parse(File.read(path))
+  rescue Errno::ENOENT, JSON::ParserError
+    nil
+  end
+
+  def write_watch_state(path, state)
+    FileUtils.mkdir_p(File.dirname(path))
+    temporary = "#{path}.#{Process.pid}.tmp"
+    File.write(temporary, JSON.pretty_generate(state) + "\n")
+    File.rename(temporary, path)
+  ensure
+    FileUtils.rm_f(temporary) if temporary && File.exist?(temporary)
+  end
+
+  def update_watch_state(path, token, updates)
+    state = read_watch_state(path)
+    return unless state && state["token"] == token
+
+    write_watch_state(path, state.merge(updates))
+  end
+
+  def remove_watch_state(path, token)
+    state = read_watch_state(path)
+    FileUtils.rm_f(path) if state && state["token"] == token
+  end
+
+  def watcher_alive?(state)
+    worker_pid = Integer(state.fetch("worker_pid"))
+    owner_pid = Integer(state.fetch("owner_pid"))
+    owner_alive?(owner_pid, state.fetch("owner_started_at")) &&
+      process_alive?(worker_pid) &&
+      process_command(worker_pid).include?(state.fetch("token"))
+  rescue ArgumentError, KeyError, TypeError
+    false
+  end
+
+  def owner_alive?(pid, started_at)
+    process_alive?(pid) && process_start_marker(pid) == started_at
+  end
+
+  def process_alive?(pid)
+    Process.kill(0, pid)
+    true
+  rescue Errno::ESRCH
+    false
+  rescue Errno::EPERM
+    true
+  end
+
+  def process_start_marker(pid)
+    output, status = Open3.capture2e("ps", "-p", pid.to_s, "-o", "lstart=")
+    status.success? ? output.strip : ""
+  end
+
+  def process_command(pid)
+    output, status = Open3.capture2e("ps", "-ww", "-p", pid.to_s, "-o", "command=")
+    status.success? ? output.strip : ""
+  end
+
+  def wait_for_watch_interval(seconds, owner_pid, owner_started_at)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + seconds
+    loop do
+      return false if yield
+      return false unless owner_alive?(owner_pid, owner_started_at)
+
+      remaining = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      return true if remaining <= 0
+
+      sleep [remaining, 5].min
+    end
+  end
+
+  def newest_snapshot_id(name)
+    directory = snapshot_directories.reverse_each.find do |candidate|
+      JSON.parse(File.read(File.join(candidate, "state.json"))).fetch("name") == name
+    rescue JSON::ParserError, KeyError
+      false
+    end
+    directory && File.basename(directory)
+  end
+
+  def display_interval(seconds)
+    seconds = Integer(seconds)
+    return "#{seconds / 3600}h" if (seconds % 3600).zero?
+    return "#{seconds / 60}m" if (seconds % 60).zero?
+
+    "#{seconds}s"
+  end
+
+  def watch_scope_label(state)
+    state["window_id"] ? "Ghostty window #{state.fetch("window_id")}" : "all Ghostty windows"
+  end
+
   def validate_name!(name)
     return if NAME_PATTERN.match?(name)
 
@@ -182,9 +558,18 @@ class Rz
     raise "Ghostty must be running to save a snapshot"
   end
 
-  def capture_ghostty(capture_scrollback:)
+  def current_ghostty_window_id
+    script = 'tell application "Ghostty" to return id of first window as text'
+    window_id = run_command("osascript", "-e", script).strip
+    raise "Ghostty has no current window" if window_id.empty?
+
+    window_id
+  end
+
+  def capture_ghostty(capture_scrollback:, window_id: nil)
     command = ["osascript", File.join(@script_dir, "snapshot-capture.applescript")]
     command << "--no-scrollback" unless capture_scrollback
+    command.concat(["--window-id", window_id]) if window_id
     output = run_command(*command)
     lines = output.lines.map(&:chomp).reject(&:empty?)
     header = lines.shift&.split("\t", -1)
@@ -302,7 +687,7 @@ class Rz
     rows.find { |row| row["terminal_id"] == terminal_id } || raise("missing terminal #{terminal_id}")
   end
 
-  def build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings, capture_scrollback:)
+  def build_snapshot(name, snapshot_id, timestamp, rows, process_sessions, warnings, capture_scrollback:, target_window_id: nil)
     windows = rows.group_by { |row| row["window_index"] }.sort.map do |window_index, window_rows|
       first_window_row = window_rows.first
       tabs = window_rows.group_by { |row| row["tab_index"] }.sort.map do |tab_index, tab_rows|
@@ -346,6 +731,7 @@ class Rz
       "tabs_count" => windows.sum { |window| window["tabs"].length },
       "terminals_count" => rows.length,
       "scrollback_captured" => capture_scrollback,
+      "scope" => target_window_id ? {"type" => "window", "window_id" => target_window_id} : {"type" => "all_windows"},
       "windows" => windows,
       "detected_codex_sessions" => process_sessions,
       "warnings" => warnings,
@@ -614,4 +1000,4 @@ class Rz
   end
 end
 
-Rz.new(ARGV).run
+Rz.new(ARGV).run if $PROGRAM_NAME == __FILE__

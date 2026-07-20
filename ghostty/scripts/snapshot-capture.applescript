@@ -6,6 +6,12 @@ use scripting additions
 on run arguments
     set separator to character id 9
     set captureScrollback to not (arguments contains "--no-scrollback")
+    set targetWindowId to ""
+    repeat with argumentIndex from 1 to count of arguments
+        if item argumentIndex of arguments is "--window-id" and argumentIndex < count of arguments then
+            set targetWindowId to item (argumentIndex + 1) of arguments as text
+        end if
+    end repeat
     set reportText to "window_index" & separator & "window_id" & separator & "window_name" & separator & "window_x" & separator & "window_y" & separator & "window_width" & separator & "window_height" & separator & "tab_index" & separator & "tab_id" & separator & "tab_name" & separator & "tab_selected" & separator & "terminal_index" & separator & "terminal_id" & separator & "terminal_name" & separator & "terminal_focused" & separator & "working_directory" & separator & "scrollback_path" & linefeed
     set clipboardWasSaved to false
     set savedClipboard to missing value
@@ -21,6 +27,9 @@ on run arguments
             set windowIndex to windowIndex + 1
             set windowProperties to properties of currentWindow
             set windowId to id of windowProperties as text
+            -- Keep the original window index so System Events geometry still
+            -- lines up with Ghostty's front-to-back window collection.
+            if targetWindowId is "" or windowId is targetWindowId then
             set windowName to name of windowProperties as text
             set windowGeometry to my geometryForWindow(windowIndex)
             set windowX to item 1 of windowGeometry
@@ -78,6 +87,7 @@ on run arguments
                     set reportText to reportText & windowIndex & separator & my cleanField(windowId) & separator & my cleanField(windowName) & separator & windowX & separator & windowY & separator & windowWidth & separator & windowHeight & separator & tabIndex & separator & my cleanField(tabId) & separator & my cleanField(tabName) & separator & tabSelected & separator & terminalIndex & separator & my cleanField(terminalId) & separator & my cleanField(terminalName) & separator & terminalFocused & separator & my cleanField(terminalDirectory) & separator & my cleanField(scrollbackPath) & linefeed
                 end repeat
             end repeat
+            end if
         end repeat
     end tell
 
