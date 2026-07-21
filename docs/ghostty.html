@@ -97,9 +97,10 @@ rz --save personal             # a separate named workspace</code></pre>
         </div>
 
         <h3>Restore after reopening Ghostty</h3>
-        <pre><code>rz                    # newest snapshot overall
-rz --session work     # newest snapshot named work
-rz --list             # inspect available snapshots
+        <pre><code>rz                         # replace current windows with newest snapshot
+rz --session work          # replace them with newest snapshot named work
+rz --keep-existing         # restore without closing current windows
+rz --list                  # inspect available snapshots
 rz --session work --dry-run</code></pre>
         <p>
           <code>rz</code> restores window position and size, tabs, terminal counts,
@@ -193,9 +194,10 @@ osascript ~/dot-files/ghostty/scripts/workspace-inventory.applescript</code></pr
           <li>A window-scoped snapshot restores that saved window into one new Ghostty window.</li>
         </ul>
         <div class="callout ok">
-          <strong>The safe boundary</strong>
-          Every restore creates new Ghostty windows. It does not close, rename,
-          rearrange, or replace tabs that already exist.
+          <strong>Replace only after success</strong>
+          Every restore first creates the complete new workspace. It then closes only
+          the Ghostty windows that existed before restoration, leaving the newly restored
+          windows intact. Use <code>--keep-existing</code> for the previous additive behavior.
         </div>
       </section>
 

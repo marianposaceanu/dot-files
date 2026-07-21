@@ -48,20 +48,10 @@ class Rz
       run_watch_worker(@argv.drop(1))
     elsif @argv == ["--help"]
       puts usage
-    elsif @argv.length == 2 && @argv.first == "--session"
-      restore(@argv.last, dry_run: false)
-    elsif @argv.length == 3 && @argv.include?("--session") && @argv.include?("--dry-run")
-      selector = @argv[@argv.index("--session") + 1]
-      restore(selector, dry_run: true)
-    elsif @argv == ["--dry-run"]
-      restore(nil, dry_run: true)
     elsif @argv == ["--list"]
       list
-    elsif @argv.empty?
-      restore(nil, dry_run: false)
     else
-      print_box("USAGE", usage.lines(chomp: true), io: $stderr)
-      exit 64
+      restore(**parse_restore_arguments(@argv))
     end
   rescue Interrupt
     print_box("INTERRUPTED", ["No changes were completed."], io: $stderr)
@@ -82,10 +72,9 @@ class Rz
         rz --watch-status
         rz --watch-stop
         rz --clean [AGE]
-        rz
-        rz --session NAME_OR_TIMESTAMP
-        rz --session NAME_OR_TIMESTAMP --dry-run
-        rz --dry-run
+        rz [--keep-existing]
+        rz --session NAME_OR_TIMESTAMP [--keep-existing] [--dry-run]
+        rz --dry-run [--keep-existing]
         rz --list
     TEXT
   end
@@ -117,6 +106,33 @@ class Rz
 
     if options[:current_window] && options[:window_id]
       raise "use either --current-window or --window-id, not both"
+    end
+
+    options
+  end
+
+  def parse_restore_arguments(arguments)
+    options = {
+      selector: nil,
+      dry_run: false,
+      close_existing: true
+    }
+
+    arguments = arguments.dup
+    until arguments.empty?
+      option = arguments.shift
+      case option
+      when "--session"
+        raise "use --session only once" if options[:selector]
+
+        options[:selector] = arguments.shift || raise("missing value for --session")
+      when "--dry-run"
+        options[:dry_run] = true
+      when "--keep-existing"
+        options[:close_existing] = false
+      else
+        raise "unknown restore option #{option.inspect}"
+      end
     end
 
     options
@@ -259,18 +275,29 @@ class Rz
     end
   end
 
-  def restore(selector, dry_run:)
+  def restore(selector:, dry_run:, close_existing:)
     snapshot_dir = resolve_snapshot(selector)
     snapshot = JSON.parse(File.read(File.join(snapshot_dir, "state.json")))
     validate_snapshot!(snapshot)
 
     if dry_run
-      print_restore_preview(snapshot, snapshot_dir)
+      print_restore_preview(snapshot, snapshot_dir, close_existing: close_existing)
       return
     end
 
-    running_ids = running_codex_sessions.filter_map { |session| session["session_id"] }.uniq
-    script, duplicate_ids = restore_applescript(snapshot, snapshot_dir, running_ids)
+    ready_file = close_existing ? "/tmp/ghostty-rz-#{Process.pid}-#{SecureRandom.hex(6)}.ready" : nil
+    running_ids = if close_existing
+      []
+    else
+      running_codex_sessions.filter_map { |session| session["session_id"] }.uniq
+    end
+    script, duplicate_ids = restore_applescript(
+      snapshot,
+      snapshot_dir,
+      running_ids,
+      close_existing: close_existing,
+      ready_file: ready_file
+    )
     if ENV["RZ_PRINT_APPLESCRIPT"] == "1"
       puts script
       return
@@ -280,7 +307,7 @@ class Rz
     lines = [
       labeled("SNAPSHOT", snapshot.fetch("id")),
       labeled("LAYOUT", layout_summary(snapshot)),
-      labeled("STATUS", "Restored into new Ghostty window(s)")
+      labeled("STATUS", restore_status(close_existing))
     ]
     duplicate_ids.each do |id|
       lines << labeled("WARNING", "Codex session already running; opened a shell: #{id}")
@@ -1006,13 +1033,14 @@ class Rz
     raise "snapshot has no windows" unless snapshot["windows"].is_a?(Array) && !snapshot["windows"].empty?
   end
 
-  def print_restore_preview(snapshot, snapshot_dir)
+  def print_restore_preview(snapshot, snapshot_dir, close_existing:)
     ids = snapshot.fetch("windows").flat_map { |window| window.fetch("tabs") }.flat_map { |tab| tab.fetch("terminals") }.filter_map { |terminal| terminal["codex_session_id"] }
     lines = [
       labeled("STATUS", "Dry run - Ghostty will not be changed"),
       labeled("SNAPSHOT", snapshot.fetch("id")),
       labeled("SAVED", "#{display_time(snapshot.fetch("saved_at"))}  |  Ghostty #{snapshot.fetch("ghostty_version")}"),
       labeled("LAYOUT", layout_summary(snapshot)),
+      labeled("WINDOWS", close_existing ? "Existing Ghostty windows will close after restore" : "Existing Ghostty windows will remain open"),
       labeled("CODEX", ids.empty? ? "none" : "#{ids.length} session(s)"),
       labeled("LOCATION", snapshot_dir)
     ]
@@ -1038,6 +1066,12 @@ class Rz
   def content_summary(codex_count, scrollback_count, capture_scrollback:)
     scrollback = capture_scrollback ? "#{scrollback_count} scrollback file(s)" : "scrollback skipped"
     "#{codex_count} Codex session(s)  |  #{scrollback}"
+  end
+
+  def restore_status(close_existing)
+    return "Restored; previous Ghostty window(s) scheduled to close" if close_existing
+
+    "Restored into new Ghostty window(s); existing windows kept"
   end
 
   def display_time(value)
@@ -1118,8 +1152,9 @@ class Rz
     end
   end
 
-  def restore_applescript(snapshot, snapshot_dir, running_ids)
+  def restore_applescript(snapshot, snapshot_dir, running_ids, close_existing:, ready_file: nil)
     lines = ['tell application "Ghostty"', "activate"]
+    lines << "set rzExistingWindowIds to id of every window" if close_existing
     duplicates = []
     final_focus = nil
 
@@ -1134,7 +1169,15 @@ class Rz
         next if terminals.empty?
 
         first_config = "rzConfig#{window_number}_#{tab_number}_1"
-        append_configuration(lines, first_config, terminals.first, snapshot_dir, running_ids, duplicates)
+        append_configuration(
+          lines,
+          first_config,
+          terminals.first,
+          snapshot_dir,
+          running_ids,
+          duplicates,
+          ready_file: ready_file
+        )
 
         tab_var = "rzTab#{window_number}_#{tab_number}"
         if tab_offset.zero?
@@ -1151,7 +1194,15 @@ class Rz
           terminal_number = terminal_offset + 2
           config_var = "rzConfig#{window_number}_#{tab_number}_#{terminal_number}"
           terminal_var = "rzTerminal#{window_number}_#{tab_number}_#{terminal_number}"
-          append_configuration(lines, config_var, terminal, snapshot_dir, running_ids, duplicates)
+          append_configuration(
+            lines,
+            config_var,
+            terminal,
+            snapshot_dir,
+            running_ids,
+            duplicates,
+            ready_file: ready_file
+          )
           lines << "set #{terminal_var} to split #{terminal_vars.first} direction right with configuration #{config_var}"
           terminal_vars << terminal_var
         end
@@ -1169,8 +1220,24 @@ class Rz
     end
 
     lines << "focus #{final_focus}" if final_focus
+    append_close_existing_windows(lines, ready_file) if close_existing
     lines << "end tell"
     [lines.join("\n"), duplicates.uniq]
+  end
+
+  def append_close_existing_windows(lines, ready_file)
+    raise "missing restore readiness file" if ready_file.to_s.empty?
+
+    ready_path = Shellwords.escape(ready_file)
+    ready_command = "/usr/bin/touch -- #{ready_path}; /bin/sleep 5; /bin/rm -f -- #{ready_path}"
+    helper_action = "do shell script #{applescript_string(ready_command)}"
+
+    lines << 'set rzCloseScript to "delay 1" & linefeed & "tell application \\"Ghostty\\"" & linefeed'
+    lines << "repeat with rzExistingWindowId in rzExistingWindowIds"
+    lines << 'set rzCloseScript to rzCloseScript & "try" & linefeed & "close (first window whose id is " & (rzExistingWindowId as text) & ")" & linefeed & "end try" & linefeed'
+    lines << "end repeat"
+    lines << "set rzCloseScript to rzCloseScript & \"end tell\" & linefeed & #{applescript_string(helper_action)} & linefeed"
+    lines << 'do shell script "/usr/bin/nohup /usr/bin/osascript -e " & quoted form of rzCloseScript & " >/dev/null 2>&1 &"'
   end
 
   def append_window_geometry(lines, window)
@@ -1202,19 +1269,22 @@ class Rz
     row.values_at("window_x", "window_y", "window_width", "window_height").all?
   end
 
-  def append_configuration(lines, variable, terminal, snapshot_dir, running_ids, duplicates)
+  def append_configuration(lines, variable, terminal, snapshot_dir, running_ids, duplicates, ready_file: nil)
     lines << "set #{variable} to new surface configuration"
     cwd = terminal["working_directory"].to_s
     cwd = @home if cwd.empty?
     lines << "set initial working directory of #{variable} to #{applescript_string(cwd)}"
-    lines << "set command of #{variable} to #{applescript_string(restore_command(terminal, snapshot_dir, running_ids, duplicates, cwd: cwd))}"
+    lines << "set command of #{variable} to #{applescript_string(restore_command(terminal, snapshot_dir, running_ids, duplicates, cwd: cwd, ready_file: ready_file))}"
     lines << "set wait after command of #{variable} to true"
   end
 
-  def restore_command(terminal, snapshot_dir, running_ids, duplicates, cwd: nil)
+  def restore_command(terminal, snapshot_dir, running_ids, duplicates, cwd: nil, ready_file: nil)
     cwd = terminal["working_directory"].to_s if cwd.nil?
     cwd = @home if cwd.empty?
     commands = [working_directory_report_command(cwd)]
+    if ready_file
+      commands << "until [ -e #{Shellwords.escape(ready_file)} ]; do /bin/sleep 0.1; done"
+    end
     scrollback = terminal["scrollback_file"] && File.join(snapshot_dir, terminal["scrollback_file"])
     commands << "/bin/cat -- #{Shellwords.escape(scrollback)}" if scrollback && File.file?(scrollback)
 

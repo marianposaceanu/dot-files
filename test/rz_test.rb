@@ -70,6 +70,25 @@ class RzTest < Minitest::Test
     assert_match(/either --current-window or --window-id/, error.message)
   end
 
+  def test_restore_replaces_existing_windows_by_default
+    options = @rz.send(:parse_restore_arguments, ["--session", "work"])
+
+    assert_equal "work", options.fetch(:selector)
+    refute options.fetch(:dry_run)
+    assert options.fetch(:close_existing)
+  end
+
+  def test_restore_can_keep_existing_windows
+    options = @rz.send(
+      :parse_restore_arguments,
+      ["--keep-existing", "--session", "work", "--dry-run"]
+    )
+
+    assert_equal "work", options.fetch(:selector)
+    assert options.fetch(:dry_run)
+    refute options.fetch(:close_existing)
+  end
+
   def test_watcher_defaults_to_the_current_window
     options = @rz.send(:parse_watch_arguments, ["backup", "--every", "15m"])
 
@@ -394,5 +413,85 @@ class RzTest < Minitest::Test
     assert_includes shell_command, "kitty-shell-cwd://%s%s"
     assert_includes shell_command, terminal.fetch("working_directory")
     assert_includes shell_command, "exec codex resume"
+  end
+
+  def test_restore_applescript_closes_only_windows_present_before_restore
+    snapshot = {
+      "windows" => [
+        {
+          "tabs" => [
+            {
+              "name" => "Work",
+              "selected" => true,
+              "terminals" => [
+                {
+                  "focused" => true,
+                  "working_directory" => "/tmp/project"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
+    script, = @rz.send(
+      :restore_applescript,
+      snapshot,
+      @state_dir,
+      [],
+      close_existing: true,
+      ready_file: "/tmp/ghostty-rz-test.ready"
+    )
+
+    assert_includes script, "set rzExistingWindowIds to id of every window"
+    assert_includes script, "set rzWindow1 to new window"
+    assert_includes script, "/usr/bin/nohup /usr/bin/osascript"
+    assert_includes script, "/usr/bin/touch -- /tmp/ghostty-rz-test.ready"
+    assert_operator script.index("set rzExistingWindowIds"), :<, script.index("set rzWindow1")
+    assert_operator script.index("set rzWindow1"), :<, script.index("set rzCloseScript")
+
+    command = @rz.send(
+      :restore_command,
+      {"working_directory" => "/tmp/project"},
+      @state_dir,
+      [],
+      [],
+      ready_file: "/tmp/ghostty-rz-test.ready"
+    )
+    shell_command = Shellwords.split(command).last
+    assert_includes shell_command, "until [ -e /tmp/ghostty-rz-test.ready ]"
+  end
+
+  def test_restore_applescript_can_leave_existing_windows_open
+    snapshot = {
+      "windows" => [
+        {
+          "tabs" => [
+            {
+              "name" => "Work",
+              "selected" => true,
+              "terminals" => [
+                {
+                  "focused" => true,
+                  "working_directory" => "/tmp/project"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
+    script, = @rz.send(
+      :restore_applescript,
+      snapshot,
+      @state_dir,
+      [],
+      close_existing: false
+    )
+
+    refute_includes script, "rzExistingWindowIds"
+    refute_includes script, "rzCloseScript"
   end
 end
