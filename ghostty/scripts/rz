@@ -1234,7 +1234,7 @@ class Rz
 
     lines << 'set rzCloseScript to "delay 1" & linefeed & "tell application \\"Ghostty\\"" & linefeed'
     lines << "repeat with rzExistingWindowId in rzExistingWindowIds"
-    lines << 'set rzCloseScript to rzCloseScript & "try" & linefeed & "close (first window whose id is " & (rzExistingWindowId as text) & ")" & linefeed & "end try" & linefeed'
+    lines << 'set rzCloseScript to rzCloseScript & "try" & linefeed & "set rzWindowToClose to first window whose id is " & quote & (rzExistingWindowId as text) & quote & linefeed & "set rzTerminalToClose to focused terminal of selected tab of rzWindowToClose" & linefeed & "perform action \\"close_window\\" on rzTerminalToClose" & linefeed & "delay 0.2" & linefeed & "tell application \\"System Events\\"" & linefeed & "tell process \\"Ghostty\\"" & linefeed & "set rzDidConfirmClose to false" & linefeed & "repeat 10 times" & linefeed & "repeat with rzUiWindow in every window" & linefeed & "if exists sheet 1 of rzUiWindow then" & linefeed & "if exists static text \\"Close Window?\\" of sheet 1 of rzUiWindow then" & linefeed & "click button \\"Close\\" of sheet 1 of rzUiWindow" & linefeed & "set rzDidConfirmClose to true" & linefeed & "exit repeat" & linefeed & "end if" & linefeed & "end if" & linefeed & "end repeat" & linefeed & "if rzDidConfirmClose then exit repeat" & linefeed & "delay 0.05" & linefeed & "end repeat" & linefeed & "end tell" & linefeed & "end tell" & linefeed & "end try" & linefeed'
     lines << "end repeat"
     lines << "set rzCloseScript to rzCloseScript & \"end tell\" & linefeed & #{applescript_string(helper_action)} & linefeed"
     lines << 'do shell script "/usr/bin/nohup /usr/bin/osascript -e " & quoted form of rzCloseScript & " >/dev/null 2>&1 &"'

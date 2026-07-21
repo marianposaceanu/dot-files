@@ -447,6 +447,10 @@ class RzTest < Minitest::Test
     assert_includes script, "set rzExistingWindowIds to id of every window"
     assert_includes script, "set rzWindow1 to new window"
     assert_includes script, "/usr/bin/nohup /usr/bin/osascript"
+    assert_includes script, 'quote & (rzExistingWindowId as text) & quote'
+    assert_includes script, 'perform action \\"close_window\\" on rzTerminalToClose'
+    assert_includes script, 'static text \\"Close Window?\\"'
+    assert_includes script, 'click button \\"Close\\" of sheet 1 of rzUiWindow'
     assert_includes script, "/usr/bin/touch -- /tmp/ghostty-rz-test.ready"
     assert_operator script.index("set rzExistingWindowIds"), :<, script.index("set rzWindow1")
     assert_operator script.index("set rzWindow1"), :<, script.index("set rzCloseScript")
