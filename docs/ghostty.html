@@ -109,6 +109,15 @@ rz --session work --dry-run</code></pre>
           with its window and tab position, such as <code>TAB 1.3</code>.
         </p>
         <div class="callout ok">
+          <strong>Existing windows are replaced safely</strong>
+          <code>rz</code> records the existing Ghostty window IDs, creates the full
+          restored workspace, and only then closes the recorded windows with
+          Ghostty's supported <code>close_window</code> action. When Ghostty protects
+          a running process with its <strong>Close Window?</strong> sheet, <code>rz</code>
+          confirms that exact prompt through macOS Accessibility. Restored terminals
+          wait until closure finishes before resuming Codex conversations.
+        </div>
+        <div class="callout ok">
           <strong>Conservative Codex matching</strong>
           <code>rz</code> considers only Codex processes launched under Ghostty. It
           matches an exact working directory first, then uses a unique project
@@ -190,14 +199,15 @@ osascript ~/dot-files/ghostty/scripts/workspace-inventory.applescript</code></pr
           <li>Additional surfaces therefore restore as right-hand splits.</li>
           <li>Scrollback replays as plain text, not as a running process.</li>
           <li>Codex resumes from its conversation ID; arbitrary programs cannot be reconstructed.</li>
-          <li>Window geometry needs macOS Accessibility permission for the shell that runs <code>rz</code>.</li>
+          <li>Window geometry and automatic close confirmation need macOS Accessibility permission for the shell that runs <code>rz</code>.</li>
           <li>A window-scoped snapshot restores that saved window into one new Ghostty window.</li>
         </ul>
         <div class="callout ok">
           <strong>Replace only after success</strong>
           Every restore first creates the complete new workspace. It then closes only
           the Ghostty windows that existed before restoration, leaving the newly restored
-          windows intact. Use <code>--keep-existing</code> for the previous additive behavior.
+          windows intact. Restored commands wait until the replacement boundary is complete.
+          Use <code>--keep-existing</code> for the previous additive behavior.
         </div>
       </section>
 

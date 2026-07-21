@@ -42,8 +42,10 @@ Contains my dot-files for easy usage across different OSs.
 
 `rz` saves and restores Ghostty windows, their macOS position and size, tabs,
 terminal surfaces, focus, working directories, Codex conversation IDs, and
-non-empty scrollback. Restores always create new Ghostty windows, so existing tabs
-are left alone. Window geometry capture requires macOS Accessibility permission
+non-empty scrollback. A restore builds the new workspace first, then closes only
+the Ghostty windows that existed when `rz` started. Use `--keep-existing` for an
+additive restore that leaves those windows open. Window geometry and automatic
+handling of Ghostty's close confirmation require macOS Accessibility permission
 for the shell running `rz`.
 
 ```sh
@@ -60,9 +62,18 @@ rz --clean 2.weeks             # friendly long-form durations also work
 rz                             # restore the newest snapshot overall
 rz --session work              # restore the newest snapshot named work
 rz --session 20260719-230140   # restore a specific timestamp
+rz --keep-existing             # restore without closing existing windows
 rz --list                      # list snapshots
 rz --session work --dry-run    # preview without changing Ghostty
 ```
+
+Replacement is ordered deliberately. `rz` records the existing Ghostty window
+IDs, creates every restored window, and then invokes Ghostty's supported
+`close_window` action only for the recorded IDs. If an old window still contains
+a running process, `rz` confirms Ghostty's exact **Close Window?** sheet through
+Accessibility. Restored terminals wait behind a short readiness gate until the
+old windows have closed, so their Codex conversations do not get mistaken for
+duplicates and downgraded to plain shells.
 
 Snapshots live in `~/.local/state/ghostty-rz/snapshots`. Reload the shell after
 updating the dotfiles (`source ~/.zshrc` or `source ~/.bashrc`) before using `rz`.
