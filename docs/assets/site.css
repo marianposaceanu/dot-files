@@ -2202,23 +2202,27 @@ sup a {
     font-size: 1.72rem;
   }
 
-  .site-article .toc {
+  .site-article .toc,
+  .site-home .home-sidebar {
     overflow: visible;
   }
 
-  .site-article .toc ol {
+  .site-article .toc ol,
+  .site-home .home-sidebar ol {
     display: block;
     max-width: none;
     overflow: visible;
     padding-bottom: 0;
   }
 
-  .site-article .toc li {
+  .site-article .toc li,
+  .site-home .home-sidebar li {
     max-width: none;
     break-inside: avoid;
   }
 
-  .site-article .toc a {
+  .site-article .toc a,
+  .site-home .home-sidebar a {
     padding: 0.32rem 0;
     border: 0;
     background: transparent;
@@ -2228,7 +2232,10 @@ sup a {
 
   .site-article .toc a:hover,
   .site-article .toc a:focus,
-  .site-article .toc a.is-active {
+  .site-article .toc a.is-active,
+  .site-home .home-sidebar a:hover,
+  .site-home .home-sidebar a:focus,
+  .site-home .home-sidebar a.is-active {
     color: var(--color-link);
   }
 
