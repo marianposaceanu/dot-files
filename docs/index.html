@@ -11,10 +11,11 @@
   <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="favicon.ico" sizes="any">
-  <link rel="stylesheet" href="assets/site.css?v=adcd0fb71c59">
+  <link rel="stylesheet" href="assets/site.css?v=fd8241be3cbd">
   <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
 </head>
-<body>
+<body class="site-home" id="top">
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-header">
     <nav class="main-navigation" aria-label="Main navigation">
       <a class="nav-home active" href="index.html" aria-current="page">dot-files</a>
@@ -22,7 +23,7 @@
     </nav>
   </header>
 
-  <main class="page home-page" id="top">
+  <main class="page home-page" id="main-content">
     <header class="hero" aria-labelledby="page-title">
       <p class="eyebrow">macOS setup · terminal workflow · measured performance</p>
       <h1 id="page-title">dot-files</h1>
@@ -37,8 +38,18 @@
       </ul>
     </header>
 
+    <nav class="toc home-sidebar" aria-label="Homepage contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#articles">Articles</a></li>
+        <li><a href="#configuration-source">Configuration source</a></li>
+        <li><a href="#start-here">Start with inspection</a></li>
+      </ol>
+    </nav>
+
     <article class="article home-index" aria-label="Dotfiles articles">
-      <section>
+      <section id="articles" aria-labelledby="articles-title">
+        <h2 id="articles-title">Articles</h2>
         <ol class="source-list topic-list">
           <li>
             <div class="topic-heading">

@@ -213,7 +213,8 @@ def page_for(path, css_hash, dotfiles_hash)
       <link rel="stylesheet" href="assets/site.css?v=#{css_hash}">
       <link rel="stylesheet" href="assets/dotfiles.css?v=#{dotfiles_hash}">
     </head>
-    <body>
+    <body class="site-article" id="top">
+      <a class="skip-link" href="#main-content">Skip to content</a>
       <header class="site-header">
         <nav class="main-navigation" aria-label="Main navigation">
           <a class="nav-home" href="index.html">dot-files</a>
@@ -221,7 +222,7 @@ def page_for(path, css_hash, dotfiles_hash)
         </nav>
       </header>
 
-      <main class="page" id="top">
+      <main class="page" id="main-content">
         <header class="hero" aria-labelledby="page-title">
           <p class="eyebrow">Vim field guide · dot-files</p>
           <h1 id="page-title">#{CGI.escapeHTML(title)}</h1>
