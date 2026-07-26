@@ -66,3 +66,6 @@ if command -v bat >/dev/null 2>&1; then
   export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :300 {}'"
   export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --bind 'ctrl-/:toggle-preview'"
 fi
+
+# Load RVM after every PATH change so interactive shells use the selected Ruby.
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
