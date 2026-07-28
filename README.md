@@ -225,11 +225,24 @@ brew unpin vim && brew upgrade vim && ./bootstrap/compile_vim_native.sh
 
 ### Symbolic links
 
+#### Ghostty config
+
+    ./bootstrap/link_ghostty_config.sh
+
+The dedicated Ghostty installer replaces
+`$HOME/Library/Application Support/com.mitchellh.ghostty/config` with a symlink
+to `ghostty/config` in this repository. If the destination is a regular file,
+directory, broken symlink, or a symlink to another target, the script first moves
+it to a timestamped `config.backup.<timestamp>` path. Running the script again
+when the correct link is already installed is safe and makes no changes.
+
 #### *nix symbolic links
 
     ./bootstrap/link_configs.sh
 
-The script creates symlinks for the repo-managed configs and backs up any existing local files/directories first using a `.backup.<timestamp>` suffix.
+The all-config installer includes Ghostty and creates symlinks for every
+repo-managed config. It backs up existing local files/directories first using a
+`.backup.<timestamp>` suffix.
 
 It links:
 

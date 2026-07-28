@@ -51,15 +51,20 @@ notify-on-command-finish-after = 30s
 window-height = 50
 window-width = 180
 
+# Start brand-new windows at the current position without restoring tabs or sessions.
+window-position-x = 103
+window-position-y = 56
+window-save-state = never
+
 # Synchronize Metal rendering with the display to avoid tearing and excess work.
 window-vsync = true
 
 # Persist native windows, tabs, splits, dimensions, and working directories on quit.
 # Running processes still require `rz`, Codex resume, or an external multiplexer.
-window-save-state = always
+# window-save-state = always
 
 # Preserve workspace ordering by appending new tabs instead of inserting nearby.
-window-new-tab-position = end
+# window-new-tab-position = end
 
 # Keep pixel-precise sizing so `rz` can restore the exact saved dimensions.
 window-step-resize = false
