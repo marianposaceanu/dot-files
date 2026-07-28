@@ -133,11 +133,11 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 - via script: `./bootstrap/install_brew_deps.sh`
 - via Brewfile: `brew bundle --file Brewfile`
-- current formulae: `fzf`, `ripgrep`, `bat`, `universal-ctags`, `tmux`
+- current formulae: `fzf`, `ripgrep`, `bat`, `openjdk`, `universal-ctags`, `tmux`
 
 #### bat
 
-`cat` is aliased to `bat` in `.zshrc`. `bat` uses the TwoDark theme (complements ayu-dark) and shows line numbers and git change indicators. Man pages are also rendered through `bat` via `MANPAGER`. FZF file previews (`Ctrl-T`) use `bat` automatically.
+`cat` is aliased to `bat` in `.zshrc`. `bat` uses the TwoDark theme (complements ayu-dark) and shows line numbers and git change indicators. Man pages are also rendered through `bat` via `MANPAGER`. FZF file previews (`Ctrl-T`) use `bat` automatically. Inside FZF, use `Ctrl-J` / `Ctrl-K` to move one line, `Ctrl-D` / `Ctrl-U` to move half a page, and `Ctrl-/` to toggle the preview.
 
 #### config and benchmark checks
 
@@ -251,12 +251,19 @@ It links:
 - `~/.gitconfig`
 - `~/.gitignore_global`
 - `~/.tmux.conf`
+- `~/.zprofile`
 - `~/.zshrc`
+- `~/.zlogin`
 - `~/.bashrc`
 - `~/.screenrc`
 - `~/.alacritty.yml`
 - `~/.config/bat`
 - `$HOME/Library/Application Support/com.mitchellh.ghostty/config`
+
+For Zsh, `.zprofile` initializes Homebrew in login shells, `.zshrc` configures
+the interactive environment and loads RVM after its final PATH changes, and
+`.zlogin` supplies the guarded RVM initialization needed by non-interactive
+login shells.
 
 #### macOS keyboard key repeat
 

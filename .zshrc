@@ -1,71 +1,81 @@
-# Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+# ==============================================================================
+# CORE ENVIRONMENT
+# ==============================================================================
 
-ZSH_THEME="robbyrussell"
-
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins
-plugins=(
-  git
-)
-
-if [ -f "$ZSH/oh-my-zsh.sh" ]; then
-  source "$ZSH/oh-my-zsh.sh"
-else
-  echo "[zshrc] Warning: oh-my-zsh not found at $ZSH" >&2
-fi
-
-# Locale
+# Use UTF-8 by default while leaving individual locale categories overridable.
 export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
 
-# Editor
-export EDITOR="vim"
-export VISUAL="vim"
+# Use Vim consistently for terminal programs that open an editor.
+export EDITOR=vim
+export VISUAL=vim
 
-# No Homebrew analytics
+# Keep Homebrew commands quiet about analytics.
 export HOMEBREW_NO_ANALYTICS=1
 
-# JRuby dev mode (only when installed)
-command -v jruby >/dev/null 2>&1 && export JRUBY_OPTS="--dev"
+# Homebrew OpenJDK is keg-only, so expose its JDK home explicitly.
+export JAVA_HOME=/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home
 
-# Workaround for Ruby fork-safety issue on macOS (needed for Puma/Unicorn)
-# See: https://github.com/puma/puma/issues/1421
-export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+# Add missing tool directories without reordering RVM's active Ruby on reload.
+# Entries are listed from lowest to highest priority because each is prepended.
+typeset -U path PATH
+for _path_candidate in \
+  "$JAVA_HOME/bin" \
+  /opt/homebrew/opt/curl/bin \
+  /opt/homebrew/bin \
+  "$HOME/bin"; do
+  if [[ -d "$_path_candidate" && ":$PATH:" != *":$_path_candidate:"* ]]; then
+    path=("$_path_candidate" "${path[@]}")
+  fi
+done
+unset _path_candidate
 
-# Java — prefer macOS resolver, fall back to known Homebrew ARM path
-if command -v /usr/libexec/java_home >/dev/null 2>&1; then
-  _java_home_candidate="$(/usr/libexec/java_home 2>/dev/null)"
-  [ -n "$_java_home_candidate" ] && export JAVA_HOME="$_java_home_candidate"
-  unset _java_home_candidate
-elif [ -d "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home" ]; then
-  export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
+# ==============================================================================
+# INTERACTIVE SHELL
+# ==============================================================================
+
+# Load Oh My Zsh after the core environment so plugins see the final tool paths.
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME=robbyrussell
+plugins=(git)
+
+if [[ -f "$ZSH/oh-my-zsh.sh" ]]; then
+  source "$ZSH/oh-my-zsh.sh"
+else
+  print -u2 -- "[zshrc] Warning: oh-my-zsh not found at $ZSH"
 fi
 
-# PATH — set once in priority order; typeset -U removes duplicates on nested shells
-export PATH="$HOME/bin:/opt/homebrew/bin:/opt/homebrew/opt/curl/bin${JAVA_HOME:+:$JAVA_HOME/bin}:$PATH"
-typeset -U PATH
-
-# Save and restore named Ghostty workspaces.
+# Save and restore named Ghostty workspaces through the repository-managed tool.
 unalias rz 2>/dev/null
 rz() {
   "$HOME/dot-files/ghostty/scripts/rz" "$@"
 }
 
-# bat — cat replacement with syntax highlighting
-if command -v bat >/dev/null 2>&1; then
-  alias cat='bat'
-  # Render man pages through bat
+# Use bat as the interactive cat replacement and man-page renderer.
+if (( $+commands[bat] )); then
+  alias cat=bat
   export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 fi
 
-# FZF
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# FZF — use bat for file previews when available
-if command -v bat >/dev/null 2>&1; then
-  export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :300 {}'"
-  export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --bind 'ctrl-/:toggle-preview'"
+# Load FZF completion and Ctrl-T directly from Homebrew.
+if [[ -r /opt/homebrew/opt/fzf/shell/completion.zsh &&
+      -r /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
+  # Apple Silicon Homebrew.
+  source /opt/homebrew/opt/fzf/shell/completion.zsh
+  source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+elif [[ -r "$HOME/.fzf.zsh" ]]; then
+  # Fallback for installations created by FZF's installer.
+  source "$HOME/.fzf.zsh"
 fi
 
-# Load RVM after every PATH change so interactive shells use the selected Ruby.
+# Use bat for Ctrl-T previews when available.
+if (( $+commands[bat] )); then
+  export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :300 {}'"
+fi
+
+# FZF provides Ctrl-J/Ctrl-K for line movement by default. Add Vim-style
+# half-page movement and retain the preview toggle.
+export FZF_DEFAULT_OPTS='--bind=ctrl-d:half-page-down,ctrl-u:half-page-up,ctrl-/:toggle-preview'
+
+# Load RVM last because it intentionally selects the active Ruby by modifying
+# PATH. Login shells that skip ~/.zshrc receive the same setup from ~/.zlogin.
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"

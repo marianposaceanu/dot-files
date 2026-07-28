@@ -1,5 +1,6 @@
 brew "fzf"
 brew "ripgrep"
 brew "bat"
+brew "openjdk"
 brew "universal-ctags"
 brew "tmux"
