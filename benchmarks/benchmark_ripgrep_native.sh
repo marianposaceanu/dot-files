@@ -84,6 +84,9 @@ cases = [
     ("regex, one thread", ["--threads", "1", "--count", r"error_code=[A-Z]{3}[0-9]{4} path=/api/v[0-9]+/[[:alnum:]_-]+", large]),
     ("Unicode regex, one thread", ["--threads", "1", "--count", r"(?i)résumé\s+naïve", large]),
     ("PCRE2 lookaround, one thread", ["--threads", "1", "--pcre2", "--count", r"(?<=request_id=)[a-f0-9]{16}(?=;)", large]),
+    ("literal, two threads", ["--threads", "2", "--count", "NEEDLE_native_rg_7d3f91a2", large]),
+    ("literal, four threads", ["--threads", "4", "--count", "NEEDLE_native_rg_7d3f91a2", large]),
+    ("literal, eight threads", ["--threads", "8", "--count", "NEEDLE_native_rg_7d3f91a2", large]),
     ("literal, default threads", ["--count", "NEEDLE_native_rg_7d3f91a2", large]),
     ("5,000-file traversal", ["--files", small]),
 ]

@@ -199,6 +199,43 @@ These results do not demonstrate a meaningful speed or power improvement. The
 native workflow is retained for repeatable testing, not as a general claim that
 rebuilding ripgrep is better than using its Homebrew bottle.
 
+For an experimental profile-guided build, add `--pgo`:
+
+```sh
+./bootstrap/compile_ripgrep_native.sh --pgo
+```
+
+This requires Homebrew LLVM with the exact LLVM version used by Homebrew Rust;
+the script refuses a mismatch. It builds an instrumented binary, trains it on
+literal, regex, Unicode, PCRE2, traversal, and 1/2/4/8/default-thread searches,
+merges the profiles, then performs a clean `release-lto` build with
+`profile-use`. Training data and instrumented binaries remain temporary.
+
+On the same M1 Pro and corpus, 21 interleaved repetitions compared the PGO
+build with the official bottle:
+
+| Workload | PGO | Bottle | PGO change |
+| --- | ---: | ---: | ---: |
+| Literal, one thread | 27.20 ms | 27.52 ms | -1.1% |
+| Regex, one thread | 27.96 ms | 28.35 ms | -1.4% |
+| Unicode regex, one thread | 83.79 ms | 93.67 ms | -10.5% |
+| PCRE2 lookaround, one thread | 496.26 ms | 503.33 ms | -1.4% |
+| Literal, two threads | 18.69 ms | 18.91 ms | -1.2% |
+| Literal, four threads | 14.37 ms | 14.75 ms | -2.5% |
+| Literal, eight threads | 11.79 ms | 12.08 ms | -2.3% |
+| Literal, default threads | 11.71 ms | 11.90 ms | -1.6% |
+| 5,000-file traversal | 12.02 ms | 11.56 ms | +3.9% |
+
+PGO materially improved the trained Unicode-regex workload. Most other gains
+were only 1–3%, and traversal was slower in this run, so PGO remains
+workload-specific rather than a universal improvement.
+
+Threading had a larger effect on the literal workload than PGO. Relative to
+the PGO build's one-thread median, two threads were 1.46x faster, four were
+1.89x, eight were 2.31x, and automatic threading was 2.32x. Leave ripgrep's
+thread count at its automatic default unless a representative benchmark shows
+that a fixed count is better.
+
 #### config and benchmark checks
 
 - run environment doctor: `./bootstrap/doctor.sh`

@@ -9,8 +9,18 @@
 # Upgrade path:
 #   brew unpin ripgrep && brew upgrade ripgrep \
 #     && ./bootstrap/compile_ripgrep_native.sh
+#
+# Optional profile-guided build:
+#   ./bootstrap/compile_ripgrep_native.sh --pgo
 
 set -euo pipefail
+
+USE_PGO=0
+case "${1:-}" in
+  "") ;;
+  --pgo) USE_PGO=1 ;;
+  *) printf 'Usage: %s [--pgo]\n' "$0" >&2; exit 2 ;;
+esac
 
 fail() {
   printf 'Error: %s\n' "$1" >&2
@@ -84,6 +94,28 @@ verify_ripgrep() {
   rm -rf "$test_dir"
 }
 
+cargo_build() {
+  local target_dir="$1"
+  local rustflags="$2"
+
+  env -i \
+    HOME="$HOME" \
+    TMPDIR="${TMPDIR:-/tmp}" \
+    PATH="$BUILD_PATH" \
+    SDKROOT="$SDKROOT" \
+    CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}" \
+    PKG_CONFIG="$PKGCONF_PREFIX/bin/pkg-config" \
+    PKG_CONFIG_PATH="$PCRE2_PREFIX/lib/pkgconfig" \
+    RUSTFLAGS="$rustflags" \
+    "$CARGO" build \
+      --manifest-path "$BUILD_DIR/Cargo.toml" \
+      --target-dir "$target_dir" \
+      --locked \
+      --profile release-lto \
+      --features pcre2 \
+      --target aarch64-apple-darwin
+}
+
 command -v brew >/dev/null 2>&1 || fail "Homebrew is not installed."
 [ "$(uname -m)" = "arm64" ] \
   || fail "This script only supports native Apple Silicon."
@@ -113,6 +145,10 @@ for dependency in rust pcre2 pkgconf; do
   brew list --versions "$dependency" >/dev/null 2>&1 \
     || fail "Homebrew dependency '$dependency' is not installed."
 done
+if [ "$USE_PGO" -eq 1 ]; then
+  brew list --versions llvm >/dev/null 2>&1 \
+    || fail "PGO requires Homebrew llvm for a matching llvm-profdata."
+fi
 
 RUST_PREFIX="$(brew --prefix rust)"
 PCRE2_PREFIX="$(brew --prefix pcre2)"
@@ -136,6 +172,17 @@ printf '%s\n' "$RESOLVED_CPU" | grep -Eq '^apple-m[0-9]+$' \
 $RUSTC --print cfg -C "target-cpu=$RESOLVED_CPU" >/dev/null \
   || fail "rustc does not accept the resolved CPU target: $RESOLVED_CPU"
 info "$CPU_BRAND validated as Rust target $RESOLVED_CPU"
+
+if [ "$USE_PGO" -eq 1 ]; then
+  LLVM_PROFDATA="$(brew --prefix llvm)/bin/llvm-profdata"
+  [ -x "$LLVM_PROFDATA" ] || fail "llvm-profdata is missing: $LLVM_PROFDATA"
+  RUST_LLVM_VERSION="$($RUSTC -vV | sed -n 's/^LLVM version: //p')"
+  PROFDATA_LLVM_VERSION="$($LLVM_PROFDATA --version \
+    | sed -nE 's/.*LLVM version ([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -1)"
+  [ "$PROFDATA_LLVM_VERSION" = "$RUST_LLVM_VERSION" ] \
+    || fail "LLVM profile version mismatch: rustc uses $RUST_LLVM_VERSION, llvm-profdata is $PROFDATA_LLVM_VERSION."
+  info "PGO tooling matches rustc LLVM $RUST_LLVM_VERSION"
+fi
 
 SOURCE_URL="$(sed -n 's/^[[:space:]]*url "\([^"]*\)".*/\1/p' "$FORMULA" | head -1)"
 SOURCE_SHA256="$(sed -n 's/^[[:space:]]*sha256 "\([0-9a-fA-F]*\)".*/\1/p' "$FORMULA" | head -1)"
@@ -248,25 +295,44 @@ done
 
 BUILD_PATH="$RUST_PREFIX/bin:$PKGCONF_PREFIX/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
-info "Building ripgrep with release-lto and -C target-cpu=native"
-env -i \
-  HOME="$HOME" \
-  TMPDIR="${TMPDIR:-/tmp}" \
-  PATH="$BUILD_PATH" \
-  SDKROOT="$SDKROOT" \
-  CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}" \
-  PKG_CONFIG="$PKGCONF_PREFIX/bin/pkg-config" \
-  PKG_CONFIG_PATH="$PCRE2_PREFIX/lib/pkgconfig" \
-  RUSTFLAGS="-C target-cpu=native" \
-  "$CARGO" build \
-    --manifest-path "$BUILD_DIR/Cargo.toml" \
-    --target-dir "$BUILD_DIR/target" \
-    --locked \
-    --profile release-lto \
-    --features pcre2 \
-    --target aarch64-apple-darwin
+if [ "$USE_PGO" -eq 1 ]; then
+  PROFILE_RAW="$BUILD_DIR/pgo/raw"
+  PROFILE_DATA="$BUILD_DIR/pgo/merged.profdata"
+  INSTRUMENTED_TARGET_DIR="$BUILD_DIR/target-pgo-generate"
+  FINAL_TARGET_DIR="$BUILD_DIR/target-pgo-use"
+  mkdir -p "$PROFILE_RAW"
 
-CANDIDATE="$BUILD_DIR/target/aarch64-apple-darwin/release-lto/rg"
+  info "Building instrumented native ripgrep for PGO training"
+  cargo_build "$INSTRUMENTED_TARGET_DIR" \
+    "-C target-cpu=native -C profile-generate=$PROFILE_RAW"
+  INSTRUMENTED="$INSTRUMENTED_TARGET_DIR/aarch64-apple-darwin/release-lto/rg"
+  export LLVM_PROFILE_FILE="$PROFILE_RAW/rg-%m-%p.profraw"
+  verify_ripgrep "$INSTRUMENTED"
+
+  info "Training PGO with single- and multi-thread search workloads"
+  RG_BENCH_CORPUS="$BUILD_DIR/pgo-training-corpus" \
+    RG_BENCH_REPETITIONS=3 \
+    "$(cd "$(dirname "$0")/.." && pwd)/benchmarks/benchmark_ripgrep_native.sh" \
+      "$INSTRUMENTED" pgo-training >/dev/null
+  unset LLVM_PROFILE_FILE
+  find "$PROFILE_RAW" -type f -name '*.profraw' -print -quit | grep -q . \
+    || fail "PGO training produced no raw profiles."
+
+  info "Merging PGO profiles"
+  "$LLVM_PROFDATA" merge -o "$PROFILE_DATA" "$PROFILE_RAW"/*.profraw
+  [ -s "$PROFILE_DATA" ] || fail "Merged PGO profile is empty."
+
+  info "Building final native ripgrep with the merged PGO profile"
+  cargo_build "$FINAL_TARGET_DIR" \
+    "-C target-cpu=native -C profile-use=$PROFILE_DATA"
+  CANDIDATE="$FINAL_TARGET_DIR/aarch64-apple-darwin/release-lto/rg"
+else
+  FINAL_TARGET_DIR="$BUILD_DIR/target"
+  info "Building ripgrep with release-lto and -C target-cpu=native"
+  cargo_build "$FINAL_TARGET_DIR" "-C target-cpu=native"
+  CANDIDATE="$FINAL_TARGET_DIR/aarch64-apple-darwin/release-lto/rg"
+fi
+
 info "Verifying candidate before touching the Cellar"
 verify_ripgrep "$CANDIDATE"
 
@@ -306,6 +372,14 @@ trap - INT TERM
 info "Done"
 "$TARGET" --version
 printf '\nNative target: %s\n' "$RESOLVED_CPU"
-printf 'Rust profile: release-lto; RUSTFLAGS: -C target-cpu=native\n'
+if [ "$USE_PGO" -eq 1 ]; then
+  printf 'Rust profile: release-lto + PGO; target-cpu=native\n'
+else
+  printf 'Rust profile: release-lto; RUSTFLAGS: -C target-cpu=native\n'
+fi
 printf 'Upgrade later with:\n'
-printf '  brew unpin ripgrep && brew upgrade ripgrep && ./bootstrap/compile_ripgrep_native.sh\n'
+if [ "$USE_PGO" -eq 1 ]; then
+  printf '  brew unpin ripgrep && brew upgrade ripgrep && ./bootstrap/compile_ripgrep_native.sh --pgo\n'
+else
+  printf '  brew unpin ripgrep && brew upgrade ripgrep && ./bootstrap/compile_ripgrep_native.sh\n'
+fi
