@@ -144,6 +144,61 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 `ack` is aliased to `rg` in interactive Zsh and Bash sessions. Ripgrep is the
 only search formula required; the Perl-based `ack` package is not installed.
 
+#### ripgrep — native Apple Silicon build (optional)
+
+Recompiles the active Homebrew ripgrep version with its upstream `release-lto`
+profile plus Rust's `-C target-cpu=native`. The script checksum-verifies the
+formula's exact source, checks that Rust resolves the detected Apple generation
+to the matching target (`apple-m1`, `apple-m4`, and so on), preserves PCRE2/JIT
+and Homebrew dynamic linkage, runs literal, file-type, and PCRE2 smoke tests,
+atomically replaces the binary with automatic rollback, then pins `ripgrep`.
+
+```sh
+./bootstrap/compile_ripgrep_native.sh
+```
+
+To upgrade and rebuild later:
+
+```sh
+brew unpin ripgrep && brew upgrade ripgrep \
+  && ./bootstrap/compile_ripgrep_native.sh
+```
+
+Restore the standard Homebrew bottle with:
+
+```sh
+brew unpin ripgrep && brew reinstall ripgrep
+```
+
+The Homebrew receipt continues to describe the bottle after a custom build, so
+use the script output and a benchmark rather than the receipt to identify the
+native build.
+
+The reproducible benchmark creates a deterministic 174 MiB corpus outside the
+repository and reports medians after two warmups:
+
+```sh
+./benchmarks/benchmark_ripgrep_native.sh "$(command -v rg)" native
+```
+
+On the M1 Pro, 21 interleaved warm-cache repetitions of ripgrep 15.2.0 showed
+that the native build was effectively neutral versus the official ARM64 Tahoe
+bottle. Negative percentages are faster; differences around 1% are noise at
+this duration.
+
+| Workload | Native | Bottle | Native change |
+| --- | ---: | ---: | ---: |
+| Literal, one thread | 27.56 ms | 27.30 ms | +1.0% |
+| Regex, one thread | 28.27 ms | 28.13 ms | +0.5% |
+| Unicode regex, one thread | 91.40 ms | 93.28 ms | -2.0% |
+| PCRE2 lookaround, one thread | 502.04 ms | 502.86 ms | -0.2% |
+| Literal, default threads | 11.76 ms | 11.85 ms | -0.8% |
+| 5,000-file traversal | 11.39 ms | 11.50 ms | -0.9% |
+
+These results do not demonstrate a meaningful speed or power improvement. The
+native workflow is retained for repeatable testing, not as a general claim that
+rebuilding ripgrep is better than using its Homebrew bottle.
+
 #### config and benchmark checks
 
 - run environment doctor: `./bootstrap/doctor.sh`
