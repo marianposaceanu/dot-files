@@ -9,8 +9,10 @@ require "pathname"
 ROOT = Pathname.new(__dir__).join("..").expand_path
 SOURCE_DIR = ROOT.join("tutorials")
 OUTPUT_DIR = ROOT.join("docs")
-PUBLISHED_DATE = "2026-07-20"
-VISIBLE_DATE = "20th July 2026"
+DEFAULT_PUBLISHED_DATE = "2026-07-20"
+DEFAULT_VISIBLE_DATE = "20th July 2026"
+DEFAULT_CATEGORY = "Vim tutorial"
+DEFAULT_EYEBROW = "Vim field guide · dot-files"
 
 def slug(text)
   text.downcase
@@ -38,7 +40,8 @@ def inline(text)
   html = CGI.escapeHTML(tokenized)
     .gsub(/\*\*(.+?)\*\*/, '<strong>\1</strong>')
 
-  tokens.each_with_index do |value, index|
+  tokens.each_index.reverse_each do |index|
+    value = tokens[index]
     html = html.gsub("INLINECODE#{index}TOKEN", value)
       .gsub("INLINELINK#{index}TOKEN", value)
   end
@@ -179,6 +182,19 @@ end
 
 def page_for(path, css_hash, dotfiles_hash)
   lines = path.read(encoding: "UTF-8").lines(chomp: true)
+  metadata = {}
+  if lines.first == "---"
+    closing_index = lines[1..]&.index("---")
+    abort "Unclosed front matter in #{path}" unless closing_index
+
+    lines[1..closing_index].each do |line|
+      key, value = line.split(":", 2).map(&:strip)
+      abort "Invalid front matter in #{path}: #{line}" if key.empty? || value.to_s.empty?
+      metadata[key] = value
+    end
+    lines = lines[(closing_index + 2)..] || []
+  end
+
   title = lines.first.to_s.delete_prefix("# ").strip
   abort "Missing H1 in #{path}" if title.empty?
 
@@ -195,6 +211,10 @@ def page_for(path, css_hash, dotfiles_hash)
     line.strip.delete_prefix("## ") if line.strip.start_with?("## ")
   end
   filename = "#{slug(path.basename(".md").to_s)}.html"
+  published_date = metadata.fetch("published", DEFAULT_PUBLISHED_DATE)
+  visible_date = metadata.fetch("visible-date", DEFAULT_VISIBLE_DATE)
+  category = metadata.fetch("category", DEFAULT_CATEGORY)
+  eyebrow = metadata.fetch("eyebrow", DEFAULT_EYEBROW)
 
   <<~HTML
     <!doctype html>
@@ -224,12 +244,12 @@ def page_for(path, css_hash, dotfiles_hash)
 
       <main class="page" id="main-content">
         <header class="hero" aria-labelledby="page-title">
-          <p class="eyebrow">Vim field guide · dot-files</p>
+          <p class="eyebrow">#{CGI.escapeHTML(eyebrow)}</p>
           <h1 id="page-title">#{CGI.escapeHTML(title)}</h1>
           <p class="subtitle">#{CGI.escapeHTML(description)}</p>
           <ul class="meta" aria-label="Article metadata">
-            <li>Vim tutorial</li>
-            <li><time class="article-date" datetime="#{PUBLISHED_DATE}">#{VISIBLE_DATE}</time></li>
+            <li>#{CGI.escapeHTML(category)}</li>
+            <li><time class="article-date" datetime="#{CGI.escapeHTML(published_date)}">#{CGI.escapeHTML(visible_date)}</time></li>
           </ul>
         </header>
 

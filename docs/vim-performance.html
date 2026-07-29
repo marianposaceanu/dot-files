@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Making Vim faster: less startup work and a native Apple Silicon build - dot-files</title>
+  <meta name="description" content="Two independent optimizations: reduce plugin work on every launch, then rebuild Vim for the local Apple CPU. The measurements matter more than either technique.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/vim-performance.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=ef91d1eaf28f">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=ac477f32660b">
+</head>
+<body class="site-article" id="top">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="main-content">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Vim performance · measured and reproducible</p>
+      <h1 id="page-title">Making Vim faster: less startup work and a native Apple Silicon build</h1>
+      <p class="subtitle">Two independent optimizations: reduce plugin work on every launch, then rebuild Vim for the local Apple CPU. The measurements matter more than either technique.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Measured performance</li>
+        <li><time class="article-date" datetime="2026-07-29">29th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#start-with-a-repeatable-measurement">Start with a repeatable measurement</a></li>
+        <li><a href="#remove-work-before-optimizing-code">Remove work before optimizing code</a></li>
+        <li><a href="#lazy-load-at-the-command-boundary">Lazy-load at the command boundary</a></li>
+        <li><a href="#add-guardrails-for-expensive-files">Add guardrails for expensive files</a></li>
+        <li><a href="#rebuild-vim-only-after-reducing-startup-work">Rebuild Vim only after reducing startup work</a></li>
+        <li><a href="#what-the-native-build-improved">What the native build improved</a></li>
+        <li><a href="#reproduce-upgrade-or-restore">Reproduce, upgrade, or restore</a></li>
+        <li><a href="#the-order-of-operations">The order of operations</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="start-with-a-repeatable-measurement">
+        <h2>Start with a repeatable measurement</h2>
+        <p>Vim already exposes startup timing through <code>--startuptime</code>. The repository wraps it in two scripts: one shows the slowest sourced files and per-plugin totals, while the other runs the same launch repeatedly and reports medians.</p>
+        <pre><code class="language-sh">./benchmarks/profile_vim_plugins.sh
+RUNS=7 ./benchmarks/profile_vim_plugins_median.sh</code></pre>
+        <p>The median script records two different values:</p>
+        <ul>
+          <li><code>plugin_start_total_ms</code> is the accumulated sourcing time under <code>.vim/pack/bundles/start</code>.</li>
+          <li><code>total_startup_ms</code> is the elapsed time at the final line of Vim&#39;s startup log.</li>
+        </ul>
+        <p>That distinction prevents a common benchmarking mistake. A 10x reduction in plugin sourcing does not mean the complete editor launches 10x faster: Vim itself, the terminal, dynamic libraries, file-system caches, and the rest of <code>.vimrc</code> still contribute to total startup.</p>
+        <p>Use the same command, Vim binary, configuration, launch mode, and number of repetitions for every comparison. Change one thing at a time and keep the result only when the median moves by more than normal run-to-run noise.</p>
+      </section>
+      <section id="remove-work-before-optimizing-code">
+        <h2>Remove work before optimizing code</h2>
+        <p>The largest gains did not come from compiler flags. They came from loading less code during startup.</p>
+        <pre><code class="language-text">+---------------------------------------------------------------------------------------+
+| VIM STARTUP IMPROVEMENT MAP (plugin_start_total ms; lower is better)                  |
++---------------------------------------------------------------------------------------+
+| with_polyglot                      36.079 ms  (10.85x vs best) [####################] |
+| without_polyglot                   22.105 ms   (6.65x vs best) [############........] |
+| after_lazyload_opt_plugins         10.170 ms   (3.06x vs best) [######..............] |
+| lightline_only                      6.184 ms   (1.86x vs best) [###.................] |
+| after_ack_removal_tabular_opt       3.600 ms   (1.08x vs best) [##..................] |
+| after_fugitive_opt                  3.325 ms   (1.00x best)    [##..................] |
+|                                                                                       |
+| Overall improvement: 36.079 ms -&gt; 3.325 ms  (~10.85x lower plugin startup load)       |
++---------------------------------------------------------------------------------------+</code></pre>
+        <p>The sequence was deliberately incremental:</p>
+        <ol>
+          <li>Remove <code>vim-polyglot</code>, whose broad language bundle duplicated capabilities that were not needed on every launch.</li>
+          <li>Move heavy interactive plugins such as NERDTree and GoldenView from <code>pack/*/start</code> to <code>pack/*/opt</code>.</li>
+          <li>Replace vim-airline and its theme package with the smaller lightline status line.</li>
+          <li>Remove <code>ack.vim</code>, because <code>fzf.vim</code> and ripgrep already provide the search workflow.</li>
+          <li>Move Tabular and fugitive to optional packages and load them on their first command.</li>
+          <li>Move local buffer helpers to optional packages and remove an unused rename plugin.</li>
+        </ol>
+        <p>The final plugin sourcing total is 3.325 ms, down from 36.079 ms. That is about 90.8% less plugin startup work.</p>
+      </section>
+      <section id="lazy-load-at-the-command-boundary">
+        <h2>Lazy-load at the command boundary</h2>
+        <p>Vim packages already provide the required mechanism: directories under <code>pack/*/opt</code> stay unloaded until <code>:packadd</code> runs. The useful boundary is the command or key that first needs the plugin.</p>
+        <p>NERDTree loads only when its toggle is pressed:</p>
+        <pre><code class="language-vim">nnoremap &lt;C-n&gt; :packadd nerdtree &lt;Bar&gt; NERDTreeToggle&lt;CR&gt;</code></pre>
+        <p>Commands that do not exist yet can trigger an optional package through <code>CmdUndefined</code>:</p>
+        <pre><code class="language-vim">augroup tabular_lazy
+  autocmd!
+  autocmd CmdUndefined Tabularize packadd tabular
+augroup END
+
+augroup fugitive_lazy
+  autocmd!
+  autocmd CmdUndefined Git,G,Gstatus,Gblame,Glog,Gclog,Gwrite,Gread,Gdiffsplit,Gvdiffsplit,GBrowse packadd fugitive | packadd vim-rhubarb
+augroup END</code></pre>
+        <p>For a mapping that needs setup and execution together, a small function keeps the sequence explicit:</p>
+        <pre><code class="language-vim">function! s:ToggleGoldenView() abort
+  packadd GoldenView.Vim
+  execute &#39;GoldenViewToggle&#39;
+endfunction
+nnoremap &lt;leader&gt;gv :call &lt;SID&gt;ToggleGoldenView()&lt;CR&gt;</code></pre>
+        <p>Lazy-loading is not free complexity. Keep a plugin in <code>start</code> when it is tiny, required for every editing session, or must define behavior before the first buffer event. Move it to <code>opt</code> only when the measured startup cost and a clear activation boundary justify it.</p>
+      </section>
+      <section id="add-guardrails-for-expensive-files">
+        <h2>Add guardrails for expensive files</h2>
+        <p>Startup is only one part of perceived speed. Large files can spend much more time in syntax highlighting and cursor-line redraw than in launching Vim. The configuration marks files over 1 MiB before reading them, then disables syntax and <code>cursorline</code> for that buffer:</p>
+        <pre><code class="language-vim">augroup large_file_perf
+  autocmd!
+  autocmd BufReadPre * if getfsize(expand(&#39;%:p&#39;)) &gt; 1024 * 1024 | let b:large_file = 1 | endif
+  autocmd BufReadPost * if exists(&#39;b:large_file&#39;) | setlocal syntax=OFF nocursorline | endif
+augroup END</code></pre>
+        <p>The regex engine remains on <code>re=0</code>, which lets Vim choose the engine per pattern rather than forcing one implementation globally.</p>
+      </section>
+      <section id="rebuild-vim-only-after-reducing-startup-work">
+        <h2>Rebuild Vim only after reducing startup work</h2>
+        <p>Once configuration work was removed, the remaining experiment was the executable itself. Homebrew&#39;s normal build environment prioritizes a portable bottle. The native script instead compiles the exact source version recorded in the active Homebrew formula with:</p>
+        <ul>
+          <li><code>-O3</code> for more aggressive inlining and loop optimization;</li>
+          <li><code>-mcpu=native</code> to target the detected Apple generation rather than generic ARM64;</li>
+          <li><code>-ffp-contract=fast</code> to permit fused multiply-add operations where applicable;</li>
+          <li><code>-flto</code> for whole-program optimization at link time.</li>
+        </ul>
+        <pre><code class="language-sh">./bootstrap/compile_vim_native.sh</code></pre>
+        <p>The script is intentionally more than a compiler command. It verifies the formula&#39;s source URL and SHA-256, preserves Homebrew&#39;s Vim features and dynamic Perl, Python, Ruby, and Lua paths, tests all four interpreters, checks ARM64 architecture and code signing, stages the candidate in the same Cellar directory, and atomically replaces only the <code>vim</code> executable. A failure restores the prior binary and original Homebrew pin state.</p>
+        <p><code>-mcpu=native</code> is validated at build time and resolves to the current CPU family, such as <code>apple-m1</code> or <code>apple-m4</code>. The resulting binary is intentionally machine-specific and should not be copied to a different Mac.</p>
+      </section>
+      <section id="what-the-native-build-improved">
+        <h2>What the native build improved</h2>
+        <p>The recorded native-build comparison was run on an Apple M4 with the same Vim version and representative CPU-bound Vimscript operations:</p>
+        <pre><code class="language-text">+---------------------------------------------------------------------------------------+
+| VIM NATIVE BUILD  (bottle -O2 -&gt; -O3 -mcpu=apple-m4 -ffp-contract=fast -flto)         |
++---------------------------------------------------------------------------------------+
+| regex scan NFA           0.0362s -&gt; 0.0297s    (1.22x faster)  [####################] |
+| regex replace NFA        0.0811s -&gt; 0.0703s    (1.15x faster)  [###################.] |
+| buffer sort              0.2609s -&gt; 0.2497s    (1.04x faster)  [#################...] |
+| vimscript loop 500k      0.4915s -&gt; 0.4003s    (1.23x faster)  [####################] |
+| regex on ruby code       0.0217s -&gt; 0.0187s    (1.16x faster)  [###################.] |
+|                                                                                       |
+| CPU-bound speedup: ~15-23 %. Buffer sort is memory-bandwidth-bound (+4 % only).       |
++---------------------------------------------------------------------------------------+</code></pre>
+        <p>This result is narrower than “Vim is 23% faster.” CPU-heavy regex and Vimscript loops improved by 15–23%; the memory-bound buffer sort improved by only 4%. Native compilation does not replace startup optimization, because compiler flags cannot eliminate plugins that should not have been loaded.</p>
+      </section>
+      <section id="reproduce-upgrade-or-restore">
+        <h2>Reproduce, upgrade, or restore</h2>
+        <p>Run configuration validation before and after changing plugin loading:</p>
+        <pre><code class="language-sh">./bootstrap/check_configs.sh
+RUNS=7 ./benchmarks/profile_vim_plugins_median.sh</code></pre>
+        <p>To install the native build, or rebuild it after a Homebrew upgrade:</p>
+        <pre><code class="language-sh">./bootstrap/compile_vim_native.sh
+
+brew unpin vim &amp;&amp; brew upgrade vim \
+  &amp;&amp; ./bootstrap/compile_vim_native.sh</code></pre>
+        <p>To return to the standard Homebrew bottle:</p>
+        <pre><code class="language-sh">brew unpin vim &amp;&amp; brew reinstall vim</code></pre>
+        <p>The Homebrew receipt still describes the original formula installation after a binary-only replacement. Use <code>vim --version</code>, the script&#39;s verification output, and a fresh benchmark to identify and evaluate the native build.</p>
+      </section>
+      <section id="the-order-of-operations">
+        <h2>The order of operations</h2>
+        <p>The practical priority is:</p>
+        <ol>
+          <li>Measure repeated launches and report medians.</li>
+          <li>Delete duplicate or unused startup work.</li>
+          <li>Lazy-load expensive features at a clear command boundary.</li>
+          <li>Add guardrails for workloads such as large files.</li>
+          <li>Re-measure startup and normal editing behavior.</li>
+          <li>Only then test a native executable against the same-version bottle.</li>
+        </ol>
+        <p>The first four steps improve the workload itself and travel with the dotfiles. The native binary is the final, machine-local layer—and the easiest one to restore when a benchmark does not justify it.</p>
+        <p>The implementation lives in <a href="https://github.com/marianposaceanu/dot-files/blob/main/.vimrc"><code>.vimrc</code></a>, <a href="https://github.com/marianposaceanu/dot-files/blob/main/bootstrap/compile_vim_native.sh"><code>bootstrap/compile_vim_native.sh</code></a>, and the <a href="https://github.com/marianposaceanu/dot-files/tree/main/benchmarks"><code>benchmarks/</code></a> directory.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>
