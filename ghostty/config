@@ -48,8 +48,8 @@ notify-on-command-finish-after = 30s
 # ==============================================================================
 
 # Initial size for brand-new windows, measured in terminal rows and columns.
-window-height = 50
-window-width = 180
+window-height = 45
+window-width = 193
 
 # Start brand-new windows at the current position without restoring tabs or sessions.
 window-position-x = 103
