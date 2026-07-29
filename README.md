@@ -210,14 +210,20 @@ that the native build was effectively neutral versus the official ARM64 Tahoe
 bottle. Negative percentages are faster; differences around 1% are noise at
 this duration.
 
-| Workload | Native | Bottle | Native change |
-| --- | ---: | ---: | ---: |
-| Literal, one thread | 27.56 ms | 27.30 ms | +1.0% |
-| Regex, one thread | 28.27 ms | 28.13 ms | +0.5% |
-| Unicode regex, one thread | 91.40 ms | 93.28 ms | -2.0% |
-| PCRE2 lookaround, one thread | 502.04 ms | 502.86 ms | -0.2% |
-| Literal, default threads | 11.76 ms | 11.85 ms | -0.8% |
-| 5,000-file traversal | 11.39 ms | 11.50 ms | -0.9% |
+```text
++---------------------------------------------------------------------------------------+
+| RIPGREP NATIVE/LTO  (Homebrew ARM64 bottle -> native M1 Pro; lower is better)         |
++---------------------------------------------------------------------------------------+
+| literal, one thread       27.30 ms ->  27.56 ms   (+1.0%, noise) [..................] |
+| regex, one thread         28.13 ms ->  28.27 ms   (+0.5%, noise) [..................] |
+| Unicode regex             93.28 ms ->  91.40 ms   (-2.0% faster) [####..............] |
+| PCRE2 lookaround         502.86 ms -> 502.04 ms   (-0.2%, noise) [..................] |
+| literal, default threads  11.85 ms ->  11.76 ms   (-0.8%, noise) [..................] |
+| 5,000-file traversal      11.50 ms ->  11.39 ms   (-0.9%, noise) [..................] |
+|                                                                                       |
+| Result: effectively neutral; no general speed or power improvement demonstrated.      |
++---------------------------------------------------------------------------------------+
+```
 
 These results do not demonstrate a meaningful speed or power improvement. The
 native workflow is retained for repeatable testing, not as a general claim that
@@ -238,17 +244,23 @@ merges the profiles, then performs a clean `release-lto` build with
 On the same M1 Pro and corpus, 21 interleaved repetitions compared the PGO
 build with the official bottle:
 
-| Workload | PGO | Bottle | PGO change |
-| --- | ---: | ---: | ---: |
-| Literal, one thread | 27.20 ms | 27.52 ms | -1.1% |
-| Regex, one thread | 27.96 ms | 28.35 ms | -1.4% |
-| Unicode regex, one thread | 83.79 ms | 93.67 ms | -10.5% |
-| PCRE2 lookaround, one thread | 496.26 ms | 503.33 ms | -1.4% |
-| Literal, two threads | 18.69 ms | 18.91 ms | -1.2% |
-| Literal, four threads | 14.37 ms | 14.75 ms | -2.5% |
-| Literal, eight threads | 11.79 ms | 12.08 ms | -2.3% |
-| Literal, default threads | 11.71 ms | 11.90 ms | -1.6% |
-| 5,000-file traversal | 12.02 ms | 11.56 ms | +3.9% |
+```text
++---------------------------------------------------------------------------------------+
+| RIPGREP PGO  (Homebrew ARM64 bottle -> native M1 Pro + LTO + PGO; lower is better)    |
++---------------------------------------------------------------------------------------+
+| literal, one thread       27.52 ms ->  27.20 ms   (-1.1% faster) [##................] |
+| regex, one thread         28.35 ms ->  27.96 ms   (-1.4% faster) [##................] |
+| Unicode regex             93.67 ms ->  83.79 ms  (-10.5% faster) [##################] |
+| PCRE2 lookaround         503.33 ms -> 496.26 ms   (-1.4% faster) [##................] |
+| literal, two threads      18.91 ms ->  18.69 ms   (-1.2% faster) [##................] |
+| literal, four threads     14.75 ms ->  14.37 ms   (-2.5% faster) [####..............] |
+| literal, eight threads    12.08 ms ->  11.79 ms   (-2.3% faster) [####..............] |
+| literal, default threads  11.90 ms ->  11.71 ms   (-1.6% faster) [###...............] |
+| 5,000-file traversal      11.56 ms ->  12.02 ms   (+3.9% slower) [#######...........] |
+|                                                                                       |
+| Result: PGO materially helps Unicode regex; other changes are small or workload-bound.|
++---------------------------------------------------------------------------------------+
+```
 
 PGO materially improved the trained Unicode-regex workload. Most other gains
 were only 1–3%, and traversal was slower in this run, so PGO remains
@@ -284,23 +296,33 @@ brew unpin universal-ctags && brew reinstall universal-ctags
 ```
 
 On the M1 Pro, five interleaved repetitions of Universal Ctags 6.2.1 produced
-the following medians. The first table compares native/LTO with the bottle;
+the following medians. The first chart compares native/LTO with the bottle;
 the second compares PGO with the already-installed native/LTO build. Negative
 percentages are faster.
 
-| Workload | Native/LTO | Bottle | Change |
-| --- | ---: | ---: | ---: |
-| C parser | 71.68 ms | 80.19 ms | -10.6% |
-| Ruby parser | 41.91 ms | 46.58 ms | -10.0% |
-| JSON and YAML parsers | 63.34 ms | 67.22 ms | -5.8% |
-| Representative mixed parsers | 27.01 ms | 27.13 ms | -0.5% |
+```text
++---------------------------------------------------------------------------------------+
+| CTAGS NATIVE/LTO  (Homebrew ARM64 bottle -> native M1 Pro; lower is better)           |
++---------------------------------------------------------------------------------------+
+| C parser                   80.19 ms -> 71.68 ms  (-10.6% faster) [##################] |
+| Ruby parser                46.58 ms -> 41.91 ms  (-10.0% faster) [#################.] |
+| JSON and YAML parsers      67.22 ms -> 63.34 ms   (-5.8% faster) [##########........] |
+| representative mixed       27.13 ms -> 27.01 ms   (-0.5%, noise) [..................] |
+|                                                                                       |
+| Result: meaningful gains on language-specific parser workloads.                       |
++---------------------------------------------------------------------------------------+
 
-| Workload | PGO | Native/LTO | PGO change |
-| --- | ---: | ---: | ---: |
-| C parser | 63.28 ms | 72.30 ms | -12.5% |
-| Ruby parser | 37.73 ms | 41.33 ms | -8.7% |
-| JSON and YAML parsers | 60.06 ms | 63.09 ms | -4.8% |
-| Representative mixed parsers | 26.72 ms | 26.69 ms | +0.1% |
++---------------------------------------------------------------------------------------+
+| CTAGS PGO  (native M1 Pro + LTO -> native M1 Pro + LTO + PGO; lower is better)        |
++---------------------------------------------------------------------------------------+
+| C parser                   72.30 ms -> 63.28 ms  (-12.5% faster) [##################] |
+| Ruby parser                41.33 ms -> 37.73 ms   (-8.7% faster) [#############.....] |
+| JSON and YAML parsers      63.09 ms -> 60.06 ms   (-4.8% faster) [#######...........] |
+| representative mixed       26.69 ms -> 26.72 ms   (+0.1%, noise) [..................] |
+|                                                                                       |
+| Result: PGO adds parser-specific gains but is neutral on the small mixed corpus.      |
++---------------------------------------------------------------------------------------+
+```
 
 PGO helped the trained language-specific workloads but was neutral on the
 small mixed corpus. Only the `ctags` executable is optimized; the rest of the
@@ -336,6 +358,17 @@ seconds** for native/LTO and **0.070 seconds** for the bottle. PGO was likewise
 **0.070 seconds** against native/LTO. This is effectively neutral; the workflow
 is retained for reproducible experimentation, not as evidence that rebuilding
 Git is faster or saves power.
+
+```text
++---------------------------------------------------------------------------------------+
+| GIT NATIVE BUILD  (aggregate benchmark CPU time; lower is better)                     |
++---------------------------------------------------------------------------------------+
+| Homebrew ARM64 bottle -> native M1 Pro + LTO     0.070s -> 0.070s  [................] |
+| native M1 Pro + LTO -> native M1 Pro + LTO + PGO 0.070s -> 0.070s  [................] |
+|                                                                                       |
+| Result: no measurable change for this workload; external helpers remain bottle-built. |
++---------------------------------------------------------------------------------------+
+```
 
 #### config and benchmark checks
 
