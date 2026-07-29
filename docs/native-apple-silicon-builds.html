@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Native Apple Silicon builds for Vim, ripgrep, Ctags, and Git - dot-files</title>
+  <meta name="description" content="Four same-version Homebrew rebuilds, one safety model, and mixed results. Start with Vim, then follow the evidence through ripgrep, Universal Ctags, and Git.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/native-apple-silicon-builds.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=ef91d1eaf28f">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=e9e1b3a932f5">
+</head>
+<body class="site-article" id="top">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="main-content">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Apple Silicon · native builds · measured trade-offs</p>
+      <h1 id="page-title">Native Apple Silicon builds for Vim, ripgrep, Ctags, and Git</h1>
+      <p class="subtitle">Four same-version Homebrew rebuilds, one safety model, and mixed results. Start with Vim, then follow the evidence through ripgrep, Universal Ctags, and Git.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Measured performance</li>
+        <li><time class="article-date" datetime="2026-07-29">29th July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#what-was-optimized">What was optimized</a></li>
+        <li><a href="#the-safety-contract-shared-by-every-build">The safety contract shared by every build</a></li>
+        <li><a href="#vim-remove-startup-work-first">Vim: remove startup work first</a></li>
+        <li><a href="#ripgrep-pgo-helped-one-trained-workload">ripgrep: PGO helped one trained workload</a></li>
+        <li><a href="#universal-ctags-the-clearest-repeatable-gain">Universal Ctags: the clearest repeatable gain</a></li>
+        <li><a href="#git-same-contract-no-measured-win">Git: same contract, no measured win</a></li>
+        <li><a href="#what-lto-and-pgo-contribute">What LTO and PGO contribute</a></li>
+        <li><a href="#rebuild-and-restore-commands">Rebuild and restore commands</a></li>
+        <li><a href="#where-the-evidence-lands">Where the evidence lands</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="what-was-optimized">
+        <h2>What was optimized</h2>
+        <p>The experiment rebuilt four command-line tools for the exact Apple CPU in the machine:</p>
+        <ul>
+          <li>Vim with <code>-O3 -mcpu=native -ffp-contract=fast -flto</code>;</li>
+          <li>ripgrep with Rust&#39;s upstream <code>release-lto</code> profile and <code>target-cpu=native</code>;</li>
+          <li>Universal Ctags with <code>-O3 -mcpu=native</code>, LTO, and optional PGO;</li>
+          <li>Git&#39;s main executable and builtins with <code>-O3 -mcpu=native -flto</code> and optional PGO.</li>
+        </ul>
+        <p>These are not generic replacements for Homebrew bottles. A bottle is built once for a compatible Apple Silicon baseline and distributed to many Macs. A native build can use the scheduling model and instruction set of one detected generation, such as <code>apple-m1</code> or <code>apple-m4</code>, but it gives up that portability.</p>
+        <p>The measurements also come from two machines. The recorded Vim CPU benchmark used an Apple M4. The ripgrep, Ctags, and Git measurements used an M1 Pro. Results should be read within each same-machine, same-version comparison, not as a ranking between those Macs.</p>
+      </section>
+      <section id="the-safety-contract-shared-by-every-build">
+        <h2>The safety contract shared by every build</h2>
+        <p>Compiler flags are the easy part. Safely replacing a Homebrew-managed executable requires a stricter workflow:</p>
+        <ol>
+          <li>Resolve the active <code>opt</code> symlink to the exact Cellar keg.</li>
+          <li>Read the installed formula snapshot and verify its source URL and SHA-256.</li>
+          <li>Derive <code>apple-mN</code> from the CPU brand and prove that <code>-mcpu=native</code> resolves to the same generation. This includes M4 rather than stopping at an M1-M3 allowlist.</li>
+          <li>Build in a controlled environment with the formula&#39;s features and dependency paths.</li>
+          <li>Compare architecture, version, optional features, runtime paths, and dynamic-library install names with the installed baseline.</li>
+          <li>Exercise representative behavior before touching the Cellar.</li>
+          <li>Benchmark the candidate against the still-installed executable.</li>
+          <li>Stage and back up on the same filesystem, atomically replace one binary, then verify it again.</li>
+          <li>Restore the binary and original pin state if any step fails.</li>
+          <li>Pin the successful custom build so <code>brew upgrade</code> cannot silently overwrite it.</li>
+        </ol>
+        <p>No workflow uses <code>make install</code>. Vim, Ctags, and Git replace only their main executable. ripgrep replaces only <code>rg</code>. Homebrew remains responsible for the rest of each keg.</p>
+      </section>
+      <section id="vim-remove-startup-work-first">
+        <h2>Vim: remove startup work first</h2>
+        <p>Vim is the best place to start because two independent kinds of work were measured. Plugin sourcing affects every launch; native compilation affects CPU-bound work after Vim is running.</p>
+        <p>Repeated <code>--startuptime</code> logs showed that removing unnecessary plugins and lazy-loading command-driven features mattered more than compiler flags:</p>
+        <figure class="chart" role="img" aria-label="Vim plugin sourcing time: lower is better: With vim-polyglot 36.079 ms, Without vim-polyglot 22.105 ms, Lazy-loaded optional plugins 10.170 ms, Lightline only 6.184 ms, Without ack.vim; Tabular optional 3.600 ms, Fugitive optional 3.325 ms">
+          <figcaption class="chart-title">Vim plugin sourcing time: lower is better</figcaption>
+          <div class="bar-row">
+            <div class="bar-label"><strong>With vim-polyglot</strong><span>36.079 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-1000"></span></div>
+            <div class="bar-meta">Original measured plugin startup total</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Without vim-polyglot</strong><span>22.105 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-613"></span></div>
+            <div class="bar-meta">38.7% less plugin sourcing</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Lazy-loaded optional plugins</strong><span>10.170 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-282"></span></div>
+            <div class="bar-meta">NERDTree and GoldenView moved to <code>pack/*/opt</code></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Lightline only</strong><span>6.184 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-171"></span></div>
+            <div class="bar-meta">vim-airline and its theme package removed</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Without ack.vim; Tabular optional</strong><span>3.600 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-100"></span></div>
+            <div class="bar-meta">Search consolidated on fzf.vim and ripgrep</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Fugitive optional</strong><span>3.325 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-92"></span></div>
+            <div class="bar-meta">Final measured plugin sourcing total</div>
+          </div>
+        </figure>
+        <p>The total fell from 36.079 ms to 3.325 ms, about 90.8% less plugin startup work. That is a 10.85x ratio between the first and final plugin totals, not a claim that the complete editor launches 10.85x faster. Vim itself, dynamic libraries, the terminal, filesystem caches, and the rest of <code>.vimrc</code> remain part of total startup.</p>
+        <p>The lazy-loading boundary is the command that first needs a plugin:</p>
+        <pre><code class="language-vim">nnoremap &lt;C-n&gt; :packadd nerdtree &lt;Bar&gt; NERDTreeToggle&lt;CR&gt;
+
+augroup tabular_lazy
+  autocmd!
+  autocmd CmdUndefined Tabularize packadd tabular
+augroup END
+
+augroup fugitive_lazy
+  autocmd!
+  autocmd CmdUndefined Git,G,Gstatus,Gblame,Glog,Gclog,Gwrite,Gread,Gdiffsplit,Gvdiffsplit,GBrowse packadd fugitive | packadd vim-rhubarb
+augroup END</code></pre>
+        <p>Only after reducing startup work did the executable build become worth testing. On the M4, the native binary improved CPU-heavy regex and Vimscript workloads while a memory-bound sort moved much less:</p>
+        <figure class="chart" role="img" aria-label="Vim native elapsed time relative to the bottle: lower is better: Regex scan NFA 0.0297 s, Regex replace NFA 0.0703 s, Buffer sort 0.2497 s, Vimscript loop, 500k 0.4003 s, Regex on Ruby code 0.0187 s">
+          <figcaption class="chart-title">Vim native elapsed time relative to the bottle: lower is better</figcaption>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Regex scan NFA</strong><span>0.0297 s</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-820"></span></div>
+            <div class="bar-meta">Bottle 0.0362 s; 17.9% less elapsed time; 1.22x faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Regex replace NFA</strong><span>0.0703 s</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-867"></span></div>
+            <div class="bar-meta">Bottle 0.0811 s; 13.3% less elapsed time; 1.15x faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Buffer sort</strong><span>0.2497 s</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-957"></span></div>
+            <div class="bar-meta">Bottle 0.2609 s; 4.3% less elapsed time; 1.04x faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Vimscript loop, 500k</strong><span>0.4003 s</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-814"></span></div>
+            <div class="bar-meta">Bottle 0.4915 s; 18.6% less elapsed time; 1.23x faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Regex on Ruby code</strong><span>0.0187 s</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-862"></span></div>
+            <div class="bar-meta">Bottle 0.0217 s; 13.8% less elapsed time; 1.16x faster</div>
+          </div>
+        </figure>
+        <p>The defensible result is narrow: 15-23% speedups in these CPU-bound operations, and about 4% for the memory-bound sort. Native compilation complements startup cleanup; it cannot compensate for loading plugins that should not run.</p>
+      </section>
+      <section id="ripgrep-pgo-helped-one-trained-workload">
+        <h2>ripgrep: PGO helped one trained workload</h2>
+        <p>ripgrep already ships as an efficient Rust program with a strong release profile. Its native/LTO build was effectively neutral against the Homebrew ARM64 Tahoe bottle on the M1 Pro. Most differences were around 1%, below the useful resolution of these short runs. Unicode regex improved by 2%.</p>
+        <p>The optional PGO workflow builds an instrumented executable, trains literal, regex, Unicode, PCRE2, traversal, and 1/2/4/8/default-thread workloads, merges the LLVM profiles, then performs a clean final LTO build.</p>
+        <figure class="chart" role="img" aria-label="ripgrep PGO elapsed time relative to the bottle: lower is better: Literal, one thread 27.20 ms, Regex, one thread 27.96 ms, Unicode regex 83.79 ms, PCRE2 lookaround 496.26 ms, Literal, four threads 14.37 ms, Literal, eight threads 11.79 ms, Literal, default threads 11.71 ms, 5,000-file traversal 12.02 ms">
+          <figcaption class="chart-title">ripgrep PGO elapsed time relative to the bottle: lower is better</figcaption>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Literal, one thread</strong><span>27.20 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-989"></span></div>
+            <div class="bar-meta">Bottle 27.52 ms; 1.1% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Regex, one thread</strong><span>27.96 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-986"></span></div>
+            <div class="bar-meta">Bottle 28.35 ms; 1.4% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Unicode regex</strong><span>83.79 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-895"></span></div>
+            <div class="bar-meta">Bottle 93.67 ms; 10.5% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>PCRE2 lookaround</strong><span>496.26 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-986"></span></div>
+            <div class="bar-meta">Bottle 503.33 ms; 1.4% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Literal, four threads</strong><span>14.37 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-975"></span></div>
+            <div class="bar-meta">Bottle 14.75 ms; 2.5% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Literal, eight threads</strong><span>11.79 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-977"></span></div>
+            <div class="bar-meta">Bottle 12.08 ms; 2.3% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Literal, default threads</strong><span>11.71 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-984"></span></div>
+            <div class="bar-meta">Bottle 11.90 ms; 1.6% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>5,000-file traversal</strong><span>12.02 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-1000"></span></div>
+            <div class="bar-meta">Bottle 11.56 ms; 3.9% slower</div>
+          </div>
+        </figure>
+        <p>PGO materially improved the trained Unicode-regex workload. Most other changes were small, and traversal regressed. Thread count had a larger effect on literal search than PGO: automatic threading was 2.32x faster than the PGO build&#39;s one-thread median on this corpus.</p>
+        <p>The result is not “custom ripgrep is faster.” It is that PGO can help a representative hot path, while the standard bottle remains a very strong general default.</p>
+      </section>
+      <section id="universal-ctags-the-clearest-repeatable-gain">
+        <h2>Universal Ctags: the clearest repeatable gain</h2>
+        <p>Universal Ctags 6.2.1 produced the strongest broad result on the M1 Pro. The script requires exact parity with the bottle&#39;s optional feature set and linkage to jansson, libyaml, PCRE2, system XML, and system iconv. It then checks deterministic C, Ruby, JSON, and YAML tag output before comparing performance.</p>
+        <p>The plain native/LTO build improved each language-specific parser:</p>
+        <figure class="chart" role="img" aria-label="Ctags native/LTO elapsed time relative to the bottle: lower is better: C parser 71.68 ms, Ruby parser 41.91 ms, JSON and YAML parsers 63.34 ms, Representative mixed parsers 27.01 ms">
+          <figcaption class="chart-title">Ctags native/LTO elapsed time relative to the bottle: lower is better</figcaption>
+          <div class="bar-row">
+            <div class="bar-label"><strong>C parser</strong><span>71.68 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-894"></span></div>
+            <div class="bar-meta">Bottle 80.19 ms; 10.6% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Ruby parser</strong><span>41.91 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-900"></span></div>
+            <div class="bar-meta">Bottle 46.58 ms; 10.0% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>JSON and YAML parsers</strong><span>63.34 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-942"></span></div>
+            <div class="bar-meta">Bottle 67.22 ms; 5.8% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Representative mixed parsers</strong><span>27.01 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-995"></span></div>
+            <div class="bar-meta">Bottle 27.13 ms; 0.5% faster, effectively neutral</div>
+          </div>
+        </figure>
+        <p>PGO then improved the already-native build on the trained parser workloads:</p>
+        <figure class="chart" role="img" aria-label="Ctags PGO elapsed time relative to native/LTO: lower is better: C parser 63.28 ms, Ruby parser 37.73 ms, JSON and YAML parsers 60.06 ms, Representative mixed parsers 26.72 ms">
+          <figcaption class="chart-title">Ctags PGO elapsed time relative to native/LTO: lower is better</figcaption>
+          <div class="bar-row">
+            <div class="bar-label"><strong>C parser</strong><span>63.28 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-875"></span></div>
+            <div class="bar-meta">Native/LTO 72.30 ms; 12.5% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Ruby parser</strong><span>37.73 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-913"></span></div>
+            <div class="bar-meta">Native/LTO 41.33 ms; 8.7% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>JSON and YAML parsers</strong><span>60.06 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-952"></span></div>
+            <div class="bar-meta">Native/LTO 63.09 ms; 4.8% faster</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Representative mixed parsers</strong><span>26.72 ms</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-1000"></span></div>
+            <div class="bar-meta">Native/LTO 26.69 ms; 0.1% slower, effectively neutral</div>
+          </div>
+        </figure>
+        <p>These are separate interleaved runs, so their absolute medians should not be chained into one synthetic bottle-to-PGO percentage. The direct conclusions are enough: native/LTO helped the language-specific parsers, and PGO added another workload-specific improvement.</p>
+      </section>
+      <section id="git-same-contract-no-measured-win">
+        <h2>Git: same contract, no measured win</h2>
+        <p>Git 2.55.0 was the most demanding compatibility case and the least exciting benchmark result. Homebrew&#39;s main <code>git</code> executable also implements its builtins through symlinks such as <code>git-add</code> and <code>git-status</code>, so replacing that one file optimizes builtins without claiming that external helpers were rebuilt.</p>
+        <p>The candidate must preserve Git&#39;s CommonCrypto choice, PCRE2 and gettext linkage, system libcurl and libiconv, SHA implementations, shell path, executable path, documentation paths, and <code>FALLBACK_RUNTIME_PREFIX</code>. Smoke tests create temporary repositories and exercise commits, branches, PCRE2 grep, fsck, garbage collection, bundles, and clones without reading global Git configuration.</p>
+        <figure class="chart" role="img" aria-label="Git aggregate benchmark CPU time: lower is better: Homebrew bottle 0.070 s, Native/LTO 0.070 s, Native/LTO plus PGO 0.070 s">
+          <figcaption class="chart-title">Git aggregate benchmark CPU time: lower is better</figcaption>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Homebrew bottle</strong><span>0.070 s</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-1000"></span></div>
+            <div class="bar-meta">status, diff, grep, log, traversal, fsck, and commit-graph verification</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Native/LTO</strong><span>0.070 s</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-1000"></span></div>
+            <div class="bar-meta">No measurable change versus the bottle</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Native/LTO plus PGO</strong><span>0.070 s</span></div>
+            <div class="bar-track"><span class="bar-fill bar-width-1000"></span></div>
+            <div class="bar-meta">No measurable change versus native/LTO</div>
+          </div>
+        </figure>
+        <p>The native and PGO builds were neutral at the benchmark&#39;s 0.01-second reporting resolution. That is still useful evidence: a safe, reproducible build workflow does not imply that installing its output is worthwhile for every tool.</p>
+      </section>
+      <section id="what-lto-and-pgo-contribute">
+        <h2>What LTO and PGO contribute</h2>
+        <p><strong>Link-Time Optimization (LTO)</strong> keeps compiler information through the link stage so optimization can cross source-file and library boundaries. It can inline across translation units and remove code that is unused once the complete executable is visible. LTO costs build time and memory but adds no profiling instrumentation to the final binary.</p>
+        <p><strong>Profile-Guided Optimization (PGO)</strong> is a two-stage process. An instrumented build records which functions and branches the training workload uses. A second build consumes the merged profile to improve hot-path layout, inlining, and branch decisions. The final executable has no training overhead.</p>
+        <p>PGO&#39;s weakness is also its purpose: it specializes for observed behavior. Ctags&#39; parser workloads and ripgrep&#39;s Unicode regex benefited. ripgrep traversal regressed, Ctags&#39; mixed corpus was neutral, and Git did not move. Training must resemble real use, and the final decision still belongs to an independent benchmark.</p>
+      </section>
+      <section id="rebuild-and-restore-commands">
+        <h2>Rebuild and restore commands</h2>
+        <p>Each script supports a bottle restoration path because the Homebrew receipt continues to describe the formula installation after a binary-only replacement.</p>
+        <pre><code class="language-sh"># Vim
+./bootstrap/compile_vim_native.sh
+brew unpin vim &amp;&amp; brew reinstall vim
+
+# ripgrep
+./bootstrap/compile_ripgrep_native.sh --pgo
+brew unpin ripgrep &amp;&amp; brew reinstall ripgrep
+
+# Universal Ctags
+brew install docutils llvm
+./bootstrap/compile_ctags_native.sh --pgo
+brew unpin universal-ctags &amp;&amp; brew reinstall universal-ctags
+
+# Git
+brew install llvm pkgconf
+./bootstrap/compile_git_native.sh --pgo
+brew unpin git &amp;&amp; brew reinstall git</code></pre>
+        <p>After a formula upgrade, unpin and upgrade first, inspect the changed formula contract, then rerun the corresponding script. The Git workflow intentionally stops until its exact version and source contract are updated.</p>
+      </section>
+      <section id="where-the-evidence-lands">
+        <h2>Where the evidence lands</h2>
+        <p>The experiment produced four different answers:</p>
+        <ul>
+          <li><strong>Vim:</strong> removing plugin startup work was the largest everyday improvement; native compilation helped CPU-bound microbenchmarks.</li>
+          <li><strong>ripgrep:</strong> native/LTO was neutral; PGO materially helped Unicode regex but not traversal.</li>
+          <li><strong>Universal Ctags:</strong> native/LTO and PGO both improved trained language parsers.</li>
+          <li><strong>Git:</strong> native/LTO and PGO preserved behavior but did not measurably improve the aggregate workload.</li>
+        </ul>
+        <p>The general lesson is not to rebuild every Homebrew formula. It is to make optimization falsifiable: preserve the package contract, compare the same version, train PGO on representative work, publish regressions beside gains, and keep a one-command route back to the bottle.</p>
+        <p>The implementation lives in <a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a>, <a href="https://github.com/marianposaceanu/dot-files/tree/main/benchmarks"><code>benchmarks/</code></a>, and the native-build documentation in the <a href="https://github.com/marianposaceanu/dot-files#what-lto-and-pgo-mean">dot-files README</a>.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

@@ -107,8 +107,30 @@ def render_markdown(lines)
         index += 1
       end
       index += 1
-      class_name = language.empty? ? "" : %( class="language-#{CGI.escapeHTML(language)}")
-      output << "        <pre><code#{class_name}>#{CGI.escapeHTML(code.join("\n"))}</code></pre>"
+      if language == "chart"
+        title = code.shift.to_s.strip
+        rows = code.reject { |item| item.strip.empty? }.map do |item|
+          label, value, width, meta = item.split("|", 4).map(&:strip)
+          abort "Invalid chart row: #{item}" unless label && value && width&.match?(/\A\d{2,4}\z/) && meta
+          abort "Chart width out of range: #{width}" unless width.to_i.between?(0, 1000)
+          [label, value, width, meta]
+        end
+        abort "Chart requires a title and rows" if title.empty? || rows.empty?
+        aria = rows.map { |label, value, _, _| "#{label} #{value}" }.join(", ")
+        output << %(        <figure class="chart" role="img" aria-label="#{CGI.escapeHTML("#{title}: #{aria}")}">)
+        output << %(          <figcaption class="chart-title">#{inline(title)}</figcaption>)
+        rows.each do |label, value, width, meta|
+          output << "          <div class=\"bar-row\">"
+          output << %(            <div class="bar-label"><strong>#{inline(label)}</strong><span>#{inline(value)}</span></div>)
+          output << %(            <div class="bar-track"><span class="bar-fill bar-width-#{width}"></span></div>)
+          output << %(            <div class="bar-meta">#{inline(meta)}</div>)
+          output << "          </div>"
+        end
+        output << "        </figure>"
+      else
+        class_name = language.empty? ? "" : %( class="language-#{CGI.escapeHTML(language)}")
+        output << "        <pre><code#{class_name}>#{CGI.escapeHTML(code.join("\n"))}</code></pre>"
+      end
       next
     end
 

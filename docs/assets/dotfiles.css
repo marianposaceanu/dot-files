@@ -36,6 +36,82 @@
   min-width: 36rem;
 }
 
+.chart {
+  margin: 1.5rem 0;
+  padding: 1.1rem;
+  border: 1px solid var(--color-line);
+  background: #ffffff;
+}
+
+.chart-title {
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bar-row + .bar-row {
+  margin-top: 1rem;
+}
+
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.94rem;
+}
+
+.bar-label span,
+.bar-meta {
+  font-family: var(--font-code);
+}
+
+.bar-track {
+  height: 0.65rem;
+  margin: 0.35rem 0;
+  border: 1px solid var(--color-line);
+  background: #f4f4f4;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-link);
+}
+
+.bar-width-92 { width: 9.2%; }
+.bar-width-100 { width: 10%; }
+.bar-width-171 { width: 17.1%; }
+.bar-width-282 { width: 28.2%; }
+.bar-width-613 { width: 61.3%; }
+.bar-width-814 { width: 81.4%; }
+.bar-width-820 { width: 82%; }
+.bar-width-862 { width: 86.2%; }
+.bar-width-867 { width: 86.7%; }
+.bar-width-875 { width: 87.5%; }
+.bar-width-895 { width: 89.5%; }
+.bar-width-894 { width: 89.4%; }
+.bar-width-900 { width: 90%; }
+.bar-width-913 { width: 91.3%; }
+.bar-width-942 { width: 94.2%; }
+.bar-width-952 { width: 95.2%; }
+.bar-width-957 { width: 95.7%; }
+.bar-width-975 { width: 97.5%; }
+.bar-width-977 { width: 97.7%; }
+.bar-width-984 { width: 98.4%; }
+.bar-width-986 { width: 98.6%; }
+.bar-width-989 { width: 98.9%; }
+.bar-width-995 { width: 99.5%; }
+.bar-width-1000 { width: 100%; }
+
+.bar-meta {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 @media (max-width: 540px) {
   .shortcut-table td:first-child,
   .performance-table td:first-child {
