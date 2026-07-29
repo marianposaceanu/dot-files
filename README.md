@@ -148,12 +148,21 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 #### vim — native Apple Silicon build (optional)
 
-Recompiles Vim using Homebrew's own formula with `-O3 -mcpu=native -flto` and pins
-the formula so `brew upgrade` does not overwrite the custom binary.
+Recompiles the active Homebrew Vim version from its checksum-verified source
+with `-O3 -mcpu=native -ffp-contract=fast -flto`, preserves the installed
+formula's features and dynamic interpreter paths, and pins the formula so
+`brew upgrade` does not overwrite the custom binary.
 
 ```
 ./bootstrap/compile_vim_native.sh
 ```
+
+The script validates the source against the active keg's formula snapshot,
+builds in a controlled environment, exercises Perl, Ruby, Python, and Lua,
+checks Homebrew library linkage and runtime paths, and only then atomically
+replaces the Cellar binary. A failed install restores the previous binary and
+the original pin state. Homebrew's receipt still describes the original
+bottle; use `brew reinstall vim` to restore a standard Homebrew build.
 
 To upgrade Vim later:
 
