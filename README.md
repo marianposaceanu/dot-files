@@ -144,6 +144,30 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 `ack` is aliased to `rg` in interactive Zsh and Bash sessions. Ripgrep is the
 only search formula required; the Perl-based `ack` package is not installed.
 
+#### What LTO and PGO mean
+
+**LTO (Link-Time Optimization)** lets the compiler optimize the complete
+program while linking it, rather than optimizing each source file or library
+in isolation. This can expose opportunities such as inlining functions across
+file boundaries and removing code that is unused once the whole program is
+visible. The native workflows use LTO together with `-O3` and
+`-mcpu=native`. LTO generally increases build time and memory usage; it does
+not add profiling overhead to the finished executable, and it does not
+guarantee a measurable speedup for every workload.
+
+**PGO (Profile-Guided Optimization)** is a two-stage build. First, the script
+builds an instrumented executable and runs representative training workloads
+to record which branches and functions are used most often. It then merges
+those profiles and rebuilds the program so the compiler can optimize hot paths
+and code layout using observed behavior. The final executable has no training
+instrumentation. PGO is workload-specific: trained operations may improve
+while unrelated operations remain unchanged or occasionally regress, which is
+why these workflows benchmark the candidate before installing it.
+
+The `--pgo` workflows combine both techniques: PGO supplies runtime behavior
+to the compiler, while LTO gives it a whole-program view during the final
+optimized build.
+
 #### ripgrep — native Apple Silicon build (optional)
 
 Recompiles the active Homebrew ripgrep version with its upstream `release-lto`
