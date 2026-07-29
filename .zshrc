@@ -56,6 +56,11 @@ if (( $+commands[bat] )); then
   export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 fi
 
+# Keep the familiar command name while using the faster native search tool.
+if (( $+commands[rg] )); then
+  alias ack=rg
+fi
+
 # Load FZF completion and Ctrl-T directly from Homebrew.
 if [[ -r /opt/homebrew/opt/fzf/shell/completion.zsh &&
       -r /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then

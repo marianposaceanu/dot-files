@@ -139,6 +139,11 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 `cat` is aliased to `bat` in `.zshrc`. `bat` uses the TwoDark theme (complements ayu-dark) and shows line numbers and git change indicators. Man pages are also rendered through `bat` via `MANPAGER`. FZF file previews (`Ctrl-T`) use `bat` automatically. Inside FZF, use `Ctrl-J` / `Ctrl-K` to move one line, `Ctrl-D` / `Ctrl-U` to move half a page, and `Ctrl-/` to toggle the preview.
 
+#### search
+
+`ack` is aliased to `rg` in interactive Zsh and Bash sessions. Ripgrep is the
+only search formula required; the Perl-based `ack` package is not installed.
+
 #### config and benchmark checks
 
 - run environment doctor: `./bootstrap/doctor.sh`
