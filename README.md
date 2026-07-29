@@ -236,6 +236,83 @@ the PGO build's one-thread median, two threads were 1.46x faster, four were
 thread count at its automatic default unless a representative benchmark shows
 that a fixed count is better.
 
+#### Universal Ctags — native Apple Silicon build (optional)
+
+The Ctags workflow rebuilds only the active Homebrew keg's `ctags` executable
+with Homebrew LLVM, `-O3 -mcpu=native`, and LTO. It validates the exact formula
+source and SHA-256, detects Apple generations dynamically (including M4), and
+requires the candidate's optional features and dynamic libraries to exactly
+match the installed baseline. Parser smoke tests and an interleaved benchmark
+run before an atomic replacement; failures restore the original binary and pin
+state. No `make install` is run.
+
+```sh
+brew install docutils llvm
+./bootstrap/compile_ctags_native.sh --pgo
+```
+
+Omit `--pgo` for the plain native/LTO build. To update or restore the bottle:
+
+```sh
+brew unpin universal-ctags && brew upgrade universal-ctags \
+  && ./bootstrap/compile_ctags_native.sh --pgo
+brew unpin universal-ctags && brew reinstall universal-ctags
+```
+
+On the M1 Pro, five interleaved repetitions of Universal Ctags 6.2.1 produced
+the following medians. The first table compares native/LTO with the bottle;
+the second compares PGO with the already-installed native/LTO build. Negative
+percentages are faster.
+
+| Workload | Native/LTO | Bottle | Change |
+| --- | ---: | ---: | ---: |
+| C parser | 71.68 ms | 80.19 ms | -10.6% |
+| Ruby parser | 41.91 ms | 46.58 ms | -10.0% |
+| JSON and YAML parsers | 63.34 ms | 67.22 ms | -5.8% |
+| Representative mixed parsers | 27.01 ms | 27.13 ms | -0.5% |
+
+| Workload | PGO | Native/LTO | PGO change |
+| --- | ---: | ---: | ---: |
+| C parser | 63.28 ms | 72.30 ms | -12.5% |
+| Ruby parser | 37.73 ms | 41.33 ms | -8.7% |
+| JSON and YAML parsers | 60.06 ms | 63.09 ms | -4.8% |
+| Representative mixed parsers | 26.72 ms | 26.69 ms | +0.1% |
+
+PGO helped the trained language-specific workloads but was neutral on the
+small mixed corpus. Only the `ctags` executable is optimized; the rest of the
+Homebrew keg remains the standard bottle installation.
+
+#### Git — native Apple Silicon build (optional)
+
+The Git workflow rebuilds only Homebrew Git 2.55.0's main `git` executable and
+therefore its builtins. External helpers and support files remain bottle-built.
+It uses Homebrew LLVM with `-O3 -mcpu=native -flto`, preserves Homebrew's
+CommonCrypto, PCRE2, gettext, system libcurl/libiconv, runtime-prefix, and
+documentation paths, then checks temporary-repository operations before an
+atomic binary replacement. The script intentionally fails closed when the
+installed Git version or formula contract changes.
+
+```sh
+brew install llvm pkgconf
+./bootstrap/compile_git_native.sh --pgo
+```
+
+Omit `--pgo` for native/LTO without profile guidance. To update or restore:
+
+```sh
+brew unpin git && brew upgrade git && ./bootstrap/compile_git_native.sh --pgo
+brew unpin git && brew reinstall git
+```
+
+The deterministic benchmark creates 30 revisions in a temporary repository,
+checks output equivalence, alternates comparison order, and measures combined
+CPU time for status, diff, grep/PCRE2, log, object traversal, fsck, and
+commit-graph verification. On the M1 Pro, five repetitions measured **0.070 CPU
+seconds** for native/LTO and **0.070 seconds** for the bottle. PGO was likewise
+**0.070 seconds** against native/LTO. This is effectively neutral; the workflow
+is retained for reproducible experimentation, not as evidence that rebuilding
+Git is faster or saves power.
+
 #### config and benchmark checks
 
 - run environment doctor: `./bootstrap/doctor.sh`
