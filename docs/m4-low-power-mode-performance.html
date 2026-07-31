@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>What Low Power Mode costs on an M4 MacBook Air - dot-files</title>
-  <meta name="description" content="A controlled local comparison of M4 MacBook Air single-thread and browser performance with Low Power Mode off and on, including raw data and reproducible scripts.">
+  <meta name="description" content="Low Power Mode nearly halved browser and SHA-256 performance on an M4 MacBook Air, but used substantially less power. Here is what I measured and how.">
   <meta name="author" content="Marian Posaceanu">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://dot.marianposaceanu.com/m4-low-power-mode-performance.html">
@@ -28,10 +28,10 @@
       <p class="eyebrow">Apple M4 · Low Power Mode · measured locally</p>
       <h1 id="page-title">What Low Power Mode costs on an M4 MacBook Air</h1>
       <p class="subtitle">
-        On this fanless M4, Low Power Mode cut sustained SHA-256 throughput by
-        52.7% and warm Speedometer 3.1 performance by 47.4%. A second battery
-        run measured 66.8% less whole-system power under sustained SHA load and
-        30.1% less energy for a fixed amount of hashing.
+        Low Power Mode is not a subtle adjustment on this fanless M4. It nearly
+        halved performance in two very different tests. The bargain is equally
+        striking: under sustained SHA load, the whole machine drew two-thirds
+        less power and used 30.1% less energy to finish the same amount of work.
       </p>
       <ul class="meta" aria-label="Article metadata">
         <li>MacBook Air Mac16,12</li>
@@ -43,25 +43,31 @@
     <nav class="toc" aria-label="Table of contents">
       <h2>On this page</h2>
       <ol>
-        <li><a href="#result">The result</a></li>
-        <li><a href="#browser">Browser performance</a></li>
-        <li><a href="#native">Native single-thread workload</a></li>
-        <li><a href="#energy">Power and battery life</a></li>
-        <li><a href="#method">Test method and controls</a></li>
-        <li><a href="#raw-data">Raw data</a></li>
-        <li><a href="#reproduce">Reproduce the benchmark</a></li>
-        <li><a href="#limits">What the result does not mean</a></li>
+        <li><a href="#result">The short version</a></li>
+        <li><a href="#browser">Where the browser feels it</a></li>
+        <li><a href="#native">A native workload tells the same story</a></li>
+        <li><a href="#energy">What the power saving buys</a></li>
+        <li><a href="#method">How I tested it</a></li>
+        <li><a href="#raw-data">The numbers</a></li>
+        <li><a href="#reproduce">Run it yourself</a></li>
+        <li><a href="#limits">How far to trust the result</a></li>
       </ol>
     </nav>
 
     <article class="article article-flow">
       <section id="result">
-        <h2>The result</h2>
+        <h2>The short version</h2>
         <p>
-          Low Power Mode roughly halved the peak CPU-heavy performance measured on
-          this machine. The two independent workloads agree even though one is a
-          native cryptographic loop and the other exercises a complete browser and
-          JavaScript application suite.
+          Apple places Low Power Mode among the battery settings, which makes it
+          sound like a little housekeeping at the edges. On this MacBook Air, it
+          behaved more like a choice between two performance classes. Both a native
+          cryptographic loop and a browser full of JavaScript applications lost
+          roughly half their throughput.
+        </p>
+        <p>
+          That consistency matters. OpenSSL and Speedometer exercise very different
+          software stacks; seeing the same broad result in both makes it unlikely
+          that I had merely found an odd corner of one benchmark.
         </p>
         <div class="table-scroll">
           <table class="benchmark-result-table">
@@ -77,16 +83,16 @@
           </table>
         </div>
         <div class="callout">
-          <strong>Completion-time interpretation</strong>
-          For a fixed amount of CPU work, the measured ratios imply about 111%
-          more time for the SHA-256 workload and 90% more time for warm browser
-          work. That reciprocal is more useful than subtracting the scores: half
-          the throughput means approximately twice the completion time.
+          <strong>Think in time, not only scores</strong>
+          A 50% throughput loss does not mean waiting 50% longer. For a fixed job,
+          these measurements imply about 111% more time in SHA-256 and 90% more time
+          in the warm browser runs. In practical terms, work that saturates the CPU
+          takes close to twice as long.
         </div>
       </section>
 
       <section id="browser">
-        <h2>Browser performance</h2>
+        <h2>Where the browser feels it</h2>
         <figure class="chart power-benchmark-chart" role="img" aria-label="Warm Speedometer 3.1 median: normal mode 58.33 and Low Power Mode 30.68, a 47.4 percent reduction">
           <figcaption class="chart-title">Speedometer 3.1 warm median: higher is better</figcaption>
           <div class="bar-row">
@@ -101,22 +107,30 @@
           </div>
         </figure>
         <p>
-          Speedometer 3.1 runs interactive web-application workloads using common
-          JavaScript frameworks. The official aggregate fell from 53.4 to 28.9,
-          or 45.9%. The first iteration was cold in both modes, so I also compared
-          the median of iterations two through five: 58.33 versus 30.68, a 47.4%
-          loss.
+          Speedometer is where the trade-off stops being an abstract CPU number.
+          It repeatedly drives small web applications built with common JavaScript
+          frameworks—the sort of work hiding behind rich editors, dashboards, and
+          complex forms. The official score fell from 53.4 to 28.9, a 45.9% drop.
         </p>
         <p>
-          This is the part most relevant to editors, dashboards, complex forms,
-          local browser tools, and JavaScript-heavy sites. Network-bound pages will
-          not simply become 47% slower because DNS, transfer time, server latency,
-          and human pauses do not scale with CPU speed.
+          Both modes began with a slower cold iteration. Looking only at the next
+          four runs gives a cleaner picture of sustained use: a median of 58.33 in
+          normal mode and 30.68 in Low Power Mode. In other words, once the browser
+          was warm, Low Power Mode still left it with just over half the throughput.
+        </p>
+        <p>
+          That does not make every website 47% slower. A page waiting on DNS, a
+          server response, or a download spends much of its time beyond the CPU's
+          control. But when the work is already on the machine—rendering a large
+          view, updating a client-side application, or responding inside an
+          editor—there is less waiting to hide the difference. Those are the moments
+          in which this power setting is most likely to feel like a slower computer,
+          rather than merely a more economical one.
         </p>
       </section>
 
       <section id="native">
-        <h2>Native single-thread workload</h2>
+        <h2>A native workload tells the same story</h2>
         <figure class="chart power-benchmark-chart" role="img" aria-label="OpenSSL SHA-256 median throughput: normal mode 3.362 gigabytes per second and Low Power Mode 1.591 gigabytes per second, a 52.7 percent reduction">
           <figcaption class="chart-title">SHA-256 8192-byte throughput: higher is better</figcaption>
           <div class="bar-row">
@@ -131,23 +145,34 @@
           </div>
         </figure>
         <p>
-          OpenSSL's <code>speed</code> command runs this EVP SHA-256 loop in one
-          process and reports multiple block sizes. I used the 8192-byte column,
-          repeated it three times per mode, and compared medians. Normal mode was
-          2.113 times as fast as Low Power Mode.
+          Speedometer is intentionally broad, so I wanted a smaller test with less
+          browser machinery between the setting and the result. OpenSSL's
+          <code>speed</code> command provides one: a sustained EVP SHA-256 loop in a
+          single process.
+        </p>
+        <p>
+          I used its 8192-byte result, ran three five-second samples in each mode,
+          and compared the medians. Normal mode reached 3.362 GB/s; Low Power Mode
+          managed 1.591 GB/s. The normal setting was 2.113 times as fast—remarkably
+          close to the gap in the warm browser runs.
         </p>
         <pre><code>openssl speed -seconds 5 -evp sha256</code></pre>
       </section>
 
       <section id="energy">
-        <h2>Power and battery life</h2>
+        <h2>What the power saving buys</h2>
         <p>
-          I ran a second, paired OpenSSL batch after removing Chrome, this time
-          sampling the Mac's own battery current and voltage every five seconds.
-          Each mode had a 90-second idle phase, a 60-second loaded warmup so the
-          battery gauge could settle, and a 180-second measured SHA-256 phase.
-          The benchmark verified <code>lowpowermode=0</code> for normal and
-          <code>lowpowermode=1</code> for Low Power before doing any work.
+          Losing half the performance only makes sense if the machine saves enough
+          energy in return. To measure that side of the bargain, I removed Chrome
+          and ran a second paired OpenSSL test while sampling the battery's current
+          and voltage every five seconds.
+        </p>
+        <p>
+          Each mode sat idle for 90 seconds, warmed up under load for 60 seconds so
+          the battery gauge could settle, then ran a measured three-minute SHA-256
+          phase. Before starting, the harness checked that macOS actually reported
+          <code>lowpowermode=0</code> for normal or <code>lowpowermode=1</code> for
+          Low Power Mode.
         </p>
         <figure class="chart power-benchmark-chart" role="img" aria-label="Average whole-system battery draw during SHA-256 load: normal mode 8.78 watts and Low Power Mode 2.91 watts, 33.2 percent of normal">
           <figcaption class="chart-title">Whole-system SHA-256 load: lower is better</figcaption>
@@ -163,10 +188,12 @@
           </div>
         </figure>
         <p>
-          Lower power does not automatically mean lower energy for a fixed job,
-          because Low Power Mode also took 2.108 times as long. After accounting
-          for that throughput difference, the Low Power run used 69.9% as much
-          energy per byte: a measured 30.1% fixed-work energy saving.
+          The loaded machine drew 8.78 W in normal mode and 2.91 W in Low Power
+          Mode. That 66.8% reduction looks spectacular, but watts alone do not settle
+          the question: the slower machine must run longer to complete the job.
+          After correcting for the 2.108× difference in throughput, Low Power Mode
+          still used only 69.9% as much energy per byte hashed. The net saving for
+          equal work was 30.1%.
         </p>
         <figure class="chart power-benchmark-chart" role="img" aria-label="Relative energy for a fixed amount of SHA-256 work: normal mode 100 percent and Low Power Mode 69.9 percent">
           <figcaption class="chart-title">Energy for equal SHA-256 work: lower is better</figcaption>
@@ -180,27 +207,34 @@
             <div class="bar-meta">30.1% less energy per byte hashed</div>
           </div>
         </figure>
-        <h3>Battery-life extrapolation</h3>
+        <h3>The tempting battery-life calculation</h3>
         <p>
-          If this exact workload ran continuously from a nominal 53.8 Wh full
-          battery, the measured averages extrapolate to about <strong>6.1 hours</strong>
-          in normal mode and <strong>18.5 hours</strong> in Low Power Mode—a 3.01×
-          runtime. This is a controlled arithmetic extrapolation, not a battery
-          rundown test or a prediction for ordinary browsing.
+          Divide a nominal 53.8 Wh battery by those average power readings and the
+          result is about <strong>6.1 hours</strong> in normal mode versus
+          <strong>18.5 hours</strong> in Low Power Mode, or 3.01 times the runtime.
+          It is an irresistible figure—and an easy one to misuse. I did not run the
+          battery from full to empty, and almost nobody spends an entire charge
+          hashing data without pause.
         </p>
         <div class="callout">
-          <strong>What this says about the web</strong>
-          The earlier Speedometer result proves that CPU-heavy browser work slows
-          substantially. The new power run measures the native SHA workload, not
-          browser energy: Chrome stayed uninstalled, and Safari automation was not
-          enabled. Real browsing also spends power on the display, radio, video,
-          network waits, and idle time, so its battery-life gain cannot be derived
-          from the 3.01× continuous-load figure.
+          <strong>Do not turn 3.01× into a browsing claim</strong>
+          The power run measured native SHA-256, not browser energy. Chrome was no
+          longer installed, and I did not enable Safari automation. Real browsing
+          also powers the display, radio, video hardware, network waits, and long
+          idle stretches. Speedometer shows that CPU-heavy web work slows down; this
+          separate power test cannot tell us how much longer an ordinary day on the
+          web will last.
         </div>
       </section>
 
       <section id="method">
-        <h2>Test method and controls</h2>
+        <h2>How I tested it</h2>
+        <p>
+          The aim was not to produce a universal M4 score. I wanted a comparison in
+          which the power setting changed and as little else as practical did. The
+          machine, software versions, browser geometry, profiles, and benchmark
+          duration were therefore fixed or recorded.
+        </p>
         <h3>Machine</h3>
         <ul>
           <li>MacBook Air <code>Mac16,12</code>, fanless</li>
@@ -219,51 +253,58 @@
         </ul>
         <h3>Power-mode boundary</h3>
         <p>
-          I selected <strong>Never</strong> for normal mode and
-          <strong>Only on Battery</strong> for Low Power Mode in System Settings.
-          The harness checked the effective battery value before every run:
+          I changed the setting through System Settings: <strong>Never</strong> for
+          normal mode, then <strong>Only on Battery</strong> for Low Power Mode. The
+          harness did not take that selection on faith; it checked the effective
+          battery value before every run:
         </p>
         <pre><code>pmset -g custom
 # normal: battery lowpowermode 0
 # low:    battery lowpowermode 1</code></pre>
         <p>
-          No privileged <code>pmset</code> setter was used. This avoids an
-          administrator prompt and keeps mode changes on Apple's supported UI path.
-          <code>pmset -g therm</code> reported no thermal or performance warning for
-          either test.
+          Nothing in the scripts uses a privileged <code>pmset</code> setter. Mode
+          changes stay on Apple's supported UI path, and a mismatched setting stops
+          the benchmark instead of silently contaminating a run.
+          <code>pmset -g therm</code> reported no thermal or performance warning in
+          either mode.
         </p>
         <h3>Browser isolation</h3>
         <p>
-          Every browser run created a new temporary Chrome profile and removed it
-          afterward. Both modes used the same exact executable and build, a
-          1200×900 requested window, a measured 1200×813 content viewport, disabled
-          extensions and sync, and the benchmark's automatic five-iteration runner.
-          The result includes Chrome's DevTools version response so a stale or
-          silently updated browser cannot be mistaken for the intended binary.
+          Every browser run started with a fresh temporary Chrome profile and
+          deleted it afterward. Extensions and sync were disabled. Both modes used
+          the same executable and build, a requested 1200×900 window, a measured
+          1200×813 content viewport, and Speedometer's automatic five-iteration
+          runner. I also captured Chrome's DevTools version response; that makes a
+          stale or silently updated binary visible in the record.
         </p>
         <h3>Battery telemetry</h3>
         <p>
-          The power batch read <code>InstantAmperage</code>, <code>Voltage</code>,
+          For the power batch, the script read <code>InstantAmperage</code>, <code>Voltage</code>,
           <code>AppleRawCurrentCapacity</code>, and <code>PowerTelemetryData</code>
           from <code>AppleSmartBattery</code> with unprivileged <code>ioreg</code>.
           Whole-system battery power is <code>abs(current_mA) × voltage_mV / 1,000,000</code>.
-          I integrated the current-and-voltage samples as the primary estimate;
-          the raw capacity counter is preserved only as a coarse cross-check.
-          <code>powermetrics</code> was not used because it requires administrator access.
+          The integrated current-and-voltage samples are the primary estimate. I
+          kept the raw capacity counter only as a coarse cross-check and did not use
+          <code>powermetrics</code>, which requires administrator access.
         </p>
         <p>
-          The battery gauge updates in visible steps, so an exploratory pair
-          without warmup was discarded from the comparison. The corrected pair
-          warmed the load for 60 seconds before collecting 180 seconds of data.
-          These are whole-machine readings at the current automatic display
-          brightness and background activity, not CPU package power. The battery
-          was approximately 79–77%, had 13 cycles, and reported roughly 4,684 mAh
-          full-charge capacity during this batch.
+          An exploratory pair made the battery gauge's stepwise updates obvious, so
+          I discarded it and added the 60-second loaded warmup before collecting 180
+          seconds of data. These remain whole-machine readings at the current
+          automatic display brightness and background activity—not CPU package
+          power. During the batch, the battery moved from roughly 79% to 77%, had 13
+          cycles, and reported about 4,684 mAh of full-charge capacity.
         </p>
       </section>
 
       <section id="raw-data">
-        <h2>Raw data</h2>
+        <h2>The numbers</h2>
+        <p>
+          The summaries above use medians for the short performance samples and
+          averages across 37 battery readings for each three-minute loaded phase.
+          The individual values are included here so the size—and the consistency—
+          of the differences remains visible.
+        </p>
         <h3>SHA-256, kB/s</h3>
         <div class="table-scroll">
           <table class="benchmark-result-table">
@@ -303,17 +344,20 @@
           </table>
         </div>
         <p>
-          The complete captured values and calculations are preserved in
+          Every captured value, along with the calculations behind the derived
+          ratios, is preserved in
           <a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/results/m4-low-power-mode-20260731.md">the benchmark record</a>.
         </p>
       </section>
 
       <section id="reproduce">
-        <h2>Reproduce the benchmark</h2>
+        <h2>Run it yourself</h2>
         <p>
-          The checked-in harness does not change power settings. It stops if the
-          effective mode differs from its argument, which makes accidental or
-          privileged configuration changes impossible.
+          The scripts are deliberately less convenient than a benchmark that flips
+          settings for you. Select each mode in System Settings, then tell the
+          harness which one you expect. If macOS reports something different, the
+          run stops. The benchmark never asks for administrator access and never
+          changes the power policy itself.
         </p>
         <pre><code>git clone git@github.com:marianposaceanu/dot-files.git ~/dot-files
 cd ~/dot-files
@@ -336,16 +380,21 @@ python3 benchmarks/m4_power_benchmark.py low</code></pre>
       </section>
 
       <section id="limits">
-        <h2>What the result does not mean</h2>
+        <h2>How far to trust the result</h2>
+        <p>
+          The gap is too large and too consistent to dismiss, but the scope is still
+          one laptop, one operating-system build, and one browser build. These are
+          the boundaries I would keep in mind before generalising from it:
+        </p>
         <ul>
-          <li>SHA-256 is a sustained native crypto workload, not a universal single-thread score.</li>
-          <li>Speedometer is intentionally CPU- and browser-heavy; network-bound browsing has a smaller end-to-end penalty.</li>
-          <li>The comparison describes this M4 MacBook Air, macOS build, and browser build. Other Apple chips and OS versions can use different power policies.</li>
-          <li>Five browser iterations expose cold versus warm behavior but do not replace repeated, randomized A/B/A trials.</li>
-          <li>Battery telemetry has much lower time resolution than dedicated lab instrumentation; repeated randomized runs and a physical power meter would tighten the estimate.</li>
-          <li>The battery-life figures are arithmetic extrapolations for continuous SHA-256 load, not measured browsing runtimes.</li>
+          <li>SHA-256 is a sustained native cryptographic workload, not a universal single-thread score.</li>
+          <li>Speedometer leans into CPU- and browser-heavy interaction. Network-bound browsing should show a smaller end-to-end penalty.</li>
+          <li>Other Apple chips and macOS versions are free to apply a different power policy.</li>
+          <li>Five browser iterations reveal the cold-to-warm pattern, but repeated randomized A/B/A trials would provide a stronger estimate.</li>
+          <li>The Mac's battery telemetry updates far more slowly than dedicated lab equipment. More randomized runs and a physical power meter would tighten the energy result.</li>
+          <li>The battery-life figures are arithmetic extrapolations from continuous SHA-256 load, not measured browsing runtimes.</li>
         </ul>
-        <blockquote><p>On this M4 MacBook Air, Low Power Mode is an efficiency policy with a visible performance trade-off—not a free battery-life toggle.</p></blockquote>
+        <blockquote><p>On this M4 MacBook Air, Low Power Mode earns its name: it saves meaningful energy by giving up meaningful speed. Whether that is a good trade depends less on the battery icon than on the work in front of you.</p></blockquote>
       </section>
     </article>
   </main>
