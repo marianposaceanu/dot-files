@@ -79,6 +79,8 @@ info()    { printf '%s==>%s %s\n' "$BOLD" "$RESET" "$1"; }
 success() { printf '%s==>%s %s\n' "$GREEN" "$RESET" "$1"; }
 warn()    { printf '%s==>%s %s\n' "$YELLOW" "$RESET" "$1"; }
 
+OPTIMIZATION_FLAGS="-O3 -mcpu=native -ffp-contract=fast -flto"
+
 sha256() {
   shasum -a 256 "$1" | awk '{print $1}'
 }
@@ -353,12 +355,17 @@ trap 'exit 143' TERM
 info "Extracting source …"
 tar -xzf "$SOURCE_TARBALL" -C "$BUILD_DIR" --strip-components=1
 
+# Reuse Vim's centered MODIFIED_BY intro line to describe this native build.
+perl -pi -e 's/\Q(char_u *)_("Modified by ")\E/(char_u *)_("Optimized for ")/' "$BUILD_DIR/src/version.c"
+grep -Fq '(char_u *)_("Optimized for ")' "$BUILD_DIR/src/version.c" \
+  || { printf 'Error: Could not customize Vim intro text.\n' >&2; exit 1; }
+
 # ── Configure ─────────────────────────────────────────────────────────────────
 
 info "Configuring with the installed Homebrew formula's feature contract …"
 cd "$BUILD_DIR"
 BUILD_PATH="$PYTHON_PREFIX/bin:$PYTHON_PREFIX/libexec/bin:$RUBY_PREFIX/bin:$GETTEXT_PREFIX/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-BUILD_CFLAGS="-g -O3 -mcpu=native -ffp-contract=fast -flto -D_REENTRANT -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1"
+BUILD_CFLAGS="-g ${OPTIMIZATION_FLAGS} -D_REENTRANT -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1"
 BUILD_CPPFLAGS="-I$GETTEXT_PREFIX/include -I$NCURSES_PREFIX/include -I$LIBSODIUM_PREFIX/include"
 BUILD_LDFLAGS="-flto -L$GETTEXT_PREFIX/lib -L$NCURSES_PREFIX/lib -L$LIBSODIUM_PREFIX/lib"
 for prefix in "$LUA_PREFIX" "$PYTHON_PREFIX" "$RUBY_PREFIX"; do
@@ -383,6 +390,7 @@ env -i \
   --enable-multibyte \
   --with-tlib=ncurses \
   --with-compiledby=native-"${RESOLVED_CPU}" \
+  --with-modified-by="[ ${RESOLVED_CPU} :: ${OPTIMIZATION_FLAGS} ]" \
   --enable-cscope \
   --enable-terminal \
   --enable-perlinterp \
@@ -397,7 +405,7 @@ env -i \
 
 # ── Build ──────────────────────────────────────────────────────────────────────
 
-info "Building vim with -O3 -mcpu=native -ffp-contract=fast -flto …"
+info "Building vim with ${OPTIMIZATION_FLAGS} …"
 env -i \
   HOME="$HOME" \
   TMPDIR="${TMPDIR:-/tmp}" \
