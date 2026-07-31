@@ -90,3 +90,76 @@ System Settings and run each half separately:
 
 See `benchmarks/speedometer_runner.mjs` for the exact browser flags and DevTools
 automation.
+
+## Whole-system power follow-up
+
+A second batch measured battery draw after Chrome had been removed. It exercises
+the same native single-thread SHA-256 workload; it does not measure browser power.
+The checked-in `m4_power_benchmark.py` refuses to run unless the requested mode
+matches the effective battery setting.
+
+### Method
+
+- Battery only, approximately 79–77%, automatic display brightness enabled
+- Battery cycle count: 13; reported full-charge capacity: approximately 4,684 mAh
+- 90 seconds idle sampling
+- 60 seconds loaded warmup to allow the battery gauge to reach steady state
+- 180 seconds measured OpenSSL SHA-256 load
+- One `AppleSmartBattery` sample every five seconds via unprivileged `ioreg`
+- Whole-system watts: `abs(InstantAmperage_mA) × Voltage_mV / 1,000,000`
+- Primary energy estimate: average sample watts × elapsed time
+- Raw-capacity energy retained only as a coarse cross-check
+
+`powermetrics` was not used because it requires administrator access. Power-mode
+changes used System Settings rather than a privileged `pmset` setter. The mode was
+verified before each run and restored to **Only on Battery** afterward.
+
+### Corrected steady-state results
+
+| Measurement | Normal | Low Power |
+| --- | ---: | ---: |
+| Verified battery value | `lowpowermode=0` | `lowpowermode=1` |
+| Idle average | 2.0297 W | 2.1265 W |
+| Loaded average | 8.7811 W | 2.9132 W |
+| Loaded sample count | 37 | 37 |
+| Loaded elapsed time | 180.02 s | 180.03 s |
+| Sample-integrated energy | 0.4391 Wh | 0.1457 Wh |
+| Capacity-counter cross-check | 0.5016 Wh | 0.1975 Wh |
+| SHA-256 throughput | 3,305,470.67 kB/s | 1,568,375.53 kB/s |
+
+The corrected raw captures are:
+
+- `m4-power-normal-20260731T100310Z.json`
+- `m4-power-low-20260731T095511Z.json`
+
+An exploratory pair without loaded warmup exposed delayed, stepwise battery-gauge
+updates and was excluded. The 60-second warmup was added before collecting the
+corrected pair.
+
+### Derived power and energy comparison
+
+- Whole-system loaded power reduction: **66.82%**
+- Continuous-load runtime multiplier: **3.014×**
+- SHA throughput loss in this pair: **52.55%** (normal is **2.108×** as fast)
+- Relative energy for equal SHA work: **69.92%**
+- Fixed-work energy saving: **30.08%**
+
+Using a nominal 53.8 Wh full battery, the measured loaded averages extrapolate to
+6.13 hours in normal mode and 18.47 hours in Low Power Mode. This is arithmetic
+for an uninterrupted SHA workload, not a battery rundown or browsing-runtime
+claim. Display, radio, video, network waits, idle periods, and background activity
+change the result for ordinary web use.
+
+### Reproduce the power batch
+
+Select each mode in System Settings before its command. The script verifies the
+setting but never changes it:
+
+```sh
+python3 benchmarks/m4_power_benchmark.py normal
+python3 benchmarks/m4_power_benchmark.py low
+```
+
+The defaults are `--idle-seconds 90`, `--warmup-seconds 60`,
+`--load-seconds 180`, and `--sample-seconds 5`. Every run writes a timestamped
+JSON capture under `benchmarks/results/` containing all samples and OpenSSL output.
