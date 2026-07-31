@@ -26,6 +26,30 @@
   margin-bottom: 0;
 }
 
+.power-benchmark-chart .bar-fill.normal-power {
+  width: 100%;
+  background: var(--color-text);
+}
+
+.power-benchmark-chart .bar-fill.low-power-sha {
+  width: 47.3%;
+}
+
+.power-benchmark-chart .bar-fill.low-power-speedometer {
+  width: 52.6%;
+}
+
+.power-benchmark-chart .bar-label span,
+.benchmark-result-table td:not(:first-child),
+.benchmark-result-table th:not(:first-child) {
+  font-variant-numeric: tabular-nums;
+}
+
+.benchmark-result-table td:not(:first-child),
+.benchmark-result-table th:not(:first-child) {
+  text-align: right;
+}
+
 .table-scroll {
   max-width: 100%;
   overflow-x: auto;

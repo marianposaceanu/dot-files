@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What Low Power Mode costs on an M4 MacBook Air - dot-files</title>
+  <meta name="description" content="A controlled local comparison of M4 MacBook Air single-thread and browser performance with Low Power Mode off and on, including raw data and reproducible scripts.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/m4-low-power-mode-performance.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=ef91d1eaf28f">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=b645cad6550f">
+</head>
+<body class="site-article" id="top">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="index.html">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="main-content">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Apple M4 · Low Power Mode · measured locally</p>
+      <h1 id="page-title">What Low Power Mode costs on an M4 MacBook Air</h1>
+      <p class="subtitle">
+        On this fanless M4, Low Power Mode cut sustained SHA-256 throughput by
+        52.7% and warm Speedometer 3.1 performance by 47.4%. Here is the raw data,
+        the test design, and the exact reproducible harness.
+      </p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>MacBook Air Mac16,12</li>
+        <li>macOS 26.6</li>
+        <li><time class="article-date" datetime="2026-07-31">31st July 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#result">The result</a></li>
+        <li><a href="#browser">Browser performance</a></li>
+        <li><a href="#native">Native single-thread workload</a></li>
+        <li><a href="#method">Test method and controls</a></li>
+        <li><a href="#raw-data">Raw data</a></li>
+        <li><a href="#reproduce">Reproduce the benchmark</a></li>
+        <li><a href="#limits">What the result does not mean</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="result">
+        <h2>The result</h2>
+        <p>
+          Low Power Mode roughly halved the peak CPU-heavy performance measured on
+          this machine. The two independent workloads agree even though one is a
+          native cryptographic loop and the other exercises a complete browser and
+          JavaScript application suite.
+        </p>
+        <div class="table-scroll">
+          <table class="benchmark-result-table">
+            <thead>
+              <tr><th>Measurement</th><th>Normal</th><th>Low Power</th><th>Loss</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>SHA-256 median</td><td>3,362,220 kB/s</td><td>1,590,919 kB/s</td><td>52.7%</td></tr>
+              <tr><td>Speedometer aggregate</td><td>53.4</td><td>28.9</td><td>45.9%</td></tr>
+              <tr><td>Speedometer warm median</td><td>58.33</td><td>30.68</td><td>47.4%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <strong>Completion-time interpretation</strong>
+          For a fixed amount of CPU work, the measured ratios imply about 111%
+          more time for the SHA-256 workload and 90% more time for warm browser
+          work. That reciprocal is more useful than subtracting the scores: half
+          the throughput means approximately twice the completion time.
+        </div>
+      </section>
+
+      <section id="browser">
+        <h2>Browser performance</h2>
+        <figure class="chart power-benchmark-chart" role="img" aria-label="Warm Speedometer 3.1 median: normal mode 58.33 and Low Power Mode 30.68, a 47.4 percent reduction">
+          <figcaption class="chart-title">Speedometer 3.1 warm median: higher is better</figcaption>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Normal</strong><span>58.33</span></div>
+            <div class="bar-track"><span class="bar-fill normal-power"></span></div>
+            <div class="bar-meta">Never · four warm iterations</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Low Power</strong><span>30.68</span></div>
+            <div class="bar-track"><span class="bar-fill low-power-speedometer"></span></div>
+            <div class="bar-meta">Only on Battery · 52.6% of normal throughput</div>
+          </div>
+        </figure>
+        <p>
+          Speedometer 3.1 runs interactive web-application workloads using common
+          JavaScript frameworks. The official aggregate fell from 53.4 to 28.9,
+          or 45.9%. The first iteration was cold in both modes, so I also compared
+          the median of iterations two through five: 58.33 versus 30.68, a 47.4%
+          loss.
+        </p>
+        <p>
+          This is the part most relevant to editors, dashboards, complex forms,
+          local browser tools, and JavaScript-heavy sites. Network-bound pages will
+          not simply become 47% slower because DNS, transfer time, server latency,
+          and human pauses do not scale with CPU speed.
+        </p>
+      </section>
+
+      <section id="native">
+        <h2>Native single-thread workload</h2>
+        <figure class="chart power-benchmark-chart" role="img" aria-label="OpenSSL SHA-256 median throughput: normal mode 3.362 gigabytes per second and Low Power Mode 1.591 gigabytes per second, a 52.7 percent reduction">
+          <figcaption class="chart-title">SHA-256 8192-byte throughput: higher is better</figcaption>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Normal</strong><span>3.362 GB/s</span></div>
+            <div class="bar-track"><span class="bar-fill normal-power"></span></div>
+            <div class="bar-meta">Median of three five-second samples</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><strong>Low Power</strong><span>1.591 GB/s</span></div>
+            <div class="bar-track"><span class="bar-fill low-power-sha"></span></div>
+            <div class="bar-meta">47.3% of normal throughput</div>
+          </div>
+        </figure>
+        <p>
+          OpenSSL's <code>speed</code> command runs this EVP SHA-256 loop in one
+          process and reports multiple block sizes. I used the 8192-byte column,
+          repeated it three times per mode, and compared medians. Normal mode was
+          2.113 times as fast as Low Power Mode.
+        </p>
+        <pre><code>openssl speed -seconds 5 -evp sha256</code></pre>
+      </section>
+
+      <section id="method">
+        <h2>Test method and controls</h2>
+        <h3>Machine</h3>
+        <ul>
+          <li>MacBook Air <code>Mac16,12</code>, fanless</li>
+          <li>Apple M4: four performance and six efficiency cores</li>
+          <li>16 GB unified memory</li>
+          <li>macOS 26.6, build <code>25G72</code></li>
+          <li>Battery power: 83% at the normal run, 82% at the Low Power run</li>
+        </ul>
+        <h3>Software</h3>
+        <ul>
+          <li>Google Chrome 150.0.7871.188</li>
+          <li>V8 15.0.245.21</li>
+          <li>Official <a href="https://browserbench.org/Speedometer3.1/">Speedometer 3.1</a></li>
+          <li>OpenSSL 3.6.3</li>
+          <li>Node.js 26.5.0 for Chrome DevTools automation</li>
+        </ul>
+        <h3>Power-mode boundary</h3>
+        <p>
+          I selected <strong>Never</strong> for normal mode and
+          <strong>Only on Battery</strong> for Low Power Mode in System Settings.
+          The harness checked the effective battery value before every run:
+        </p>
+        <pre><code>pmset -g custom
+# normal: battery lowpowermode 0
+# low:    battery lowpowermode 1</code></pre>
+        <p>
+          No privileged <code>pmset</code> setter was used. This avoids an
+          administrator prompt and keeps mode changes on Apple's supported UI path.
+          <code>pmset -g therm</code> reported no thermal or performance warning for
+          either test.
+        </p>
+        <h3>Browser isolation</h3>
+        <p>
+          Every browser run created a new temporary Chrome profile and removed it
+          afterward. Both modes used the same exact executable and build, a
+          1200×900 requested window, a measured 1200×813 content viewport, disabled
+          extensions and sync, and the benchmark's automatic five-iteration runner.
+          The result includes Chrome's DevTools version response so a stale or
+          silently updated browser cannot be mistaken for the intended binary.
+        </p>
+      </section>
+
+      <section id="raw-data">
+        <h2>Raw data</h2>
+        <h3>SHA-256, kB/s</h3>
+        <div class="table-scroll">
+          <table class="benchmark-result-table">
+            <thead><tr><th>Run</th><th>Normal</th><th>Low Power</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>3,353,713.23</td><td>1,590,906.10</td></tr>
+              <tr><td>2</td><td>3,362,220.07</td><td>1,590,919.23</td></tr>
+              <tr><td>3</td><td>3,363,868.32</td><td>1,590,984.90</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Speedometer iteration scores</h3>
+        <div class="table-scroll">
+          <table class="benchmark-result-table">
+            <thead><tr><th>Iteration</th><th>Normal</th><th>Low Power</th></tr></thead>
+            <tbody>
+              <tr><td>1, cold</td><td>33.5785</td><td>23.6245</td></tr>
+              <tr><td>2</td><td>58.0921</td><td>28.5621</td></tr>
+              <tr><td>3</td><td>58.3482</td><td>30.6675</td></tr>
+              <tr><td>4</td><td>58.3113</td><td>30.6833</td></tr>
+              <tr><td>5</td><td>58.6105</td><td>30.9030</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          The complete captured values and calculations are preserved in
+          <a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/results/m4-low-power-mode-20260731.md">the benchmark record</a>.
+        </p>
+      </section>
+
+      <section id="reproduce">
+        <h2>Reproduce the benchmark</h2>
+        <p>
+          The checked-in harness does not change power settings. It stops if the
+          effective mode differs from its argument, which makes accidental or
+          privileged configuration changes impossible.
+        </p>
+        <pre><code>git clone git@github.com:marianposaceanu/dot-files.git ~/dot-files
+cd ~/dot-files
+
+# System Settings → Battery → Low Power Mode → Never
+./benchmarks/m4_low_power_benchmark.sh normal
+
+# System Settings → Battery → Low Power Mode → Only on Battery
+./benchmarks/m4_low_power_benchmark.sh low</code></pre>
+        <ul class="source-list compact-list">
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/m4_low_power_benchmark.sh"><code>m4_low_power_benchmark.sh</code></a><span>mode verification, environment capture, OpenSSL samples, and result logging</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/speedometer_runner.mjs"><code>speedometer_runner.mjs</code></a><span>fresh Chrome profile, exact flags, DevTools automation, version capture, and cleanup</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/results/m4-low-power-mode-20260731.md"><code>m4-low-power-mode-20260731.md</code></a><span>raw measurements and derived ratios</span></li>
+        </ul>
+      </section>
+
+      <section id="limits">
+        <h2>What the result does not mean</h2>
+        <ul>
+          <li>SHA-256 is a sustained native crypto workload, not a universal single-thread score.</li>
+          <li>Speedometer is intentionally CPU- and browser-heavy; network-bound browsing has a smaller end-to-end penalty.</li>
+          <li>The comparison describes this M4 MacBook Air, macOS build, and browser build. Other Apple chips and OS versions can use different power policies.</li>
+          <li>Five browser iterations expose cold versus warm behavior but do not replace repeated, randomized A/B/A trials.</li>
+          <li>The test quantifies performance, not battery-life improvement. No energy instrumentation was collected.</li>
+        </ul>
+        <blockquote><p>On this M4 MacBook Air, Low Power Mode is an efficiency policy with a visible performance trade-off—not a free battery-life toggle.</p></blockquote>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files/tree/main/benchmarks">Browse the benchmark source</a></p>
+  </footer>
+</body>
+</html>
