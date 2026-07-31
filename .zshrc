@@ -21,6 +21,7 @@ typeset -U path PATH
 for _path_candidate in \
   "$JAVA_HOME/bin" \
   /opt/homebrew/opt/curl/bin \
+  /opt/homebrew/sbin \
   /opt/homebrew/bin \
   "$HOME/bin"; do
   if [[ -d "$_path_candidate" && ":$PATH:" != *":$_path_candidate:"* ]]; then
@@ -84,3 +85,6 @@ export FZF_DEFAULT_OPTS='--bind=ctrl-d:half-page-down,ctrl-u:half-page-up,ctrl-/
 # Load RVM last because it intentionally selects the active Ruby by modifying
 # PATH. Login shells that skip ~/.zshrc receive the same setup from ~/.zlogin.
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"
