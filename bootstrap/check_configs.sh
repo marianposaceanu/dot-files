@@ -21,6 +21,9 @@ env -u GEM_HOME -u GEM_PATH ruby "$REPO_ROOT/test/rz_test.rb"
 echo "Checking tutorial page generator..."
 env -u GEM_HOME -u GEM_PATH ruby -c "$REPO_ROOT/scripts/build_tutorial_pages.rb" >/dev/null
 
+echo "Checking published site contract..."
+env -u GEM_HOME -u GEM_PATH ruby "$REPO_ROOT/scripts/validate_site.rb"
+
 echo "Checking Vim config load..."
 vim -Nu "$REPO_ROOT/.vimrc" -i NONE -n -es -c 'qall'
 

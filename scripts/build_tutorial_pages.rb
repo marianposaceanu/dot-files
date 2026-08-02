@@ -14,6 +14,17 @@ DEFAULT_VISIBLE_DATE = "20th July 2026"
 DEFAULT_CATEGORY = "Vim tutorial"
 DEFAULT_EYEBROW = "Vim field guide · dot-files"
 
+ECOSYSTEM_NAVIGATION = <<~HTML.chomp
+  <nav class="ecosystem-navigation" aria-label="Marian Posăceanu sites">
+    <a href="https://marianposaceanu.com/home/about" rel="author">Marian Posăceanu</a>
+    <a href="https://marianposaceanu.com/">Main blog</a>
+    <a href="https://marianposaceanu.com/home/projects">Projects</a>
+    <a href="https://ark.marianposaceanu.com/">Ark</a>
+    <a href="https://dot.marianposaceanu.com/">dot-files</a>
+    <a href="https://cargo.marianposaceanu.com/">CARGO/19 CSS</a>
+  </nav>
+HTML
+
 def slug(text)
   text.downcase
     .gsub(/[^a-z0-9]+/, "-")
@@ -259,7 +270,7 @@ def page_for(path, css_hash, dotfiles_hash)
       <a class="skip-link" href="#main-content">Skip to content</a>
       <header class="site-header">
         <nav class="main-navigation" aria-label="Main navigation">
-          <a class="nav-home" href="index.html">dot-files</a>
+          <a class="nav-home" href="/">dot-files</a>
           <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
         </nav>
       </header>
@@ -288,8 +299,9 @@ def page_for(path, css_hash, dotfiles_hash)
       </main>
 
       <footer class="page-footer">
-        <p><a class="home-link" href="index.html">Back to dot-files</a></p>
+        <p><a class="home-link" href="/">Back to dot-files</a></p>
         <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+    #{ECOSYSTEM_NAVIGATION.lines.map { |line| "    #{line}" }.join}
       </footer>
     </body>
     </html>
