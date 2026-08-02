@@ -1,4 +1,4 @@
-# fugitive
+# Fugitive for Vim: Git Status, Diff, Blame and Log
 
 Full git porcelain inside Vim. Lazy-loaded on first use of any `:Git` command.
 

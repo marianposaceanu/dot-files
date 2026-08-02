@@ -1,4 +1,4 @@
-# vim-surround
+# vim-surround: Add, Change and Delete Quotes, Brackets and Tags
 
 Add, change, or delete surrounding characters — quotes, brackets, tags — with single keypresses.
 

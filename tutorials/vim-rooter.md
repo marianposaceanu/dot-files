@@ -1,4 +1,4 @@
-# vim-rooter
+# vim-rooter: Keep Vim at the Project Root
 
 Automatically changes Vim's working directory to the project root when you open a file. Works silently in the background.
 
