@@ -244,7 +244,7 @@ def page_for(path, css_hash, dotfiles_hash)
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>#{CGI.escapeHTML(title)} - dot-files</title>
+      <title>#{CGI.escapeHTML(title)} | dot-files</title>
       <meta name="description" content="#{CGI.escapeHTML(description)}">
       <meta name="author" content="Marian Posaceanu">
       <meta name="robots" content="index, follow">

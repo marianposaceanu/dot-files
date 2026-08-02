@@ -1,4 +1,4 @@
-# nerdtree
+# NERDTree for Vim: File Navigation and Operations
 
 File explorer sidebar. Lazy-loaded on first use.
 

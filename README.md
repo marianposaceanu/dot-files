@@ -19,7 +19,7 @@
 
 Contains my dot-files for easy usage across different OSs.
 
-**Website:** [dotfiles overview](https://marianposaceanu.github.io/dot-files/) · [Ghostty + `rz` quick start](https://marianposaceanu.github.io/dot-files/ghostty.html)
+**Website:** [dotfiles overview](https://dot.marianposaceanu.com/) · [Ghostty + `rz` quick start](https://dot.marianposaceanu.com/ghostty.html)
 
 #### contains
 

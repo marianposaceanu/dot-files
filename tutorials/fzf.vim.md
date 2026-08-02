@@ -1,4 +1,4 @@
-# fzf.vim
+# fzf.vim: Fuzzy File, Text, Buffer and Git Search
 
 Fuzzy finder integration for files, buffers, git objects, and search results. Powered by fzf and ripgrep.
 
