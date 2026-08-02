@@ -1282,26 +1282,6 @@ sup a {
   margin-top: 0.75rem;
 }
 
-.ecosystem-navigation {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem 1rem;
-  margin-top: 1.25rem;
-  font-family: var(--font-heading);
-  font-size: 0.8125rem;
-  line-height: 1.5;
-}
-
-.ecosystem-navigation a {
-  color: var(--color-muted);
-}
-
-.ecosystem-navigation a:hover,
-.ecosystem-navigation a:focus {
-  color: var(--color-link);
-}
-
 .home-link {
   font-family: var(--font-heading);
 }
@@ -1651,10 +1631,6 @@ sup a {
   .page-footer {
     padding-bottom: 56px;
     text-align: left;
-  }
-
-  .ecosystem-navigation {
-    justify-content: flex-start;
   }
 
   .page-footer::before {

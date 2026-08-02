@@ -9,14 +9,6 @@ ROOT = Pathname.new(__dir__).join("..").expand_path
 DOCS = ROOT.join("docs")
 BASE_URL = "https://dot.marianposaceanu.com"
 REDIRECT_PAGES = ["vim-performance.html"].freeze
-ECOSYSTEM_URLS = [
-  "https://marianposaceanu.com/home/about",
-  "https://marianposaceanu.com/",
-  "https://marianposaceanu.com/home/projects",
-  "https://ark.marianposaceanu.com/",
-  "https://dot.marianposaceanu.com/",
-  "https://cargo.marianposaceanu.com/"
-].freeze
 WEBSITE = {
   "@context" => "https://schema.org",
   "@type" => "WebSite",
@@ -39,14 +31,7 @@ pages.each do |path|
   expected_canonical = canonical_url(path)
   canonicals = html.scan(/<link rel="canonical" href="([^"]+)">/).flatten
   abort "#{path}: expected canonical #{expected_canonical}" unless canonicals == [expected_canonical]
-
-  navigation = html[/<nav class="ecosystem-navigation" aria-label="Marian Posăceanu sites">(.*?)<\/nav>/m, 1]
-  abort "#{path}: missing ecosystem navigation" unless navigation
-
-  links = navigation.scan(/<a href="([^"]+)"(?: rel="([^"]+)")?>/)
-  abort "#{path}: incorrect ecosystem link order" unless links.map(&:first) == ECOSYSTEM_URLS
-  abort "#{path}: person link must declare rel=author" unless links.first.last == "author"
-  abort "#{path}: ecosystem links must remain crawlable" if navigation.match?(/nofollow/)
+  abort "#{path}: obsolete ecosystem navigation found" if html.include?("ecosystem-navigation")
 end
 
 homepage = DOCS.join("index.html").read(encoding: "UTF-8")
