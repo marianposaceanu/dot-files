@@ -85,16 +85,14 @@
           <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a><span>Installation, validation, backups, and environment checks</span></li>
         </ul>
         <h3 id="start-here">Start with inspection</h3>
-        <p>Clone the repository, run the read-only checks, and only then link the configuration into the home directory.</p>
-        <pre><code>git clone git@github.com:marianposaceanu/dot-files.git ~/dot-files
+        <p>Clone the repository and run the idempotent macOS installer. It installs missing command-line tools, Ghostty, Oh My Zsh, pinned Vim plugins, and backup-aware config links, then validates the result.</p>
+        <pre><code>git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
 cd ~/dot-files
-./bootstrap/doctor.sh
-./bootstrap/check_configs.sh
-./bootstrap/link_configs.sh</code></pre>
+./bootstrap/install_macos.sh</code></pre>
         <div class="callout warning">
           <strong>Before linking</strong>
-          Review the repository and the check output. The linker backs up existing
-          configuration files before installing symlinks.
+          Review the repository before running the installer. Existing configuration
+          files are backed up before the installer replaces them with symlinks.
         </div>
       </section>
 

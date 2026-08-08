@@ -13,13 +13,19 @@ export VISUAL=vim
 export HOMEBREW_NO_ANALYTICS=1
 
 # Homebrew OpenJDK is keg-only, so expose its JDK home explicitly.
-export JAVA_HOME=/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home
+if [[ -d /opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home ]]; then
+  export JAVA_HOME=/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home
+elif [[ -d /usr/local/opt/openjdk/libexec/openjdk.jdk/Contents/Home ]]; then
+  export JAVA_HOME=/usr/local/opt/openjdk/libexec/openjdk.jdk/Contents/Home
+fi
 
 # Add missing tool directories without reordering RVM's active Ruby on reload.
 # Entries are listed from lowest to highest priority because each is prepended.
 typeset -U path PATH
 for _path_candidate in \
-  "$JAVA_HOME/bin" \
+  /usr/local/opt/ruby/bin \
+  /opt/homebrew/opt/ruby/bin \
+  "${JAVA_HOME:+$JAVA_HOME/bin}" \
   /opt/homebrew/opt/curl/bin \
   /opt/homebrew/sbin \
   /opt/homebrew/bin \
@@ -68,6 +74,11 @@ if [[ -r /opt/homebrew/opt/fzf/shell/completion.zsh &&
   # Apple Silicon Homebrew.
   source /opt/homebrew/opt/fzf/shell/completion.zsh
   source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+elif [[ -r /usr/local/opt/fzf/shell/completion.zsh &&
+        -r /usr/local/opt/fzf/shell/key-bindings.zsh ]]; then
+  # Intel Homebrew.
+  source /usr/local/opt/fzf/shell/completion.zsh
+  source /usr/local/opt/fzf/shell/key-bindings.zsh
 elif [[ -r "$HOME/.fzf.zsh" ]]; then
   # Fallback for installations created by FZF's installer.
   source "$HOME/.fzf.zsh"

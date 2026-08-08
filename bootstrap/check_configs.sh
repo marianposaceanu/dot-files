@@ -7,7 +7,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "Checking shell script syntax..."
 while IFS= read -r script; do
   bash -n "$script"
-done < <(printf '%s\n' "$REPO_ROOT/bootstrap/remove_submodule.sh" "$REPO_ROOT/bootstrap/install_brew_deps.sh" "$REPO_ROOT/bootstrap/backup_ghostty_config.sh" "$REPO_ROOT/bootstrap/link_ghostty_config.sh" "$REPO_ROOT/bootstrap/link_configs.sh" "$REPO_ROOT/bootstrap/compile_ripgrep_native.sh" "$REPO_ROOT/bootstrap/compile_ctags_native.sh" "$REPO_ROOT/bootstrap/compile_git_native.sh" "$REPO_ROOT/bootstrap/compile_vim_native.sh" "$REPO_ROOT/bootstrap/doctor.sh" "$REPO_ROOT/bootstrap/check_configs.sh" "$REPO_ROOT/benchmarks/benchmark_ripgrep_native.sh" "$REPO_ROOT/benchmarks/benchmark_ctags_native.sh" "$REPO_ROOT/benchmarks/benchmark_git_native.sh" "$REPO_ROOT/benchmarks/profile_vim_plugins.sh" "$REPO_ROOT/benchmarks/profile_vim_plugins_median.sh")
+done < <(printf '%s\n' "$REPO_ROOT/bootstrap/remove_submodule.sh" "$REPO_ROOT/bootstrap/install_macos.sh" "$REPO_ROOT/bootstrap/install_brew_deps.sh" "$REPO_ROOT/bootstrap/backup_ghostty_config.sh" "$REPO_ROOT/bootstrap/link_ghostty_config.sh" "$REPO_ROOT/bootstrap/link_configs.sh" "$REPO_ROOT/bootstrap/compile_ripgrep_native.sh" "$REPO_ROOT/bootstrap/compile_ctags_native.sh" "$REPO_ROOT/bootstrap/compile_git_native.sh" "$REPO_ROOT/bootstrap/compile_vim_native.sh" "$REPO_ROOT/bootstrap/doctor.sh" "$REPO_ROOT/bootstrap/check_configs.sh" "$REPO_ROOT/benchmarks/benchmark_ripgrep_native.sh" "$REPO_ROOT/benchmarks/benchmark_ctags_native.sh" "$REPO_ROOT/benchmarks/benchmark_git_native.sh" "$REPO_ROOT/benchmarks/profile_vim_plugins.sh" "$REPO_ROOT/benchmarks/profile_vim_plugins_median.sh")
 
 echo "Checking Zsh config syntax..."
 zsh -n "$REPO_ROOT/.zprofile"
@@ -17,6 +17,9 @@ zsh -n "$REPO_ROOT/.zlogin"
 echo "Checking rz..."
 env -u GEM_HOME -u GEM_PATH ruby -c "$REPO_ROOT/ghostty/scripts/rz" >/dev/null
 env -u GEM_HOME -u GEM_PATH ruby "$REPO_ROOT/test/rz_test.rb"
+
+echo "Checking macOS installer idempotence..."
+env -u GEM_HOME -u GEM_PATH ruby "$REPO_ROOT/test/install_macos_test.rb"
 
 echo "Checking tutorial page generator..."
 env -u GEM_HOME -u GEM_PATH ruby -c "$REPO_ROOT/scripts/build_tutorial_pages.rb" >/dev/null

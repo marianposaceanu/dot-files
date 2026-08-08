@@ -1,0 +1,205 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+require "minitest/autorun"
+require "open3"
+require "tmpdir"
+
+class InstallMacosTest < Minitest::Test
+  REPO_ROOT = File.expand_path("..", __dir__)
+  INSTALLER = File.join(REPO_ROOT, "bootstrap/install_macos.sh")
+
+  def setup
+    @tmp_dir = Dir.mktmpdir("install-macos-test")
+    @home = File.join(@tmp_dir, "home")
+    @bin = File.join(@tmp_dir, "bin")
+    @log = File.join(@tmp_dir, "commands.log")
+    @brew_state = File.join(@tmp_dir, "brew-state")
+    @clt_state = File.join(@tmp_dir, "clt-state")
+    @ghostty_app = File.join(@home, "Applications/Ghostty.app")
+    FileUtils.mkdir_p([@home, @bin])
+    FileUtils.touch(@clt_state)
+    File.write(File.join(@home, ".zshrc"), "original zsh config\n")
+    write_stubs
+  end
+
+  def teardown
+    FileUtils.remove_entry(@tmp_dir)
+  end
+
+  def test_two_runs_install_once_and_do_not_create_duplicate_backups
+    brewfile = File.readlines(File.join(REPO_ROOT, "Brewfile"))
+    assert_includes brewfile, "brew \"ruby\"\n"
+    assert_includes brewfile, "brew \"vim\"\n"
+
+    first_output = run_installer
+
+    assert_includes first_output, "Linked repository path"
+    assert File.symlink?(File.join(@home, "dot-files"))
+    assert_equal REPO_ROOT, File.realpath(File.join(@home, "dot-files"))
+    assert_equal File.join(REPO_ROOT, ".zshrc"), File.realpath(File.join(@home, ".zshrc"))
+    assert File.file?(File.join(@home, ".oh-my-zsh/oh-my-zsh.sh"))
+    assert File.executable?(File.join(@ghostty_app, "Contents/MacOS/ghostty"))
+
+    backups = Dir.glob(File.join(@home, ".zshrc.backup.*"))
+    assert_equal 1, backups.length
+    assert_equal "original zsh config\n", File.read(backups.first)
+
+    second_output = run_installer
+
+    assert_includes second_output, "Repository path is ready"
+    assert_includes second_output, "Ghostty is already installed"
+    assert_includes second_output, "Oh My Zsh is already installed"
+    assert_includes second_output, "Already linked: #{@home}/.zshrc"
+    assert_equal backups, Dir.glob(File.join(@home, ".zshrc.backup.*"))
+
+    commands = File.readlines(@log, chomp: true)
+    assert_equal 1, commands.count("brew install --cask ghostty")
+    assert_equal 1, commands.count { |line| line.start_with?("git clone ") }
+    assert_equal 2, commands.count("brew update")
+    assert_equal 2, commands.count { |line| line.start_with?("brew bundle --file ") }
+    assert_equal 2, commands.count("git submodule sync --recursive")
+    assert_equal 2, commands.count("git submodule update --init --recursive")
+  end
+
+  def test_requests_command_line_tools_and_stops_for_their_installer
+    FileUtils.rm_f(@clt_state)
+
+    stdout, stderr, status = invoke_installer
+
+    refute status.success?
+    assert_empty stdout.scan("Ensuring Homebrew")
+    assert_includes stderr, "Command Line Tools installation was requested"
+    assert_includes File.readlines(@log, chomp: true), "xcode-select --install"
+    refute File.exist?(File.join(@home, "dot-files"))
+  end
+
+  def test_repairs_a_ghostty_receipt_without_an_application
+    FileUtils.touch(@brew_state)
+
+    run_installer
+
+    assert File.executable?(File.join(@ghostty_app, "Contents/MacOS/ghostty"))
+    commands = File.readlines(@log, chomp: true)
+    assert_equal 1, commands.count("brew reinstall --cask ghostty")
+    assert_equal 0, commands.count("brew install --cask ghostty")
+  end
+
+  private
+
+  def run_installer
+    stdout, stderr, status = invoke_installer
+    assert status.success?, "installer failed:\n#{stdout}\n#{stderr}"
+    stdout
+  end
+
+  def invoke_installer
+    env = {
+      "HOME" => @home,
+      "PATH" => [@bin, "/usr/bin", "/bin", "/usr/sbin", "/sbin"].join(":"),
+      "INSTALLER_TEST_LOG" => @log,
+      "INSTALLER_TEST_BREW_STATE" => @brew_state,
+      "INSTALLER_TEST_CLT_STATE" => @clt_state,
+      "GHOSTTY_APP_PATH" => @ghostty_app
+    }
+    Open3.capture3(env, INSTALLER, "--skip-checks")
+  end
+
+  def write_stubs
+    write_executable("uname", <<~'SH')
+      #!/usr/bin/env bash
+      [ "${1:-}" = '-s' ] && printf 'Darwin\n' || /usr/bin/uname "$@"
+    SH
+
+    write_executable("xcode-select", <<~'SH')
+      #!/usr/bin/env bash
+      state="${INSTALLER_TEST_CLT_STATE:?}"
+      if [ "${1:-}" = '-p' ]; then
+        [ -f "$state" ] && { printf '/Library/Developer/CommandLineTools\n'; exit 0; }
+        exit 1
+      fi
+      if [ "${1:-}" = '--install' ]; then
+        printf 'xcode-select --install\n' >> "${INSTALLER_TEST_LOG:?}"
+        exit 0
+      fi
+      exit 1
+    SH
+
+    write_executable("git", <<~'SH')
+      #!/usr/bin/env bash
+      log="${INSTALLER_TEST_LOG:?}"
+      if [ "${1:-}" = 'clone' ]; then
+        printf 'git %s\n' "$*" >> "$log"
+        destination="${!#}"
+        mkdir -p "$destination"
+        touch "$destination/oh-my-zsh.sh"
+        exit 0
+      fi
+      if [ "${1:-}" = '-C' ]; then
+        shift 2
+      fi
+      printf 'git %s\n' "$*" >> "$log"
+    SH
+
+    write_executable("brew", <<~'SH')
+      #!/usr/bin/env bash
+      log="${INSTALLER_TEST_LOG:?}"
+      state="${INSTALLER_TEST_BREW_STATE:?}"
+      case "${1:-}" in
+        shellenv)
+          printf 'export HOMEBREW_PREFIX=%q\n' "$(dirname "$(dirname "$0")")"
+          ;;
+        --prefix)
+          case "${2:-}" in ruby|vim) ;; *) exit 1 ;; esac
+          prefix="$(dirname "$state")/homebrew/opt/${2}"
+          mkdir -p "$prefix/bin"
+          touch "$prefix/bin/${2}"
+          chmod +x "$prefix/bin/${2}"
+          printf '%s\n' "$prefix"
+          ;;
+        update)
+          printf 'brew update\n' >> "$log"
+          ;;
+        bundle)
+          if [ "${2:-}" = '--help' ]; then
+            printf '%s\n' '--no-lock'
+          else
+            printf 'brew %s\n' "$*" >> "$log"
+          fi
+          ;;
+        list)
+          [ "${2:-}" = '--cask' ] && [ "${3:-}" = 'ghostty' ] && [ -f "$state" ]
+          ;;
+        install)
+          printf 'brew %s\n' "$*" >> "$log"
+          if [ "${2:-}" = '--cask' ] && [ "${3:-}" = 'ghostty' ]; then
+            touch "$state"
+            executable="${GHOSTTY_APP_PATH:?}/Contents/MacOS/ghostty"
+            mkdir -p "$(dirname "$executable")"
+            touch "$executable"
+            chmod +x "$executable"
+          fi
+          ;;
+        reinstall)
+          printf 'brew %s\n' "$*" >> "$log"
+          if [ "${2:-}" = '--cask' ] && [ "${3:-}" = 'ghostty' ]; then
+            executable="${GHOSTTY_APP_PATH:?}/Contents/MacOS/ghostty"
+            mkdir -p "$(dirname "$executable")"
+            touch "$executable"
+            chmod +x "$executable"
+          fi
+          ;;
+        *)
+          printf 'unexpected brew command: %s\n' "$*" >&2
+          exit 1
+          ;;
+      esac
+    SH
+  end
+
+  def write_executable(name, content)
+    path = File.join(@bin, name)
+    File.write(path, content)
+    FileUtils.chmod(0o755, path)
+  end
+end

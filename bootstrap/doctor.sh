@@ -189,10 +189,16 @@ else
 fi
 
 GHOSTTY_SYMLINK="$HOME/Library/Application Support/com.mitchellh.ghostty/config"
-if command -v ghostty >/dev/null 2>&1 || [ -e "$GHOSTTY_SYMLINK" ] || [ -L "$GHOSTTY_SYMLINK" ]; then
+if command -v ghostty >/dev/null 2>&1 || [ -x /Applications/Ghostty.app/Contents/MacOS/ghostty ]; then
+  ok 'Ghostty is installed'
+else
+  warn 'Ghostty is not installed; run bootstrap/install_macos.sh'
+fi
+
+if [ -e "$GHOSTTY_SYMLINK" ] || [ -L "$GHOSTTY_SYMLINK" ]; then
   check_symlink "$GHOSTTY_SYMLINK" "$REPO_ROOT/ghostty/config" 'Ghostty config'
 else
-  printf 'Info: skipping Ghostty symlink check (ghostty not detected)\n'
+  warn "Ghostty config is missing ($GHOSTTY_SYMLINK)"
 fi
 
 section 'Brew checks'
