@@ -54,14 +54,50 @@
     <nav class="toc home-sidebar" aria-label="Homepage contents">
       <h2>Contents</h2>
       <ol>
+        <li><a href="#installation-configuration">Installation and configuration</a></li>
         <li><a href="#macos-performance">macOS and measured performance</a></li>
         <li><a href="#ghostty-recovery">Ghostty sessions and recovery</a></li>
         <li><a href="#vim-field-guide">Vim field guide</a></li>
-        <li><a href="#installation-configuration">Installation and configuration</a></li>
       </ol>
     </nav>
 
     <article class="article home-index" aria-label="Dotfiles articles">
+      <section id="installation-configuration">
+        <h2>Installation and configuration</h2>
+        <ol class="source-list topic-list">
+          <li>
+            <div class="topic-heading">
+              <a href="zoxide.html">zoxide: smarter directory jumping in Zsh</a>
+            </div>
+            <span>
+              Learn frequently visited directories, jump with short keyword queries,
+              and use FZF when more than one destination looks right.
+              <time class="thread-date" datetime="2026-08-08">8th August 2026</time>
+            </span>
+          </li>
+        </ol>
+        <h3 id="configuration-source">Configuration source</h3>
+        <p>The articles explain the workflow. These links go directly to the files that implement it.</p>
+        <ul class="source-list compact-list">
+          <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/.vim"><code>.vim/</code></a><span>Vim plugins and local extensions</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.zshrc"><code>.zshrc</code></a><span>Shell navigation and command-line tools</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.tmux.conf"><code>.tmux.conf</code></a><span>Remote and persistent terminal sessions</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a><span>Installation, validation, backups, and environment checks</span></li>
+        </ul>
+        <h3 id="start-here">Start with inspection</h3>
+        <p>Clone the repository, run the read-only checks, and only then link the configuration into the home directory.</p>
+        <pre><code>git clone git@github.com:marianposaceanu/dot-files.git ~/dot-files
+cd ~/dot-files
+./bootstrap/doctor.sh
+./bootstrap/check_configs.sh
+./bootstrap/link_configs.sh</code></pre>
+        <div class="callout warning">
+          <strong>Before linking</strong>
+          Review the repository and the check output. The linker backs up existing
+          configuration files before installing symlinks.
+        </div>
+      </section>
+
       <section id="macos-performance">
         <h2>macOS and measured performance</h2>
         <ol class="source-list topic-list">
@@ -246,35 +282,11 @@
           </li>
         </ol>
       </section>
-
-      <section id="installation-configuration">
-        <h2>Installation and configuration</h2>
-        <h3 id="configuration-source">Configuration source</h3>
-        <p>The articles explain the workflow. These links go directly to the files that implement it.</p>
-        <ul class="source-list compact-list">
-          <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/.vim"><code>.vim/</code></a><span>Vim plugins and local extensions</span></li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.zshrc"><code>.zshrc</code></a><span>Shell navigation and command-line tools</span></li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.tmux.conf"><code>.tmux.conf</code></a><span>Remote and persistent terminal sessions</span></li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a><span>Installation, validation, backups, and environment checks</span></li>
-        </ul>
-        <h3 id="start-here">Start with inspection</h3>
-        <p>Clone the repository, run the read-only checks, and only then link the configuration into the home directory.</p>
-        <pre><code>git clone git@github.com:marianposaceanu/dot-files.git ~/dot-files
-cd ~/dot-files
-./bootstrap/doctor.sh
-./bootstrap/check_configs.sh
-./bootstrap/link_configs.sh</code></pre>
-        <div class="callout warning">
-          <strong>Before linking</strong>
-          Review the repository and the check output. The linker backs up existing
-          configuration files before installing symlinks.
-        </div>
-      </section>
     </article>
   </main>
 
   <footer class="page-footer">
-    <p><strong>dot-files</strong> · Updated 31 July 2026</p>
+    <p><strong>dot-files</strong> · Updated 8 August 2026</p>
     <p><a href="https://github.com/marianposaceanu/dot-files">Browse the source on GitHub</a></p>
   </footer>
 </body>

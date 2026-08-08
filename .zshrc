@@ -88,3 +88,8 @@ export FZF_DEFAULT_OPTS='--bind=ctrl-d:half-page-down,ctrl-u:half-page-up,ctrl-/
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
+
+# Initialize smarter directory jumps after compinit and all PATH changes.
+if (( $+commands[zoxide] )); then
+  eval "$(zoxide init zsh)"
+fi

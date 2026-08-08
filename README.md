@@ -19,7 +19,7 @@
 
 Contains my dot-files for easy usage across different OSs.
 
-**Website:** [dotfiles overview](https://dot.marianposaceanu.com/) · [Ghostty + `rz` quick start](https://dot.marianposaceanu.com/ghostty.html)
+**Website:** [dotfiles overview](https://dot.marianposaceanu.com/) · [Ghostty + `rz` quick start](https://dot.marianposaceanu.com/ghostty.html) · [zoxide directory jumping](https://dot.marianposaceanu.com/zoxide.html)
 
 #### contains
 
@@ -133,11 +133,20 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 - via script: `./bootstrap/install_brew_deps.sh`
 - via Brewfile: `brew bundle --file Brewfile`
-- current formulae: `fzf`, `ripgrep`, `bat`, `openjdk`, `universal-ctags`, `tmux`
+- current formulae: `fzf`, `zoxide`, `ripgrep`, `bat`, `openjdk`, `universal-ctags`, `tmux`
 
 #### bat
 
 `cat` is aliased to `bat` in `.zshrc`. `bat` uses the TwoDark theme (complements ayu-dark) and shows line numbers and git change indicators. Man pages are also rendered through `bat` via `MANPAGER`. FZF file previews (`Ctrl-T`) use `bat` automatically. Inside FZF, use `Ctrl-J` / `Ctrl-K` to move one line, `Ctrl-D` / `Ctrl-U` to move half a page, and `Ctrl-/` to toggle the preview.
+
+#### zoxide
+
+Zoxide is initialized near the end of `.zshrc`, after completion setup and all
+PATH changes. Use `z <keywords>` to jump to the highest-ranked matching
+directory or `zi <keywords>` to choose interactively with FZF. Initialization
+is guarded, so the shell still loads before the formula is installed. See the
+[zoxide tutorial](https://dot.marianposaceanu.com/zoxide.html) for
+installation, daily commands, ranking, and database maintenance.
 
 #### search
 

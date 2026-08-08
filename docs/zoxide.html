@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>zoxide: smarter directory jumping in Zsh | dot-files</title>
+  <meta name="description" content="Zoxide learns the directories used most often and turns long paths into short, ranked keyword jumps. This setup keeps regular `cd` available and adds `z` for direct jumps plus `zi` for interactive selection.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/zoxide.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=ef91d1eaf28f">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=87ba6108e585">
+</head>
+<body class="site-article" id="top">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="/">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="main-content">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Zsh navigation · frecency · fzf</p>
+      <h1 id="page-title">zoxide: smarter directory jumping in Zsh</h1>
+      <p class="subtitle">Zoxide learns the directories used most often and turns long paths into short, ranked keyword jumps. This setup keeps regular `cd` available and adds `z` for direct jumps plus `zi` for interactive selection.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Shell tutorial</li>
+        <li><time class="article-date" datetime="2026-08-08">8th August 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#what-this-dot-files-setup-changes">What this dot-files setup changes</a></li>
+        <li><a href="#install-and-activate-it">Install and activate it</a></li>
+        <li><a href="#everyday-jumps">Everyday jumps</a></li>
+        <li><a href="#how-matching-learns-your-habits">How matching learns your habits</a></li>
+        <li><a href="#choose-interactively-with-fzf">Choose interactively with FZF</a></li>
+        <li><a href="#inspect-and-maintain-the-database">Inspect and maintain the database</a></li>
+        <li><a href="#optional-customization">Optional customization</a></li>
+        <li><a href="#troubleshooting">Troubleshooting</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="what-this-dot-files-setup-changes">
+        <h2>What this dot-files setup changes</h2>
+        <p>The repository installs zoxide through Homebrew and initializes it at the end of <code>.zshrc</code>:</p>
+        <pre><code class="language-sh">if (( $+commands[zoxide] )); then
+  eval &quot;$(zoxide init zsh)&quot;
+fi</code></pre>
+        <p>Oh My Zsh has already initialized completions by this point, and all PATH changes are complete. The command guard lets Zsh start normally on a new machine before zoxide has been installed.</p>
+        <p>Zoxide&#39;s default <code>pwd</code> hook records directory changes. That means ordinary <code>cd</code> navigation teaches it too; there is no separate database-building step.</p>
+      </section>
+      <section id="install-and-activate-it">
+        <h2>Install and activate it</h2>
+        <p>Install every command-line dependency declared by this repository:</p>
+        <pre><code class="language-sh">./bootstrap/install_brew_deps.sh</code></pre>
+        <p>Or install only zoxide and FZF:</p>
+        <pre><code class="language-sh">brew install zoxide fzf</code></pre>
+        <p>Reload the shell configuration, then confirm that zoxide generated the <code>z</code> and <code>zi</code> shell functions:</p>
+        <pre><code class="language-sh">source ~/.zshrc
+zoxide --version
+type z
+type zi</code></pre>
+        <p>The first few jumps may need full paths or regular <code>cd</code> because the database starts empty. Navigation gets shorter as zoxide learns.</p>
+      </section>
+      <section id="everyday-jumps">
+        <h2>Everyday jumps</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Command</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>z dot</code></td><td>Jump to the highest-ranked directory matching <code>dot</code></td></tr>
+              <tr><td><code>z dot files</code></td><td>Match multiple keywords in one query</td></tr>
+              <tr><td><code>z ~/projects/example</code></td><td>Use <code>z</code> like regular <code>cd</code> with a full path</td></tr>
+              <tr><td><code>z example/</code></td><td>Enter a relative directory</td></tr>
+              <tr><td><code>z ..</code></td><td>Move up one directory</td></tr>
+              <tr><td><code>z -</code></td><td>Return to the previous directory</td></tr>
+              <tr><td><code>z foo /</code></td><td>Enter a subdirectory whose name starts with <code>foo</code></td></tr>
+              <tr><td><code>zi dot</code></td><td>Interactively choose among matching directories</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>In Zsh, type a query followed by <code>Space</code> and <code>Tab</code> to see interactive completions:</p>
+        <pre><code class="language-sh">z dot&lt;Space&gt;&lt;Tab&gt;</code></pre>
+      </section>
+      <section id="how-matching-learns-your-habits">
+        <h2>How matching learns your habits</h2>
+        <p>Each visited directory receives a score. Repeated visits increase that score, while recent visits weigh more heavily than old ones. This combination of frequency and recency is often called <strong>frecency</strong>.</p>
+        <p><code>z</code> filters the database by the supplied keywords and changes to the matching directory with the highest frecency. If a short query initially chooses the wrong place, use a more specific query or visit the preferred directory a few more times. Its ranking will adapt without a hand-maintained alias.</p>
+        <p>The database ages automatically. Low-scoring old entries eventually disappear as usage grows, so routine navigation does not require manual cleanup.</p>
+      </section>
+      <section id="choose-interactively-with-fzf">
+        <h2>Choose interactively with FZF</h2>
+        <p>Use <code>zi</code> when a query has several useful matches:</p>
+        <pre><code class="language-sh">zi projects</code></pre>
+        <p>Zoxide sends the candidates to FZF. Type to narrow the list, use <code>Ctrl-J</code> and <code>Ctrl-K</code> to move, press <code>Enter</code> to jump, or press <code>Esc</code> to cancel. The repository&#39;s <code>FZF_DEFAULT_OPTS</code> also supplies Vim-style half-page movement with <code>Ctrl-D</code> and <code>Ctrl-U</code>.</p>
+        <p>FZF is optional for direct <code>z</code> jumps but required for <code>zi</code> and interactive completion. Zoxide currently requires FZF 0.51.0 or newer; the Homebrew formula in this repository satisfies that dependency.</p>
+      </section>
+      <section id="inspect-and-maintain-the-database">
+        <h2>Inspect and maintain the database</h2>
+        <p>List learned paths with their calculated scores:</p>
+        <pre><code class="language-sh">zoxide query --list --score</code></pre>
+        <p>Add or reinforce a path manually, or remove an unwanted entry:</p>
+        <pre><code class="language-sh">zoxide add ~/projects/example
+zoxide remove ~/projects/old-example</code></pre>
+        <p>Removing a path does not permanently exclude it. If the directory is visited again, the default hook can add it back.</p>
+      </section>
+      <section id="optional-customization">
+        <h2>Optional customization</h2>
+        <p>Environment variables must be set before <code>zoxide init zsh</code>. For example, these settings print the selected destination and keep private project paths out of the database:</p>
+        <pre><code class="language-sh">export _ZO_ECHO=1
+export _ZO_EXCLUDE_DIRS=&quot;$HOME:$HOME/private/*&quot;
+
+eval &quot;$(zoxide init zsh)&quot;</code></pre>
+        <p>The default exclusion already includes <code>$HOME</code> itself, but not its subdirectories. <code>_ZO_FZF_OPTS</code> can supply options only for zoxide&#39;s FZF picker, while the existing <code>FZF_DEFAULT_OPTS</code> continues to apply globally.</p>
+        <p>To use <code>j</code> and <code>ji</code> instead of <code>z</code> and <code>zi</code>, initialize with another command prefix:</p>
+        <pre><code class="language-sh">eval &quot;$(zoxide init zsh --cmd j)&quot;</code></pre>
+        <p>This repository intentionally keeps the standard <code>z</code> and <code>zi</code> names and does not replace <code>cd</code>.</p>
+      </section>
+      <section id="troubleshooting">
+        <h2>Troubleshooting</h2>
+        <p>If <code>z</code> is not defined, first check <code>command -v zoxide</code>. The guarded setup skips initialization when the binary is absent, so install the formula and run <code>source ~/.zshrc</code> again.</p>
+        <p>If <code>zi</code> cannot open its picker, verify FZF with <code>fzf --version</code>. If Zsh completion does not appear after <code>Space</code> and <code>Tab</code>, rebuild the completion cache once:</p>
+        <pre><code class="language-sh">rm ~/.zcompdump*
+autoload -Uz compinit &amp;&amp; compinit
+source ~/.zshrc</code></pre>
+        <p>See the <a href="https://github.com/ajeetdsouza/zoxide">official zoxide repository</a> for platform-specific installers, import commands for older directory jumpers, and the complete configuration reference.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="/">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

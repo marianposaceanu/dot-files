@@ -1,4 +1,5 @@
 brew "fzf"
+brew "zoxide"
 brew "ripgrep"
 brew "bat"
 brew "openjdk"
