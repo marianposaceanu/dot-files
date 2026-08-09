@@ -90,14 +90,23 @@ class InstallMacosTest < Minitest::Test
     assert_equal 0, commands.count("brew install --cask ghostty")
   end
 
+  def test_optional_stage_timing_report
+    output = run_installer(timings: true)
+
+    assert_includes output, "==> Stage timings"
+    assert_match(/^  Command-line dependencies +\d+\.\d{3}s +\d+\.\d%$/, output)
+    assert_match(/^  Pinned Vim plugins +\d+\.\d{3}s +\d+\.\d%$/, output)
+    assert_match(/^  Total +\d+\.\d{3}s +100\.0%$/, output)
+  end
+
   def test_interactive_progress_updates_in_place
     output = run_installer(interactive: true)
 
-    [10, 20, 30].each do |percent|
+    [1, 2, 3].each do |percent|
       assert_match(/\[[# ]{56}\] +#{percent}%/, output)
     end
-    assert_match(/\[[# ]{92}\] +30%/, output)
-    [45, 55, 65, 75, 85, 100].each do |percent|
+    assert_match(/\[[# ]{92}\] +3%/, output)
+    [82, 83, 84, 94, 99, 100].each do |percent|
       assert_match(/\[[# ]{40}\] +#{percent}%/, output)
     end
     assert_includes output, "\e[1;23r"
@@ -126,13 +135,16 @@ class InstallMacosTest < Minitest::Test
 
   private
 
-  def run_installer(interactive: false)
-    stdout, stderr, status = invoke_installer(interactive: interactive)
+  def run_installer(interactive: false, timings: false)
+    stdout, stderr, status = invoke_installer(
+      interactive: interactive,
+      timings: timings
+    )
     assert status.success?, "installer failed:\n#{stdout}\n#{stderr}"
     stdout
   end
 
-  def invoke_installer(interactive: false, fail_brew: false)
+  def invoke_installer(interactive: false, fail_brew: false, timings: false)
     env = {
       "HOME" => @home,
       "PATH" => [@bin, "/usr/bin", "/bin", "/usr/sbin", "/sbin"].join(":"),
@@ -145,6 +157,7 @@ class InstallMacosTest < Minitest::Test
       "TERM" => "xterm-256color"
     }
     command = [INSTALLER, "--skip-checks"]
+    command << "--timings" if timings
     if interactive
       command = [
         "/usr/bin/script", "-q", "/dev/null", "/bin/bash", "-c",

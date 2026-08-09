@@ -7,6 +7,7 @@ EXPECTED_REPO="$HOME/dot-files"
 GHOSTTY_APP_PATH="${GHOSTTY_APP_PATH:-/Applications/Ghostty.app}"
 OH_MY_ZSH_DIR="$HOME/.oh-my-zsh"
 SKIP_CHECKS=0
+TIMINGS=0
 OH_MY_ZSH_TMP=''
 PROGRESS_MODE='plain'
 PROGRESS_ACTIVE=0
@@ -19,6 +20,10 @@ PROGRESS_BAR_ROW=-1
 PROGRESS_RESIZE_COUNT=0
 DETECTED_LINES=0
 DETECTED_COLUMNS=0
+TIMING_NAMES=()
+TIMING_DURATIONS_MS=()
+TIMING_NAME=''
+TIMING_STARTED_MS=0
 
 if [ -t 1 ] && [ "${TERM:-}" != 'dumb' ]; then
   if tput csr 0 1 >/dev/null 2>&1 \
@@ -34,7 +39,7 @@ fi
 
 usage() {
   cat <<'EOF'
-Usage: ./bootstrap/install_macos.sh [--skip-checks]
+Usage: ./bootstrap/install_macos.sh [--skip-checks] [--timings]
 
 Install the macOS tools used by this repository, initialize Vim submodules,
 and link the managed configuration files into $HOME. Existing destinations
@@ -42,6 +47,7 @@ are preserved with timestamped backups by bootstrap/link_configs.sh.
 
 Options:
   --skip-checks  Skip the final config and environment validation.
+  --timings      Print elapsed time for each installation stage.
   -h, --help     Show this help.
 EOF
 }
@@ -49,6 +55,53 @@ EOF
 die() {
   printf 'Error: %s\n' "$1" >&2
   exit 1
+}
+
+monotonic_milliseconds() {
+  /usr/bin/perl -MTime::HiRes=clock_gettime,CLOCK_MONOTONIC \
+    -e 'printf "%.0f\n", clock_gettime(CLOCK_MONOTONIC) * 1000'
+}
+
+start_timing() {
+  if [ "$TIMINGS" -ne 1 ]; then
+    return 0
+  fi
+  TIMING_NAME="$1"
+  TIMING_STARTED_MS="$(monotonic_milliseconds)"
+}
+
+finish_timing() {
+  local finished_ms duration_ms
+
+  if [ "$TIMINGS" -ne 1 ]; then
+    return 0
+  fi
+  finished_ms="$(monotonic_milliseconds)"
+  duration_ms=$((finished_ms - TIMING_STARTED_MS))
+  TIMING_NAMES+=("$TIMING_NAME")
+  TIMING_DURATIONS_MS+=("$duration_ms")
+}
+
+print_timing_report() {
+  local index duration_ms share_tenths total_ms=0
+
+  if [ "$TIMINGS" -ne 1 ]; then
+    return 0
+  fi
+  printf '\n==> Stage timings\n'
+  for duration_ms in "${TIMING_DURATIONS_MS[@]}"; do
+    total_ms=$((total_ms + duration_ms))
+  done
+  for ((index = 0; index < ${#TIMING_NAMES[@]}; index++)); do
+    duration_ms="${TIMING_DURATIONS_MS[$index]}"
+    share_tenths=$((duration_ms * 1000 / total_ms))
+    printf '  %-36s %3d.%03ds  %3d.%d%%\n' \
+      "${TIMING_NAMES[$index]}" \
+      "$((duration_ms / 1000))" "$((duration_ms % 1000))" \
+      "$((share_tenths / 10))" "$((share_tenths % 10))"
+  done
+  printf '  %-36s %3d.%03ds  100.0%%\n' \
+    'Total' "$((total_ms / 1000))" "$((total_ms % 1000))"
 }
 
 read_terminal_size() {
@@ -223,6 +276,14 @@ show_progress() {
   PROGRESS_VISIBLE=1
 }
 
+show_stage_progress() {
+  if [ "$SKIP_CHECKS" -eq 1 ]; then
+    show_progress "$2"
+  else
+    show_progress "$1"
+  fi
+}
+
 finish_progress() {
   local final_text
 
@@ -312,6 +373,9 @@ while [ "$#" -gt 0 ]; do
     --skip-checks)
       SKIP_CHECKS=1
       ;;
+    --timings)
+      TIMINGS=1
+      ;;
     -h|--help)
       usage
       exit 0
@@ -328,14 +392,17 @@ if [ "$(uname -s)" != 'Darwin' ]; then
   die 'this installer supports macOS only'
 fi
 
+start_timing 'Apple Command Line Tools'
 section 'Checking Apple Command Line Tools'
 if ! xcode-select -p >/dev/null 2>&1; then
   xcode-select --install >/dev/null 2>&1 || true
   die 'Command Line Tools installation was requested; finish it, then rerun this installer'
 fi
 printf 'Apple Command Line Tools are available.\n'
-show_progress 10
+finish_timing
+show_stage_progress 1 1
 
+start_timing 'Repository path'
 section 'Ensuring the repository path'
 if [ -d "$EXPECTED_REPO" ]; then
   expected_real="$(cd "$EXPECTED_REPO" && pwd -P)"
@@ -349,7 +416,8 @@ else
   ln -s "$REPO_ROOT" "$EXPECTED_REPO"
   printf 'Linked repository path: %s -> %s\n' "$EXPECTED_REPO" "$REPO_ROOT"
 fi
-show_progress 20
+finish_timing
+show_stage_progress 2 2
 
 find_brew() {
   if command -v brew >/dev/null 2>&1; then
@@ -363,6 +431,7 @@ find_brew() {
   fi
 }
 
+start_timing 'Homebrew'
 section 'Ensuring Homebrew'
 BREW_BIN="$(find_brew)"
 if [ -z "$BREW_BIN" ]; then
@@ -376,8 +445,10 @@ else
   printf 'Homebrew is already installed: %s\n' "$BREW_BIN"
 fi
 eval "$("$BREW_BIN" shellenv)"
-show_progress 30
+finish_timing
+show_stage_progress 3 3
 
+start_timing 'Command-line dependencies'
 section 'Installing command-line dependencies'
 run_with_progress "$REPO_ROOT/bootstrap/install_brew_deps.sh"
 RUBY_PREFIX="$("$BREW_BIN" --prefix ruby)"
@@ -385,7 +456,8 @@ RUBY_PREFIX="$("$BREW_BIN" --prefix ruby)"
 export PATH="$RUBY_PREFIX/bin:$PATH"
 VIM_PREFIX="$("$BREW_BIN" --prefix vim)"
 [ -x "$VIM_PREFIX/bin/vim" ] || die "Homebrew Vim is missing from $VIM_PREFIX"
-show_progress 45
+finish_timing
+show_stage_progress 17 82
 
 find_ghostty() {
   if command -v ghostty >/dev/null 2>&1; then
@@ -397,6 +469,7 @@ find_ghostty() {
   fi
 }
 
+start_timing 'Ghostty'
 section 'Ensuring Ghostty'
 GHOSTTY_BIN="$(find_ghostty)"
 if [ -n "$GHOSTTY_BIN" ]; then
@@ -411,8 +484,10 @@ else
 fi
 GHOSTTY_BIN="$(find_ghostty)"
 [ -n "$GHOSTTY_BIN" ] || die "Ghostty was installed but its executable is missing from $GHOSTTY_APP_PATH"
-show_progress 55
+finish_timing
+show_stage_progress 18 83
 
+start_timing 'Oh My Zsh'
 section 'Ensuring Oh My Zsh'
 if [ -f "$OH_MY_ZSH_DIR/oh-my-zsh.sh" ]; then
   printf 'Oh My Zsh is already installed: %s\n' "$OH_MY_ZSH_DIR"
@@ -429,23 +504,36 @@ else
   mv "$OH_MY_ZSH_TMP" "$OH_MY_ZSH_DIR"
   OH_MY_ZSH_TMP=''
 fi
-show_progress 65
+finish_timing
+show_stage_progress 19 84
 
+start_timing 'Pinned Vim plugins'
 inline_section 'Initializing pinned Vim plugins'
 run_with_progress git -C "$REPO_ROOT" submodule --quiet sync --recursive
 run_with_progress git -C "$REPO_ROOT" submodule --quiet update --init --recursive
 printf 'ready.\n'
-show_progress 75
+finish_timing
+show_stage_progress 20 94
 
+start_timing 'Configuration links'
 inline_section 'Linking configuration files'
 run_with_progress "$REPO_ROOT/bootstrap/link_configs.sh" --summary
-show_progress 85
+finish_timing
+show_stage_progress 21 99
 
 if [ "$SKIP_CHECKS" -eq 0 ]; then
   section 'Validating the installation'
+  start_timing 'Repository checks'
   run_with_progress "$REPO_ROOT/bootstrap/check_configs.sh"
+  finish_timing
+  show_progress 75
+  start_timing 'Ghostty validation'
   "$GHOSTTY_BIN" +validate-config >/dev/null
+  finish_timing
+  show_progress 76
+  start_timing 'Environment doctor'
   run_with_progress "$REPO_ROOT/bootstrap/doctor.sh"
+  finish_timing
 else
   clear_progress
   printf '\nSkipped final checks. Run these when ready:\n'
@@ -453,6 +541,7 @@ else
   printf '  %s/bootstrap/doctor.sh\n' "$REPO_ROOT"
 fi
 
+print_timing_report
 printf '\n🍺 macOS setup is complete.\n'
 printf 'Restart the terminal or run: source ~/.zshrc\n'
 show_progress 100

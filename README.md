@@ -45,6 +45,9 @@ alone on later runs. Conflicting config files are moved to timestamped
 Use `--skip-checks` only when the installation must finish before running the
 repository validator and environment doctor manually.
 
+Use `--timings` to print each stage's elapsed time and share of the total run.
+This is useful when recalibrating the installer's progress milestones.
+
 Licensed fonts such as Berkeley Mono, RVM language runtimes, SSH credentials,
 keyboard preferences, and the optional native CPU rebuilds remain manual. They
 are machine- or user-specific and are not required for the guarded configs to
