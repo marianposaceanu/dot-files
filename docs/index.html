@@ -54,7 +54,7 @@
     <nav class="toc home-sidebar" aria-label="Homepage contents">
       <h2>Contents</h2>
       <ol>
-        <li><a href="#installation-configuration">Installation and configuration</a></li>
+        <li><a href="#installation-configuration">Set up the dotfiles</a></li>
         <li><a href="#macos-performance">macOS and measured performance</a></li>
         <li><a href="#ghostty-recovery">Ghostty sessions and recovery</a></li>
         <li><a href="#vim-field-guide">Vim field guide</a></li>
@@ -63,16 +63,16 @@
 
     <article class="article home-index" aria-label="Dotfiles articles">
       <section id="installation-configuration">
-        <h2>Installation and configuration</h2>
-        <h3 id="install-on-macos">Install on macOS</h3>
-        <p>Clone the repository and run the idempotent macOS installer. It installs missing command-line tools, Ghostty, Oh My Zsh, pinned Vim plugins, and backup-aware config links, then validates the result.</p>
+        <h2>Set up the dotfiles</h2>
+        <p>On a Mac, clone the repository and run the setup script. It installs the command-line tools, Ghostty, Oh My Zsh, and pinned Vim plugins, links the configuration files, and checks that everything loads correctly.</p>
         <pre><code>git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
 cd ~/dot-files
 ./bootstrap/install_macos.sh</code></pre>
         <div class="callout warning">
-          <strong>Before linking</strong>
-          Review the repository before running the installer. Existing configuration
-          files are backed up before the installer replaces them with symlinks.
+          <strong>Review before you run it</strong>
+          The installer replaces supported configuration files with symlinks. If a file
+          already exists, it moves it to a timestamped backup first. The script is safe
+          to run again if setup is interrupted or the repository changes.
         </div>
         <ol class="source-list topic-list">
           <li>
