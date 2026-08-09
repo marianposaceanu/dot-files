@@ -64,6 +64,16 @@
     <article class="article home-index" aria-label="Dotfiles articles">
       <section id="installation-configuration">
         <h2>Installation and configuration</h2>
+        <h3 id="install-on-macos">Install on macOS</h3>
+        <p>Clone the repository and run the idempotent macOS installer. It installs missing command-line tools, Ghostty, Oh My Zsh, pinned Vim plugins, and backup-aware config links, then validates the result.</p>
+        <pre><code>git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
+cd ~/dot-files
+./bootstrap/install_macos.sh</code></pre>
+        <div class="callout warning">
+          <strong>Before linking</strong>
+          Review the repository before running the installer. Existing configuration
+          files are backed up before the installer replaces them with symlinks.
+        </div>
         <ol class="source-list topic-list">
           <li>
             <div class="topic-heading">
@@ -84,16 +94,6 @@
           <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.tmux.conf"><code>.tmux.conf</code></a><span>Remote and persistent terminal sessions</span></li>
           <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a><span>Installation, validation, backups, and environment checks</span></li>
         </ul>
-        <h3 id="start-here">Start with inspection</h3>
-        <p>Clone the repository and run the idempotent macOS installer. It installs missing command-line tools, Ghostty, Oh My Zsh, pinned Vim plugins, and backup-aware config links, then validates the result.</p>
-        <pre><code>git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
-cd ~/dot-files
-./bootstrap/install_macos.sh</code></pre>
-        <div class="callout warning">
-          <strong>Before linking</strong>
-          Review the repository before running the installer. Existing configuration
-          files are backed up before the installer replaces them with symlinks.
-        </div>
       </section>
 
       <section id="macos-performance">

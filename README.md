@@ -21,6 +21,35 @@ Contains my dot-files for easy usage across different OSs.
 
 **Website:** [dotfiles overview](https://dot.marianposaceanu.com/) · [Ghostty + `rz` quick start](https://dot.marianposaceanu.com/ghostty.html) · [zoxide directory jumping](https://dot.marianposaceanu.com/zoxide.html)
 
+## Install on macOS
+
+Clone the repository, then run the idempotent macOS installer:
+
+```sh
+git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
+cd ~/dot-files
+./bootstrap/install_macos.sh
+```
+
+On an untouched Mac, the first `git` command may ask to install Apple Command
+Line Tools. Complete that installation and rerun the clone; the installer checks
+the tools again before changing the machine.
+
+The installer checks Apple Command Line Tools, installs Homebrew when missing,
+installs the Brewfile formulae and Ghostty, clones Oh My Zsh without replacing
+shell files, initializes the pinned Vim submodules, and invokes the existing
+backup-aware config linker. Correct links and existing installations are left
+alone on later runs. Conflicting config files are moved to timestamped
+`.backup.<timestamp>` paths before linking.
+
+Use `--skip-checks` only when the installation must finish before running the
+repository validator and environment doctor manually.
+
+Licensed fonts such as Berkeley Mono, RVM language runtimes, SSH credentials,
+keyboard preferences, and the optional native CPU rebuilds remain manual. They
+are machine- or user-specific and are not required for the guarded configs to
+load successfully.
+
 #### contains
 
 - Vim config files and bundles
@@ -116,35 +145,6 @@ snapshot when Ghostty reports a blank directory. A successful fallback repairs
 the saved directory, and restored terminals report that directory back to Ghostty
 before Codex starts. Ambiguous sessions are never guessed; the warning identifies
 the exact session ID and TTY for manual recovery.
-
-### macOS installation
-
-Clone the repository, then run the idempotent macOS installer:
-
-```sh
-git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
-cd ~/dot-files
-./bootstrap/install_macos.sh
-```
-
-On an untouched Mac, the first `git` command may ask to install Apple Command
-Line Tools. Complete that installation and rerun the clone; the installer checks
-the tools again before changing the machine.
-
-The installer checks Apple Command Line Tools, installs Homebrew when missing,
-installs the Brewfile formulae and Ghostty, clones Oh My Zsh without replacing
-shell files, initializes the pinned Vim submodules, and invokes the existing
-backup-aware config linker. Correct links and existing installations are left
-alone on later runs. Conflicting config files are moved to timestamped
-`.backup.<timestamp>` paths before linking.
-
-Use `--skip-checks` only when the installation must finish before running the
-repository validator and environment doctor manually.
-
-Licensed fonts such as Berkeley Mono, RVM language runtimes, SSH credentials,
-keyboard preferences, and the optional native CPU rebuilds remain manual. They
-are machine- or user-specific and are not required for the guarded configs to
-load successfully.
 
 ### Submodules and bundles
 
