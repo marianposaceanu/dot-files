@@ -287,6 +287,11 @@ section() {
   printf '\n==> %s\n' "$1"
 }
 
+inline_section() {
+  clear_progress
+  printf '\n==> %s ... ' "$1"
+}
+
 cleanup() {
   trap - WINCH
   if [ "$PROGRESS_ACTIVE" -eq 1 ]; then
@@ -426,13 +431,14 @@ else
 fi
 show_progress 65
 
-section 'Initializing pinned Vim plugins'
-run_with_progress git -C "$REPO_ROOT" submodule sync --recursive
-run_with_progress git -C "$REPO_ROOT" submodule update --init --recursive
+inline_section 'Initializing pinned Vim plugins'
+run_with_progress git -C "$REPO_ROOT" submodule --quiet sync --recursive
+run_with_progress git -C "$REPO_ROOT" submodule --quiet update --init --recursive
+printf 'ready.\n'
 show_progress 75
 
-section 'Linking configuration files'
-run_with_progress "$REPO_ROOT/bootstrap/link_configs.sh"
+inline_section 'Linking configuration files'
+run_with_progress "$REPO_ROOT/bootstrap/link_configs.sh" --summary
 show_progress 85
 
 if [ "$SKIP_CHECKS" -eq 0 ]; then

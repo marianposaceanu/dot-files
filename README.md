@@ -533,8 +533,6 @@ It links:
 - `~/.zshrc`
 - `~/.zlogin`
 - `~/.bashrc`
-- `~/.screenrc`
-- `~/.alacritty.yml`
 - `~/.config/bat`
 - `$HOME/Library/Application Support/com.mitchellh.ghostty/config`
 

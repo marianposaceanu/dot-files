@@ -2,7 +2,7 @@
 
 ## What this repo is
 - Personal dotfiles repo, not an app/library project. There is no package build, lint, unit test suite, or CI workflow to run.
-- Main first-party configs live at repo root: `.vimrc`, `.zprofile`, `.zshrc`, `.zlogin`, `.bashrc`, `.tmux.conf`, `.screenrc`, `.alacritty.yml`, `.gitconfig`, and `.gitignore_global`.
+- Main first-party configs live at repo root: `.vimrc`, `.zprofile`, `.zshrc`, `.zlogin`, `.bashrc`, `.tmux.conf`, `.gitconfig`, and `.gitignore_global`.
 - Additional first-party configs live in `bat/`, `ghostty/`, `kitty/`, `bootstrap/`, `benchmarks/`, and `tutorials/`.
 
 ## High-impact structure

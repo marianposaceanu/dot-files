@@ -53,7 +53,9 @@ class InstallMacosTest < Minitest::Test
     assert_includes second_output, "Repository path is ready"
     assert_includes second_output, "Ghostty is already installed"
     assert_includes second_output, "Oh My Zsh is already installed"
-    assert_includes second_output, "Already linked: #{@home}/.zshrc"
+    assert_includes second_output, "==> Initializing pinned Vim plugins ... ready."
+    assert_includes second_output, "==> Linking configuration files ... 11 unchanged, 0 updated, 0 backups."
+    refute_includes second_output, "Already linked:"
     assert_equal backups, Dir.glob(File.join(@home, ".zshrc.backup.*"))
 
     commands = File.readlines(@log, chomp: true)
@@ -61,8 +63,8 @@ class InstallMacosTest < Minitest::Test
     assert_equal 1, commands.count { |line| line.start_with?("git clone ") }
     assert_equal 2, commands.count("brew update")
     assert_equal 2, commands.count { |line| line.start_with?("brew bundle --file ") }
-    assert_equal 2, commands.count("git submodule sync --recursive")
-    assert_equal 2, commands.count("git submodule update --init --recursive")
+    assert_equal 2, commands.count("git submodule --quiet sync --recursive")
+    assert_equal 2, commands.count("git submodule --quiet update --init --recursive")
   end
 
   def test_requests_command_line_tools_and_stops_for_their_installer

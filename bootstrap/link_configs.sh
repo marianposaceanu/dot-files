@@ -4,6 +4,20 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BACKUP_STAMP="$(date +%Y%m%d%H%M%S)"
+SUMMARY=0
+UNCHANGED_COUNT=0
+LINKED_COUNT=0
+BACKUP_COUNT=0
+
+if [ "${1:-}" = '--summary' ]; then
+  SUMMARY=1
+  shift
+fi
+
+if [ "$#" -ne 0 ]; then
+  printf 'Usage: %s [--summary]\n' "$0" >&2
+  exit 1
+fi
 
 LINK_SPECS=(
   ".vimrc|$HOME/.vimrc"
@@ -15,8 +29,6 @@ LINK_SPECS=(
   ".zshrc|$HOME/.zshrc"
   ".zlogin|$HOME/.zlogin"
   ".bashrc|$HOME/.bashrc"
-  ".screenrc|$HOME/.screenrc"
-  ".alacritty.yml|$HOME/.alacritty.yml"
   "bat|$HOME/.config/bat"
   "ghostty/config|$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 )
@@ -88,7 +100,10 @@ link_config() {
 
   if [ -L "$link_path" ]; then
     if [ "$(canonical_link_target "$link_path")" = "$(canonical_path "$source_path")" ]; then
-      printf 'Already linked: %s -> %s\n' "$link_path" "$source_path"
+      UNCHANGED_COUNT=$((UNCHANGED_COUNT + 1))
+      if [ "$SUMMARY" -eq 0 ]; then
+        printf 'Already linked: %s -> %s\n' "$link_path" "$source_path"
+      fi
       return
     fi
   fi
@@ -96,15 +111,26 @@ link_config() {
   if [ -e "$link_path" ] || [ -L "$link_path" ]; then
     backup_path="$(next_backup_path "$link_path")"
     mv "$link_path" "$backup_path"
-    printf 'Backed up: %s -> %s\n' "$link_path" "$backup_path"
+    BACKUP_COUNT=$((BACKUP_COUNT + 1))
+    if [ "$SUMMARY" -eq 0 ]; then
+      printf 'Backed up: %s -> %s\n' "$link_path" "$backup_path"
+    fi
   fi
 
   ln -s "$source_path" "$link_path"
-  printf 'Linked: %s -> %s\n' "$link_path" "$source_path"
+  LINKED_COUNT=$((LINKED_COUNT + 1))
+  if [ "$SUMMARY" -eq 0 ]; then
+    printf 'Linked: %s -> %s\n' "$link_path" "$source_path"
+  fi
 }
 
 for spec in "${LINK_SPECS[@]}"; do
   link_config "${spec%%|*}" "${spec#*|}"
 done
 
-printf 'Done.\n'
+if [ "$SUMMARY" -eq 1 ]; then
+  printf '%d unchanged, %d updated, %d backups.\n' \
+    "$UNCHANGED_COUNT" "$LINKED_COUNT" "$BACKUP_COUNT"
+else
+  printf 'Done.\n'
+fi
