@@ -8,9 +8,11 @@ WARNINGS=0
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-}" != "dumb" ]; then
   OK_LABEL="$(printf '\033[1;32mOK:\033[0m')"
+  INFO_LABEL="$(printf '\033[1;34mInfo:\033[0m')"
   WARNING_LABEL="$(printf '\033[1;33mWarning:\033[0m')"
 else
   OK_LABEL='OK:'
+  INFO_LABEL='Info:'
   WARNING_LABEL='Warning:'
 fi
 
@@ -21,6 +23,10 @@ warn() {
 
 ok() {
   printf '%s %s\n' "$OK_LABEL" "$1"
+}
+
+info() {
+  printf '%s %s\n' "$INFO_LABEL" "$1"
 }
 
 section() {
@@ -44,6 +50,23 @@ canonical_path() {
   else
     printf '%s\n' "$path"
   fi
+}
+
+active_vim_is_custom_brew_build() {
+  local active_vim brew_vim_prefix vim_version
+
+  active_vim="$(command -v vim 2>/dev/null || true)"
+  brew_vim_prefix="$(brew --prefix vim 2>/dev/null || true)"
+  [ -n "$active_vim" ] && [ -x "$active_vim" ] || return 1
+  [ -n "$brew_vim_prefix" ] && [ -x "$brew_vim_prefix/bin/vim" ] || return 1
+  [ "$active_vim" -ef "$brew_vim_prefix/bin/vim" ] || return 1
+
+  vim_version="$("$active_vim" --version 2>/dev/null || true)"
+  printf '%s\n' "$vim_version" | grep -Eq '^Compiled by native-apple-m[0-9]+$'
+}
+
+brew_formula_is_pinned() {
+  brew list --pinned 2>/dev/null | grep -qx "$1"
 }
 
 canonical_link_target() {
@@ -151,8 +174,16 @@ check_brew_deps() {
   outdated_count=0
   for formula in "${formulas[@]}"; do
     if printf '%s\n' "$outdated" | grep -qx "$formula"; then
-      warn "outdated brew formula: $formula"
       outdated_count=$((outdated_count + 1))
+      if [ "$formula" = 'vim' ] && active_vim_is_custom_brew_build; then
+        if brew_formula_is_pinned vim; then
+          info 'Homebrew has a Vim update, but the active Vim is custom compiled and pinned; rebuild it when ready'
+        else
+          warn 'Homebrew has a Vim update and the active Vim is custom compiled but not pinned; run brew pin vim or rebuild it'
+        fi
+      else
+        warn "outdated brew formula: $formula"
+      fi
     fi
   done
 

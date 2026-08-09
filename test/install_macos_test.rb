@@ -35,6 +35,9 @@ class InstallMacosTest < Minitest::Test
     first_output = run_installer
 
     assert_includes first_output, "Linked repository path"
+    assert_includes first_output, "🍺 macOS setup is complete."
+    assert_equal "[##################################################] 100%\n", first_output.lines.last
+    refute_includes first_output, "\e"
     assert File.symlink?(File.join(@home, "dot-files"))
     assert_equal REPO_ROOT, File.realpath(File.join(@home, "dot-files"))
     assert_equal File.join(REPO_ROOT, ".zshrc"), File.realpath(File.join(@home, ".zshrc"))
@@ -85,24 +88,68 @@ class InstallMacosTest < Minitest::Test
     assert_equal 0, commands.count("brew install --cask ghostty")
   end
 
+  def test_interactive_progress_updates_in_place
+    output = run_installer(interactive: true)
+
+    [10, 20, 30].each do |percent|
+      assert_match(/\[[# ]{56}\] +#{percent}%/, output)
+    end
+    assert_match(/\[[# ]{92}\] +30%/, output)
+    [45, 55, 65, 75, 85, 100].each do |percent|
+      assert_match(/\[[# ]{40}\] +#{percent}%/, output)
+    end
+    assert_includes output, "\e[1;23r"
+    assert_includes output, "\e[1;29r"
+    assert_includes output, "\e[1;17r"
+    assert_includes output, "\e[1;18r"
+    assert_includes output, "\e[24;1H"
+    assert_includes output, "\e[30;1H"
+    assert_includes output, "\e[18;1H"
+    assert_operator output.index("\e[1;29r"), :<,
+      output.index("growth-child-still-running")
+    assert_operator output.index("\e[1;17r"), :<,
+      output.index("shrink-child-still-running")
+  end
+
+  def test_interactive_failure_restores_the_terminal
+    stdout, stderr, status = invoke_installer(interactive: true, fail_brew: true)
+    output = stdout + stderr
+
+    refute status.success?
+    assert_includes output, "simulated brew bundle failure"
+    refute_includes output, "macOS setup is complete"
+    assert_operator output.rindex("\e[1;18r"), :>,
+      output.index("simulated brew bundle failure")
+  end
+
   private
 
-  def run_installer
-    stdout, stderr, status = invoke_installer
+  def run_installer(interactive: false)
+    stdout, stderr, status = invoke_installer(interactive: interactive)
     assert status.success?, "installer failed:\n#{stdout}\n#{stderr}"
     stdout
   end
 
-  def invoke_installer
+  def invoke_installer(interactive: false, fail_brew: false)
     env = {
       "HOME" => @home,
       "PATH" => [@bin, "/usr/bin", "/bin", "/usr/sbin", "/sbin"].join(":"),
       "INSTALLER_TEST_LOG" => @log,
       "INSTALLER_TEST_BREW_STATE" => @brew_state,
       "INSTALLER_TEST_CLT_STATE" => @clt_state,
-      "GHOSTTY_APP_PATH" => @ghostty_app
+      "INSTALLER_TEST_RESIZE" => interactive ? "1" : "0",
+      "INSTALLER_TEST_FAIL_BREW" => fail_brew ? "1" : "0",
+      "GHOSTTY_APP_PATH" => @ghostty_app,
+      "TERM" => "xterm-256color"
     }
-    Open3.capture3(env, INSTALLER, "--skip-checks")
+    command = [INSTALLER, "--skip-checks"]
+    if interactive
+      command = [
+        "/usr/bin/script", "-q", "/dev/null", "/bin/bash", "-c",
+        'stty rows 24 cols 64; exec "$@"', "installer-progress-test", *command
+      ]
+    end
+    Open3.capture3(env, *command)
   end
 
   def write_stubs
@@ -159,10 +206,24 @@ class InstallMacosTest < Minitest::Test
           ;;
         update)
           printf 'brew update\n' >> "$log"
+          if [ "${INSTALLER_TEST_RESIZE:-0}" = '1' ]; then
+            stty rows 30 cols 100
+            installer_pid="$(ps -o ppid= -p "$PPID" | tr -d ' ')"
+            kill -WINCH "$installer_pid"
+            sleep 0.2
+            printf 'growth-child-still-running\n'
+            stty rows 18 cols 48
+            kill -WINCH "$installer_pid"
+            sleep 0.2
+            printf 'shrink-child-still-running\n'
+          fi
           ;;
         bundle)
           if [ "${2:-}" = '--help' ]; then
             printf '%s\n' '--no-lock'
+          elif [ "${INSTALLER_TEST_FAIL_BREW:-0}" = '1' ]; then
+            printf 'simulated brew bundle failure\n' >&2
+            exit 23
           else
             printf 'brew %s\n' "$*" >> "$log"
           fi
