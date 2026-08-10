@@ -509,7 +509,7 @@ show_stage_progress 19 84
 
 start_timing 'Pinned Vim plugins'
 inline_section 'Initializing pinned Vim plugins'
-run_with_progress "$REPO_ROOT/bootstrap/submodules/update_submodules.sh"
+run_with_progress "$REPO_ROOT/bootstrap/submodules/update_submodules.sh" >/dev/null
 printf 'ready.\n'
 finish_timing
 show_stage_progress 20 94
