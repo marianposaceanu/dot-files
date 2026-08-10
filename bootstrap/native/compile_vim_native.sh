@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bootstrap/compile_vim_native.sh
+# bootstrap/native/compile_vim_native.sh
 #
 # Builds Vim from source with native Apple Silicon CPU optimisations, installs
 # the binary into the existing Homebrew Cellar entry, and pins the formula so
@@ -54,10 +54,10 @@
 #
 # ── Upgrade path ──────────────────────────────────────────────────────────────
 #
-#   brew unpin vim && brew upgrade vim && ./bootstrap/compile_vim_native.sh
+#   brew unpin vim && brew upgrade vim && ./bootstrap/native/compile_vim_native.sh
 #
 # Usage:
-#   ./bootstrap/compile_vim_native.sh
+#   ./bootstrap/native/compile_vim_native.sh
 
 set -euo pipefail
 
@@ -467,4 +467,4 @@ strings "$TARGET" 2>/dev/null \
 printf '\n'
 
 warn "vim is now pinned. To upgrade later:"
-printf '    brew unpin vim && brew upgrade vim && ./bootstrap/compile_vim_native.sh\n'
+printf '    brew unpin vim && brew upgrade vim && ./bootstrap/native/compile_vim_native.sh\n'

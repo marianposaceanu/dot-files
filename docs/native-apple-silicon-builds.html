@@ -297,21 +297,21 @@ augroup END</code></pre>
         <h2>Rebuild and restore commands</h2>
         <p>Each script supports a bottle restoration path because the Homebrew receipt continues to describe the formula installation after a binary-only replacement.</p>
         <pre><code class="language-sh"># Vim
-./bootstrap/compile_vim_native.sh
+./bootstrap/native/compile_vim_native.sh
 brew unpin vim &amp;&amp; brew reinstall vim
 
 # ripgrep
-./bootstrap/compile_ripgrep_native.sh --pgo
+./bootstrap/native/compile_ripgrep_native.sh --pgo
 brew unpin ripgrep &amp;&amp; brew reinstall ripgrep
 
 # Universal Ctags
 brew install docutils llvm
-./bootstrap/compile_ctags_native.sh --pgo
+./bootstrap/native/compile_ctags_native.sh --pgo
 brew unpin universal-ctags &amp;&amp; brew reinstall universal-ctags
 
 # Git
 brew install llvm pkgconf
-./bootstrap/compile_git_native.sh --pgo
+./bootstrap/native/compile_git_native.sh --pgo
 brew unpin git &amp;&amp; brew reinstall git</code></pre>
         <p>After a formula upgrade, unpin and upgrade first, inspect the changed formula contract, then rerun the corresponding script. The Git workflow intentionally stops until its exact version and source contract are updated.</p>
       </section>

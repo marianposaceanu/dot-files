@@ -6,7 +6,7 @@ require "digest"
 require "fileutils"
 require "pathname"
 
-ROOT = Pathname.new(__dir__).join("..").expand_path
+ROOT = Pathname.new(__dir__).join("../..").expand_path
 SOURCE_DIR = ROOT.join("tutorials")
 OUTPUT_DIR = ROOT.join("docs")
 DEFAULT_PUBLISHED_DATE = "2026-07-20"

@@ -5,7 +5,7 @@ require "json"
 require "pathname"
 require "rexml/document"
 
-ROOT = Pathname.new(__dir__).join("..").expand_path
+ROOT = Pathname.new(__dir__).join("../..").expand_path
 DOCS = ROOT.join("docs")
 BASE_URL = "https://dot.marianposaceanu.com"
 REDIRECT_PAGES = ["vim-performance.html"].freeze

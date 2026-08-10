@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SOURCE_PATH="$REPO_ROOT/ghostty/config"
 GHOSTTY_DIR="$HOME/Library/Application Support/com.mitchellh.ghostty"
 CONFIG_PATH="$GHOSTTY_DIR/config"

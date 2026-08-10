@@ -43,7 +43,7 @@ Usage: ./bootstrap/install_macos.sh [--skip-checks] [--timings]
 
 Install the macOS tools used by this repository, initialize Vim submodules,
 and link the managed configuration files into $HOME. Existing destinations
-are preserved with timestamped backups by bootstrap/link_configs.sh.
+are preserved with timestamped backups by bootstrap/setup/link_configs.sh.
 
 Options:
   --skip-checks  Skip the final config and environment validation.
@@ -450,7 +450,7 @@ show_stage_progress 3 3
 
 start_timing 'Command-line dependencies'
 section 'Installing command-line dependencies'
-run_with_progress "$REPO_ROOT/bootstrap/install_brew_deps.sh"
+run_with_progress "$REPO_ROOT/bootstrap/setup/install_brew_deps.sh"
 RUBY_PREFIX="$("$BREW_BIN" --prefix ruby)"
 [ -x "$RUBY_PREFIX/bin/ruby" ] || die "Homebrew Ruby is missing from $RUBY_PREFIX"
 export PATH="$RUBY_PREFIX/bin:$PATH"
@@ -509,22 +509,21 @@ show_stage_progress 19 84
 
 start_timing 'Pinned Vim plugins'
 inline_section 'Initializing pinned Vim plugins'
-run_with_progress git -C "$REPO_ROOT" submodule --quiet sync --recursive
-run_with_progress git -C "$REPO_ROOT" submodule --quiet update --init --recursive
+run_with_progress "$REPO_ROOT/bootstrap/submodules/update_submodules.sh"
 printf 'ready.\n'
 finish_timing
 show_stage_progress 20 94
 
 start_timing 'Configuration links'
 inline_section 'Linking configuration files'
-run_with_progress "$REPO_ROOT/bootstrap/link_configs.sh" --summary
+run_with_progress "$REPO_ROOT/bootstrap/setup/link_configs.sh" --summary
 finish_timing
 show_stage_progress 21 99
 
 if [ "$SKIP_CHECKS" -eq 0 ]; then
   section 'Validating the installation'
   start_timing 'Repository checks'
-  run_with_progress "$REPO_ROOT/bootstrap/check_configs.sh"
+  run_with_progress "$REPO_ROOT/bootstrap/checks/check_configs.sh"
   finish_timing
   show_progress 75
   start_timing 'Ghostty validation'
@@ -532,13 +531,13 @@ if [ "$SKIP_CHECKS" -eq 0 ]; then
   finish_timing
   show_progress 76
   start_timing 'Environment doctor'
-  run_with_progress "$REPO_ROOT/bootstrap/doctor.sh"
+  run_with_progress "$REPO_ROOT/bootstrap/checks/doctor.sh"
   finish_timing
 else
   clear_progress
   printf '\nSkipped final checks. Run these when ready:\n'
-  printf '  %s/bootstrap/check_configs.sh\n' "$REPO_ROOT"
-  printf '  %s/bootstrap/doctor.sh\n' "$REPO_ROOT"
+  printf '  %s/bootstrap/checks/check_configs.sh\n' "$REPO_ROOT"
+  printf '  %s/bootstrap/checks/doctor.sh\n' "$REPO_ROOT"
 fi
 
 print_timing_report

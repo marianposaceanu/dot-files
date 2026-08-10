@@ -345,7 +345,7 @@ install_bottle() {
 install_native() {
   info "Building native-apple-m4 optimised vim …"
   brew unpin vim 2>/dev/null || true
-  bash "$ROOT_DIR/bootstrap/compile_vim_native.sh"
+  bash "$ROOT_DIR/bootstrap/native/compile_vim_native.sh"
   hash -r 2>/dev/null || true
 }
 

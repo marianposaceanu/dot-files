@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# bootstrap/native/compile_ctags_native.sh
 # Rebuild the active Homebrew Universal Ctags stable keg for this Apple CPU.
 set -euo pipefail
 
@@ -147,7 +148,7 @@ if [ "$USE_PGO" -eq 1 ]; then
   RAW="$ROOT/profiles"; mkdir "$RAW"
   configure_build "$ROOT/pgo-generate" '-O3 -mcpu=native -fprofile-instr-generate' '-fprofile-instr-generate'
   LLVM_PROFILE_FILE="$RAW/ctags-%m-%p.profraw" CTAGS_BENCH_REPETITIONS=3 CTAGS_BENCH_WARMUPS=1 \
-    "$(cd "$(dirname "$0")/.." && pwd)/benchmarks/benchmark_ctags_native.sh" "$ROOT/pgo-generate/ctags" pgo-training >/dev/null
+    "$(cd "$(dirname "$0")/../.." && pwd)/benchmarks/benchmark_ctags_native.sh" "$ROOT/pgo-generate/ctags" pgo-training >/dev/null
   find "$RAW" -name '*.profraw' -print -quit | grep -q . || fail "PGO training produced no profiles."
   "$PROFDATA" merge -o "$ROOT/merged.profdata" "$RAW"/*.profraw
   [ -s "$ROOT/merged.profdata" ] || fail "PGO merged profile is empty."
@@ -162,7 +163,7 @@ verify_ctags "$CANDIDATE"
 [ "$(install_names "$CANDIDATE")" = "$BASE_LINKS" ] || fail "Candidate install-name list differs from the bottle."
 info "Benchmarking candidate against the currently installed baseline"
 CTAGS_BENCH_REPETITIONS="${CTAGS_BENCH_REPETITIONS:-5}" \
-  "$(cd "$(dirname "$0")/.." && pwd)/benchmarks/benchmark_ctags_native.sh" "$CANDIDATE" candidate "$TARGET" installed-baseline
+  "$(cd "$(dirname "$0")/../.." && pwd)/benchmarks/benchmark_ctags_native.sh" "$CANDIDATE" candidate "$TARGET" installed-baseline
 
 # Binary-only, same-filesystem publication. No make install is performed.
 chmod u+w "$BIN_DIR"; STAGE="$BIN_DIR/.ctags.native-stage.$$"; PENDING="$BIN_DIR/.ctags.native-backup-pending.$$"; BACKUP="$BIN_DIR/.ctags.native-backup.$$"

@@ -2,17 +2,21 @@
 
 set -euo pipefail
 
-if [ -z "${1:-}" ]; then
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd -P)"
+
+if [ "$#" -ne 1 ]; then
   echo "Usage: $0 <submodule-path>"
   exit 1
 fi
 
 SUBMODULE_PATH="$1"
 
-if [ ! -f .gitmodules ]; then
-  echo "Error: .gitmodules not found in current directory."
+if [ ! -f "$REPO_ROOT/.gitmodules" ]; then
+  echo "Error: .gitmodules not found at repository root."
   exit 1
 fi
+
+cd "$REPO_ROOT"
 
 MATCHING_SECTIONS=()
 while IFS= read -r section; do

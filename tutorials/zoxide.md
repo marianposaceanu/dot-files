@@ -29,7 +29,7 @@ Zoxide's default `pwd` hook records directory changes. That means ordinary `cd` 
 Install every command-line dependency declared by this repository:
 
 ```sh
-./bootstrap/install_brew_deps.sh
+./bootstrap/setup/install_brew_deps.sh
 ```
 
 Or install only zoxide and FZF:

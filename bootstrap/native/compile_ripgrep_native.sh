@@ -8,10 +8,10 @@
 #
 # Upgrade path:
 #   brew unpin ripgrep && brew upgrade ripgrep \
-#     && ./bootstrap/compile_ripgrep_native.sh
+#     && ./bootstrap/native/compile_ripgrep_native.sh
 #
 # Optional profile-guided build:
-#   ./bootstrap/compile_ripgrep_native.sh --pgo
+#   ./bootstrap/native/compile_ripgrep_native.sh --pgo
 
 set -euo pipefail
 
@@ -312,7 +312,7 @@ if [ "$USE_PGO" -eq 1 ]; then
   info "Training PGO with single- and multi-thread search workloads"
   RG_BENCH_CORPUS="$BUILD_DIR/pgo-training-corpus" \
     RG_BENCH_REPETITIONS=3 \
-    "$(cd "$(dirname "$0")/.." && pwd)/benchmarks/benchmark_ripgrep_native.sh" \
+    "$(cd "$(dirname "$0")/../.." && pwd)/benchmarks/benchmark_ripgrep_native.sh" \
       "$INSTRUMENTED" pgo-training >/dev/null
   unset LLVM_PROFILE_FILE
   find "$PROFILE_RAW" -type f -name '*.profraw' -print -quit | grep -q . \
@@ -379,7 +379,7 @@ else
 fi
 printf 'Upgrade later with:\n'
 if [ "$USE_PGO" -eq 1 ]; then
-  printf '  brew unpin ripgrep && brew upgrade ripgrep && ./bootstrap/compile_ripgrep_native.sh --pgo\n'
+  printf '  brew unpin ripgrep && brew upgrade ripgrep && ./bootstrap/native/compile_ripgrep_native.sh --pgo\n'
 else
-  printf '  brew unpin ripgrep && brew upgrade ripgrep && ./bootstrap/compile_ripgrep_native.sh\n'
+  printf '  brew unpin ripgrep && brew upgrade ripgrep && ./bootstrap/native/compile_ripgrep_native.sh\n'
 fi

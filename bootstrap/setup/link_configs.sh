@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BACKUP_STAMP="$(date +%Y%m%d%H%M%S)"
 SUMMARY=0
 UNCHANGED_COUNT=0

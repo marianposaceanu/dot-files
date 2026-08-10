@@ -153,17 +153,17 @@ the exact session ID and TTY for manual recovery.
 
 #### update the bundles
 
-    git submodule update --init --recursive
+    ./bootstrap/submodules/update_submodules.sh
 
 #### fully update all bundles
 
-    git submodule update --remote --recursive
+    ./bootstrap/submodules/update_submodules.sh --remote
 
 This updates plugin pointers in your repo; run it only when you intentionally want to bump submodule versions.
 
 #### install deps:
 
-- via script: `./bootstrap/install_brew_deps.sh`
+- via script: `./bootstrap/setup/install_brew_deps.sh`
 - via Brewfile: `brew bundle --file Brewfile`
 - current formulae: `fzf`, `zoxide`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
 
@@ -219,14 +219,14 @@ and Homebrew dynamic linkage, runs literal, file-type, and PCRE2 smoke tests,
 atomically replaces the binary with automatic rollback, then pins `ripgrep`.
 
 ```sh
-./bootstrap/compile_ripgrep_native.sh
+./bootstrap/native/compile_ripgrep_native.sh
 ```
 
 To upgrade and rebuild later:
 
 ```sh
 brew unpin ripgrep && brew upgrade ripgrep \
-  && ./bootstrap/compile_ripgrep_native.sh
+  && ./bootstrap/native/compile_ripgrep_native.sh
 ```
 
 Restore the standard Homebrew bottle with:
@@ -273,7 +273,7 @@ rebuilding ripgrep is better than using its Homebrew bottle.
 For an experimental profile-guided build, add `--pgo`:
 
 ```sh
-./bootstrap/compile_ripgrep_native.sh --pgo
+./bootstrap/native/compile_ripgrep_native.sh --pgo
 ```
 
 This requires Homebrew LLVM with the exact LLVM version used by Homebrew Rust;
@@ -325,14 +325,14 @@ state. No `make install` is run.
 
 ```sh
 brew install docutils llvm
-./bootstrap/compile_ctags_native.sh --pgo
+./bootstrap/native/compile_ctags_native.sh --pgo
 ```
 
 Omit `--pgo` for the plain native/LTO build. To update or restore the bottle:
 
 ```sh
 brew unpin universal-ctags && brew upgrade universal-ctags \
-  && ./bootstrap/compile_ctags_native.sh --pgo
+  && ./bootstrap/native/compile_ctags_native.sh --pgo
 brew unpin universal-ctags && brew reinstall universal-ctags
 ```
 
@@ -381,13 +381,13 @@ installed Git version or formula contract changes.
 
 ```sh
 brew install llvm pkgconf
-./bootstrap/compile_git_native.sh --pgo
+./bootstrap/native/compile_git_native.sh --pgo
 ```
 
 Omit `--pgo` for native/LTO without profile guidance. To update or restore:
 
 ```sh
-brew unpin git && brew upgrade git && ./bootstrap/compile_git_native.sh --pgo
+brew unpin git && brew upgrade git && ./bootstrap/native/compile_git_native.sh --pgo
 brew unpin git && brew reinstall git
 ```
 
@@ -413,8 +413,8 @@ Git is faster or saves power.
 
 #### config and benchmark checks
 
-- run environment doctor: `./bootstrap/doctor.sh`
-- run config checks: `./bootstrap/check_configs.sh`
+- run environment doctor: `./bootstrap/checks/doctor.sh`
+- run config checks: `./bootstrap/checks/check_configs.sh`
 - single-run Vim profile: `./benchmarks/profile_vim_plugins.sh`
 - median profile (default 7 runs): `./benchmarks/profile_vim_plugins_median.sh`
 
@@ -426,7 +426,7 @@ formula's features and dynamic interpreter paths, and pins the formula so
 `brew upgrade` does not overwrite the custom binary.
 
 ```
-./bootstrap/compile_vim_native.sh
+./bootstrap/native/compile_vim_native.sh
 ```
 
 The script validates the source against the active keg's formula snapshot,
@@ -439,7 +439,7 @@ bottle; use `brew reinstall vim` to restore a standard Homebrew build.
 To upgrade Vim later:
 
 ```
-brew unpin vim && brew upgrade vim && ./bootstrap/compile_vim_native.sh
+brew unpin vim && brew upgrade vim && ./bootstrap/native/compile_vim_native.sh
 ```
 
 #### vim startup improvement map
@@ -508,7 +508,7 @@ brew unpin vim && brew upgrade vim && ./bootstrap/compile_vim_native.sh
 
 #### Ghostty config
 
-    ./bootstrap/link_ghostty_config.sh
+    ./bootstrap/setup/link_ghostty_config.sh
 
 The dedicated Ghostty installer replaces
 `$HOME/Library/Application Support/com.mitchellh.ghostty/config` with a symlink
@@ -519,7 +519,7 @@ when the correct link is already installed is safe and makes no changes.
 
 #### *nix symbolic links
 
-    ./bootstrap/link_configs.sh
+    ./bootstrap/setup/link_configs.sh
 
 The all-config installer includes Ghostty and creates symlinks for every
 repo-managed config. It backs up existing local files/directories first using a
@@ -610,4 +610,4 @@ sudo launchctl stop com.openssh.sshd && sudo launchctl start com.openssh.sshd
 
 #### tips - fully remove a submodule
 
-    ./bootstrap/remove_submodule.sh <submodule-path>
+    ./bootstrap/submodules/remove_submodule.sh <submodule-path>

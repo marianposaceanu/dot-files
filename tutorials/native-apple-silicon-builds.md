@@ -164,21 +164,21 @@ Each script supports a bottle restoration path because the Homebrew receipt cont
 
 ```sh
 # Vim
-./bootstrap/compile_vim_native.sh
+./bootstrap/native/compile_vim_native.sh
 brew unpin vim && brew reinstall vim
 
 # ripgrep
-./bootstrap/compile_ripgrep_native.sh --pgo
+./bootstrap/native/compile_ripgrep_native.sh --pgo
 brew unpin ripgrep && brew reinstall ripgrep
 
 # Universal Ctags
 brew install docutils llvm
-./bootstrap/compile_ctags_native.sh --pgo
+./bootstrap/native/compile_ctags_native.sh --pgo
 brew unpin universal-ctags && brew reinstall universal-ctags
 
 # Git
 brew install llvm pkgconf
-./bootstrap/compile_git_native.sh --pgo
+./bootstrap/native/compile_git_native.sh --pgo
 brew unpin git && brew reinstall git
 ```
 

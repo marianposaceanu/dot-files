@@ -22,4 +22,4 @@ if [ -e "$backup_target" ] || [ -L "$backup_target" ]; then
 fi
 
 mv "$CONFIG_PATH" "$backup_target"
-echo "Moved Ghostty config to $backup_target"
+printf 'Moved Ghostty config to %s\n' "$backup_target"

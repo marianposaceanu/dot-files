@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BREWFILE="$REPO_ROOT/Brewfile"
 
 if ! command -v brew >/dev/null 2>&1; then
