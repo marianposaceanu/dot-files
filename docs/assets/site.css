@@ -1038,6 +1038,10 @@ h1 {
   -webkit-overflow-scrolling: touch;
 }
 
+.site-article .article > .figure:first-child {
+  margin-top: 0;
+}
+
 .figure img {
   display: block;
   width: 100%;
