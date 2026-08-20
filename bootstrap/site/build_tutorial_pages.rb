@@ -202,7 +202,7 @@ def render_markdown(lines)
   output.join("\n")
 end
 
-def page_for(path, css_hash, dotfiles_hash)
+def page_for(path, css_hash, dotfiles_hash, js_hash)
   lines = path.read(encoding: "UTF-8").lines(chomp: true)
   metadata = {}
   if lines.first == "---"
@@ -254,6 +254,7 @@ def page_for(path, css_hash, dotfiles_hash)
       <link rel="icon" href="favicon.ico" sizes="any">
       <link rel="stylesheet" href="assets/site.css?v=#{css_hash}">
       <link rel="stylesheet" href="assets/dotfiles.css?v=#{dotfiles_hash}">
+      <script src="assets/site.js?v=#{js_hash}" defer></script>
     </head>
     <body class="site-article" id="top">
       <a class="skip-link" href="#main-content">Skip to content</a>
@@ -299,12 +300,13 @@ end
 FileUtils.mkdir_p(OUTPUT_DIR)
 css_hash = Digest::SHA256.file(OUTPUT_DIR.join("assets/site.css")).hexdigest[0, 12]
 dotfiles_hash = Digest::SHA256.file(OUTPUT_DIR.join("assets/dotfiles.css")).hexdigest[0, 12]
+js_hash = Digest::SHA256.file(OUTPUT_DIR.join("assets/site.js")).hexdigest[0, 12]
 
 sources = SOURCE_DIR.glob("*.md").sort
 abort "No Markdown tutorials found in #{SOURCE_DIR}" if sources.empty?
 
 sources.each do |source|
   output = OUTPUT_DIR.join("#{slug(source.basename(".md").to_s)}.html")
-  output.write(page_for(source, css_hash, dotfiles_hash), encoding: "UTF-8")
+  output.write(page_for(source, css_hash, dotfiles_hash, js_hash), encoding: "UTF-8")
   puts "built #{output.relative_path_from(ROOT)}"
 end
