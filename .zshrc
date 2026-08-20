@@ -100,3 +100,6 @@ export PATH="$PATH:$HOME/.rvm/bin"
 if (( $+commands[zoxide] )); then
   eval "$(zoxide init zsh)"
 fi
+
+# Suggest matching commands from shell history as text is entered.
+source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh

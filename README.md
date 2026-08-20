@@ -165,7 +165,14 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 - via script: `./bootstrap/setup/install_brew_deps.sh`
 - via Brewfile: `brew bundle --file Brewfile`
-- current formulae: `fzf`, `zoxide`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
+- current formulae: `fzf`, `zoxide`, `zsh-autosuggestions`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
+
+#### zsh-autosuggestions
+
+Zsh Autosuggestions displays a completion from shell history as you type. Press
+the right arrow or `End` to accept the suggestion. The plugin is installed by
+the Brewfile and sourced at the end of `.zshrc` from Homebrew's Apple Silicon
+share directory.
 
 #### bat
 
