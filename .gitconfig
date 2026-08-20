@@ -9,13 +9,19 @@
 [web]
   browser = open
 [push]
-  default = simple
-[color]
-  diff = auto
-  status = auto
-  branch = auto
-  interactive = auto
-  ui = true
+  autoSetupRemote = true
+[diff]
+  algorithm = histogram
+[merge]
+  conflictstyle = zdiff3
+[rebase]
+  autostash = true
+[fetch]
+  prune = true
+[branch]
+  sort = -committerdate
+[rerere]
+  enabled = true
 [color "branch"]
   current = yellow reverse
   local   = yellow
@@ -37,8 +43,8 @@
   c   = commit -v
   co  = checkout
   cp  = cherry-pick
-  w   = whatchanged --decorate
-  wp  = whatchanged --decorate -p
+  w   = log --raw --decorate
+  wp  = log --decorate -p
   a   = add -u
   aa  = add --all :/
   td  = merge --no-ff

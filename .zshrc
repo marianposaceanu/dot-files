@@ -68,20 +68,16 @@ if (( $+commands[rg] )); then
   alias ack=rg
 fi
 
-# Load FZF completion and Ctrl-T directly from Homebrew.
-if [[ -r /opt/homebrew/opt/fzf/shell/completion.zsh &&
-      -r /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
-  # Apple Silicon Homebrew.
-  source /opt/homebrew/opt/fzf/shell/completion.zsh
-  source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
-elif [[ -r /usr/local/opt/fzf/shell/completion.zsh &&
-        -r /usr/local/opt/fzf/shell/key-bindings.zsh ]]; then
-  # Intel Homebrew.
-  source /usr/local/opt/fzf/shell/completion.zsh
-  source /usr/local/opt/fzf/shell/key-bindings.zsh
-elif [[ -r "$HOME/.fzf.zsh" ]]; then
-  # Fallback for installations created by FZF's installer.
-  source "$HOME/.fzf.zsh"
+# Load FZF completion and key bindings via the official shell integration
+# (fzf >= 0.48). Works for any install location without hardcoded prefixes.
+if (( $+commands[fzf] )); then
+  source <(fzf --zsh)
+fi
+
+# Use ripgrep for file listing so Ctrl-T is fast and respects .gitignore.
+if (( $+commands[rg] )); then
+  export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 fi
 
 # Use bat for Ctrl-T previews when available.

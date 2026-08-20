@@ -2,3 +2,6 @@
 Thumbs.db
 *.swp
 *.swo
+*.orig
+.netrwhist
+tags
