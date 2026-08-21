@@ -72,7 +72,15 @@ load successfully.
 
 ### Ghostty named workspaces (`rz`)
 
-`rz` saves and restores Ghostty windows, their macOS position and size, tabs,
+[`rz`](https://github.com/marianposaceanu/rz) is installed from the custom
+Homebrew tap declared in this repository's `Brewfile`:
+
+```sh
+brew tap marianposaceanu/tap
+brew install rz
+```
+
+It saves and restores Ghostty windows, their macOS position and size, tabs,
 terminal surfaces, focus, working directories, Codex conversation IDs, and
 non-empty scrollback. A restore builds the new workspace first, then closes only
 the Ghostty windows that existed when `rz` started. Use `--keep-existing` for an
@@ -96,6 +104,7 @@ rz --session work              # restore the newest snapshot named work
 rz --session 20260719-230140   # restore a specific timestamp
 rz --keep-existing             # restore without closing existing windows
 rz --list                      # list snapshots
+rz --list 3                    # inspect snapshot number 3 from the list
 rz --session work --dry-run    # preview without changing Ghostty
 ```
 
@@ -107,9 +116,8 @@ Accessibility. Restored terminals wait behind a short readiness gate until the
 old windows have closed, so their Codex conversations do not get mistaken for
 duplicates and downgraded to plain shells.
 
-Snapshots live in `~/.local/state/ghostty-rz/snapshots`. Reload the shell after
-updating the dotfiles (`source ~/.zshrc` or `source ~/.bashrc`) before using `rz`.
-Use `--no-scrollback` when speed matters; window geometry, tabs, surfaces,
+Snapshots live in `~/.local/state/ghostty-rz/snapshots`. Use `--no-scrollback`
+when speed matters; window geometry, tabs, surfaces,
 directories, focus, and Codex IDs are still saved. Scrollback exports are read
 immediately when Ghostty's synchronous action returns, with one short compatibility
 retry for asynchronous implementations; empty terminals no longer incur a

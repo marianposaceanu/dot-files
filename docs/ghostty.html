@@ -42,6 +42,7 @@
     <nav class="toc" aria-label="Table of contents">
       <h2>On this page</h2>
       <ol>
+        <li><a href="#install-rz">Install rz</a></li>
         <li><a href="#daily-shortcuts">Daily shortcuts</a></li>
         <li><a href="#save-and-restore">Save and restore</a></li>
         <li><a href="#automatic-backups">Automatic backups</a></li>
@@ -53,6 +54,17 @@
     </nav>
 
     <article class="article article-flow">
+      <section id="install-rz">
+        <h2>Install rz</h2>
+        <pre><code>brew tap marianposaceanu/tap
+brew install rz</code></pre>
+        <p>
+          The dotfiles <code>Brewfile</code> includes the same formula. Source and
+          tagged versions live in the standalone
+          <a href="https://github.com/marianposaceanu/rz">rz repository</a>.
+        </p>
+      </section>
+
       <section id="daily-shortcuts">
         <h2>Daily shortcuts</h2>
         <table class="shortcut-table">
@@ -103,6 +115,7 @@ rz --save personal             # a separate named workspace</code></pre>
 rz --session work          # replace them with newest snapshot named work
 rz --keep-existing         # restore without closing current windows
 rz --list                  # inspect available snapshots
+rz --list 3                # inspect snapshot number 3 from the list
 rz --session work --dry-run</code></pre>
         <p>
           <code>rz</code> restores window position and size, tabs, terminal counts,
@@ -217,8 +230,8 @@ osascript ~/dot-files/ghostty/scripts/workspace-inventory.applescript</code></pr
         <h2>Source files</h2>
         <ol class="source-list compact-list">
           <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/config">ghostty/config</a> - commented Ghostty configuration</li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/rz">ghostty/scripts/rz</a> - snapshot save, selection, and restore</li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/snapshot-capture.applescript">snapshot-capture.applescript</a> - live Ghostty and scrollback capture</li>
+          <li><a href="https://github.com/marianposaceanu/rz/blob/main/bin/rz">rz/bin/rz</a> - snapshot save, selection, and restore</li>
+          <li><a href="https://github.com/marianposaceanu/rz/blob/main/libexec/snapshot-capture.applescript">rz/libexec/snapshot-capture.applescript</a> - live Ghostty and scrollback capture</li>
           <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/workspace-open.applescript">workspace-open.applescript</a> - idempotent workspace repair</li>
           <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/workspace-inventory.applescript">workspace-inventory.applescript</a> - read-only TSV inventory</li>
         </ol>
