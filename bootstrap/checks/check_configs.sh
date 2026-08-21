@@ -14,10 +14,6 @@ zsh -n "$REPO_ROOT/.zprofile"
 zsh -n "$REPO_ROOT/.zshrc"
 zsh -n "$REPO_ROOT/.zlogin"
 
-echo "Checking rz..."
-env -u GEM_HOME -u GEM_PATH ruby -c "$REPO_ROOT/ghostty/scripts/rz" >/dev/null
-env -u GEM_HOME -u GEM_PATH ruby "$REPO_ROOT/test/rz_test.rb"
-
 echo "Checking macOS installer idempotence..."
 env -u GEM_HOME -u GEM_PATH ruby "$REPO_ROOT/test/install_macos_test.rb"
 

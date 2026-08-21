@@ -51,12 +51,6 @@ else
   print -u2 -- "[zshrc] Warning: oh-my-zsh not found at $ZSH"
 fi
 
-# Save and restore named Ghostty workspaces through the repository-managed tool.
-unalias rz 2>/dev/null
-rz() {
-  "$HOME/dot-files/ghostty/scripts/rz" "$@"
-}
-
 # Open the external display manager with a shorter command.
 alias mext=mextdisplay
 
