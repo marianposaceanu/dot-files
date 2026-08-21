@@ -29,6 +29,8 @@ class InstallMacosTest < Minitest::Test
 
   def test_two_runs_install_once_and_do_not_create_duplicate_backups
     brewfile = File.readlines(File.join(REPO_ROOT, "Brewfile"))
+    assert_includes brewfile, "tap \"marianposaceanu/tap\"\n"
+    assert_includes brewfile, "brew \"mextdisplay\"\n"
     assert_includes brewfile, "brew \"ruby\"\n"
     assert_includes brewfile, "brew \"vim\"\n"
 
@@ -42,6 +44,7 @@ class InstallMacosTest < Minitest::Test
     assert_equal REPO_ROOT, File.realpath(File.join(@home, "dot-files"))
     assert_equal File.join(REPO_ROOT, ".zshrc"), File.realpath(File.join(@home, ".zshrc"))
     assert File.file?(File.join(@home, ".oh-my-zsh/oh-my-zsh.sh"))
+    assert File.executable?(File.join(@tmp_dir, "homebrew/opt/mextdisplay/bin/mextdisplay"))
     assert File.executable?(File.join(@ghostty_app, "Contents/MacOS/ghostty"))
 
     backups = Dir.glob(File.join(@home, ".zshrc.backup.*"))
@@ -212,7 +215,7 @@ class InstallMacosTest < Minitest::Test
           printf 'export HOMEBREW_PREFIX=%q\n' "$(dirname "$(dirname "$0")")"
           ;;
         --prefix)
-          case "${2:-}" in ruby|vim) ;; *) exit 1 ;; esac
+          case "${2:-}" in mextdisplay|ruby|vim) ;; *) exit 1 ;; esac
           prefix="$(dirname "$state")/homebrew/opt/${2}"
           mkdir -p "$prefix/bin"
           touch "$prefix/bin/${2}"

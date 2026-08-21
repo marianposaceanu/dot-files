@@ -57,6 +57,9 @@ rz() {
   "$HOME/dot-files/ghostty/scripts/rz" "$@"
 }
 
+# Open the external display manager with a shorter command.
+alias mext=mextdisplay
+
 # Use bat as the interactive cat replacement and man-page renderer.
 if (( $+commands[bat] )); then
   alias cat=bat

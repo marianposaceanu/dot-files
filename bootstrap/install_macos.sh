@@ -41,9 +41,10 @@ usage() {
   cat <<'EOF'
 Usage: ./bootstrap/install_macos.sh [--skip-checks] [--timings]
 
-Install the macOS tools used by this repository, initialize Vim submodules,
-and link the managed configuration files into $HOME. Existing destinations
-are preserved with timestamped backups by bootstrap/setup/link_configs.sh.
+Install the macOS tools used by this repository, install mextdisplay, initialize
+Vim submodules, and link the managed configuration files into $HOME. Existing
+destinations are preserved with timestamped backups by
+bootstrap/setup/link_configs.sh.
 
 Options:
   --skip-checks  Skip the final config and environment validation.
@@ -451,6 +452,9 @@ show_stage_progress 3 3
 start_timing 'Command-line dependencies'
 section 'Installing command-line dependencies'
 run_with_progress "$REPO_ROOT/bootstrap/setup/install_brew_deps.sh"
+MEXTDISPLAY_PREFIX="$("$BREW_BIN" --prefix mextdisplay)"
+MEXTDISPLAY_BIN="$MEXTDISPLAY_PREFIX/bin/mextdisplay"
+[ -x "$MEXTDISPLAY_BIN" ] || die "mextdisplay is missing from $MEXTDISPLAY_BIN"
 RUBY_PREFIX="$("$BREW_BIN" --prefix ruby)"
 [ -x "$RUBY_PREFIX/bin/ruby" ] || die "Homebrew Ruby is missing from $RUBY_PREFIX"
 export PATH="$RUBY_PREFIX/bin:$PATH"

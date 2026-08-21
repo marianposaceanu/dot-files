@@ -1,6 +1,9 @@
+tap "marianposaceanu/tap"
+
 brew "fzf"
 brew "zoxide"
 brew "zsh-autosuggestions"
+brew "mextdisplay"
 brew "ripgrep"
 brew "bat"
 brew "ruby"

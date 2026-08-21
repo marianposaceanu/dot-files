@@ -36,11 +36,11 @@ Line Tools. Complete that installation and rerun the clone; the installer checks
 the tools again before changing the machine.
 
 The installer checks Apple Command Line Tools, installs Homebrew when missing,
-installs the Brewfile formulae and Ghostty, clones Oh My Zsh without replacing
-shell files, initializes the pinned Vim submodules, and invokes the existing
-backup-aware config linker. Correct links and existing installations are left
-alone on later runs. Conflicting config files are moved to timestamped
-`.backup.<timestamp>` paths before linking.
+installs the Brewfile formulae, mextdisplay, and Ghostty, clones Oh My Zsh
+without replacing shell files, initializes the pinned Vim submodules, and
+invokes the existing backup-aware config linker. Correct links and existing
+installations are left alone on later runs. Conflicting config files are moved
+to timestamped `.backup.<timestamp>` paths before linking.
 
 Use `--skip-checks` only when the installation must finish before running the
 repository validator and environment doctor manually.
@@ -165,7 +165,28 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 
 - via script: `./bootstrap/setup/install_brew_deps.sh`
 - via Brewfile: `brew bundle --file Brewfile`
-- current formulae: `fzf`, `zoxide`, `zsh-autosuggestions`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
+- custom tap: `marianposaceanu/tap`
+- current formulae: `fzf`, `zoxide`, `zsh-autosuggestions`, `mextdisplay`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
+
+#### mextdisplay
+
+The Brewfile installs [mextdisplay](https://github.com/marianposaceanu/mextdisplay)
+from the public [marianposaceanu/tap](https://github.com/marianposaceanu/homebrew-tap).
+Run its Ratatui interface with the short `mext` alias, or use subcommands for
+scripts:
+
+```sh
+mext
+mext list
+mext disable EV3285
+mext enable EV3285
+```
+
+Install it independently of the rest of the dotfiles with:
+
+```sh
+brew install marianposaceanu/tap/mextdisplay
+```
 
 #### zsh-autosuggestions
 
