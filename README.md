@@ -80,13 +80,15 @@ brew tap marianposaceanu/tap
 brew install rz
 ```
 
-It saves and restores Ghostty windows, their macOS position and size, tabs,
-terminal surfaces, focus, working directories, Codex conversation IDs, and
-non-empty scrollback. A restore builds the new workspace first, then closes only
-the Ghostty windows that existed when `rz` started. Use `--keep-existing` for an
-additive restore that leaves those windows open. Window geometry and automatic
-handling of Ghostty's close confirmation require macOS Accessibility permission
-for the shell running `rz`.
+The current release is a native Rust executable and remains compatible with
+snapshots from the earlier Ruby releases. It saves and restores Ghostty windows,
+their macOS position and size, tabs, terminal surfaces, focus, working
+directories, Codex conversation IDs, Amp thread IDs, and non-empty scrollback. A
+restore builds the new workspace first, then closes only the Ghostty windows that
+existed when `rz` started. Use `--keep-existing` for an additive restore that
+leaves those windows open. Window geometry and automatic handling of Ghostty's
+close confirmation require macOS Accessibility permission for the shell running
+`rz`.
 
 ```sh
 rz --save work                 # save work_YYYYMMDD-HHMMSS
@@ -113,16 +115,16 @@ IDs, creates every restored window, and then invokes Ghostty's supported
 `close_window` action only for the recorded IDs. If an old window still contains
 a running process, `rz` confirms Ghostty's exact **Close Window?** sheet through
 Accessibility. Restored terminals wait behind a short readiness gate until the
-old windows have closed, so their Codex conversations do not get mistaken for
-duplicates and downgraded to plain shells.
+old windows have closed, so their Codex conversations or Amp threads do not get
+mistaken for duplicates and downgraded to plain shells.
 
 Snapshots live in `~/.local/state/ghostty-rz/snapshots`. Use `--no-scrollback`
 when speed matters; window geometry, tabs, surfaces,
-directories, focus, and Codex IDs are still saved. Scrollback exports are read
-immediately when Ghostty's synchronous action returns, with one short compatibility
-retry for asynchronous implementations; empty terminals no longer incur a
-one-second timeout. The save confirmation lists every captured tab title, using
-its window and tab position such as `TAB 1.3`.
+directories, focus, Codex IDs, and Amp IDs are still saved. Scrollback exports
+are read immediately when Ghostty's synchronous action returns, with one short
+compatibility retry for asynchronous implementations; empty terminals no longer
+incur a one-second timeout. The save confirmation lists every captured tab title,
+using its window and tab position such as `TAB 1.3`.
 
 Automatic watchers are opt-in and shell-scoped; there is no global daemon. A
 watcher saves immediately and then at the requested interval, uses fast snapshots
@@ -149,13 +151,14 @@ split tree, split directions, or pane proportions, and it has no JSON workspace
 export/import API. `rz` therefore preserves the number of terminal surfaces but
 recreates additional surfaces as right-hand splits. Scrollback is replayed as
 plain text; arbitrary running programs cannot be reconstructed. Codex sessions
-are resumed by their exact conversation ID. Session matching is restricted to
-Codex processes launched under Ghostty. It uses an exact working directory first,
-then a unique project title or the same session ID's unique title from a previous
+and Amp threads are resumed by their exact IDs. Agent matching is restricted to
+supported processes launched under Ghostty. It uses an exact working directory
+first, then a unique project title or the same ID's unique title from a previous
 snapshot when Ghostty reports a blank directory. A successful fallback repairs
-the saved directory, and restored terminals report that directory back to Ghostty
-before Codex starts. Ambiguous sessions are never guessed; the warning identifies
-the exact session ID and TTY for manual recovery.
+the saved directory, and restored terminals report that directory back to
+Ghostty before the agent starts. Ambiguous sessions are never guessed; the
+warning identifies the exact conversation or thread ID and TTY for manual
+recovery.
 
 ### Submodules and bundles
 
@@ -174,7 +177,7 @@ This updates plugin pointers in your repo; run it only when you intentionally wa
 - via script: `./bootstrap/setup/install_brew_deps.sh`
 - via Brewfile: `brew bundle --file Brewfile`
 - custom tap: `marianposaceanu/tap`
-- current formulae: `fzf`, `zoxide`, `zsh-autosuggestions`, `mextdisplay`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
+- current formulae: `fzf`, `zoxide`, `zsh-autosuggestions`, `mextdisplay`, `rz`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
 
 #### mextdisplay
 
