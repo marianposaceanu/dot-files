@@ -119,6 +119,22 @@ class InstallMacosTest < Minitest::Test
     assert_match(/^╰─ Total +\d+\.\d{3}s +100\.0%$/, output)
   end
 
+  def test_interactive_progress_stays_reserved_during_output_and_resize
+    output = run_installer(interactive: true)
+
+    assert_includes output, "\e[1;23r"
+    assert_includes output, "\e[1;29r"
+    assert_includes output, "\e[1;17r"
+    assert_includes output, "\e[1;18r"
+    assert_match(/\[[# ]+\] +11%/, output)
+    assert_match(/\[[# ]+\] +44%/, output)
+    assert_match(/\[[# ]+\] +100%/, output)
+    assert_operator output.index("\e[1;29r"), :<,
+      output.index("growth-child-still-running")
+    assert_operator output.index("\e[1;17r"), :<,
+      output.index("shrink-child-still-running")
+  end
+
   def test_dependency_failure_is_reported_without_a_completion_panel
     stdout, stderr, status = invoke_installer(fail_brew: true)
     output = stdout + stderr
@@ -127,6 +143,17 @@ class InstallMacosTest < Minitest::Test
     assert_includes output, "simulated brew bundle failure"
     refute_includes output, "SETUP COMPLETE"
     assert_includes output, "✗ Error:"
+  end
+
+  def test_interactive_failure_restores_the_full_terminal_region
+    stdout, stderr, status = invoke_installer(interactive: true, fail_brew: true)
+    output = stdout + stderr
+
+    refute status.success?
+    assert_includes output, "simulated brew bundle failure"
+    refute_includes output, "SETUP COMPLETE"
+    assert_operator output.rindex("\e[1;18r"), :>,
+      output.index("simulated brew bundle failure")
   end
 
   def test_aarch64_binary_is_runnable_without_bb_on_path

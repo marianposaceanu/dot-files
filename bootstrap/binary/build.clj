@@ -59,7 +59,8 @@
   (try
     (println "[1/5] Building the embedded Clojure sources...")
     (doseq [relative-path ["bootstrap/app/install_macos.clj"
-                           "bootstrap/lib/common.clj"]]
+                           "bootstrap/lib/common.clj"
+                           "bootstrap/lib/progress.clj"]]
       (let [destination (fs/path source-dir relative-path)]
         (fs/create-dirs (fs/parent destination))
         (fs/copy (fs/path repo-root relative-path) destination)))

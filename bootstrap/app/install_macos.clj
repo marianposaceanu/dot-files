@@ -1,6 +1,7 @@
 (ns bootstrap.app.install-macos
   (:require [babashka.fs :as fs]
             [bootstrap.lib.common]
+            [bootstrap.lib.progress :as progress]
             [clojure.string :as str]))
 
 (defn dot-files-repo? [path]
@@ -89,7 +90,8 @@
     (action)
     (swap! timings conj
            {:title title
-            :seconds (/ (- (System/nanoTime) started) 1000000000.0)})))
+            :seconds (/ (- (System/nanoTime) started) 1000000000.0)})
+    (progress/update! number total-stages)))
 
 (defn find-ghostty []
   (or (bootstrap.lib.common/command-path "ghostty")
@@ -287,6 +289,7 @@
     (println "╭─ DOT-FILES :: MACOS SETUP")
     (println "│  Idempotent setup powered by Babashka")
     (println "╰─ Existing files are backed up before links are changed")
+    (progress/start!)
 
     (stage! 1 "Apple Command Line Tools" ensure-command-line-tools!)
     (stage! 2 "Repository path" ensure-repository-path!)
@@ -300,11 +303,12 @@
 
     (print-timings)
     (println)
-    (println "[##################################################] 100%")
+    (progress/complete!)
     (println "╭─ SETUP COMPLETE")
     (println "│  Your macOS dot-files environment is ready.")
     (println "╰─ Next: restart the terminal or run source ~/.zshrc")
     (catch Exception error
+      (progress/stop!)
       (when-let [temporary @oh-my-zsh-temp]
         (when (bootstrap.lib.common/path-present? temporary)
           (fs/delete-tree temporary)))
