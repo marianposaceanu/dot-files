@@ -1,1 +1,3 @@
 .vim/.netrwhist
+bootstrap/bin/*
+!bootstrap/bin/README.md

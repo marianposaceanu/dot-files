@@ -68,7 +68,8 @@
         <p>On a Mac, clone the repository and run the setup script. It installs the command-line tools, Ghostty, Oh My Zsh, and pinned Vim plugins, links the configuration files, and checks that everything loads correctly.</p>
         <pre><code>git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
 cd ~/dot-files
-./bootstrap/install_macos.sh</code></pre>
+brew install borkdude/brew/babashka
+bb bootstrap/install_macos.clj</code></pre>
         <div class="callout warning">
           <strong>Review before you run it</strong>
           The installer replaces supported configuration files with symlinks. If a file

@@ -135,7 +135,7 @@
 
   (if (bootstrap.lib.common/command-path "mextdisplay")
     (ok "mextdisplay is installed")
-    (warn "mextdisplay is not installed; run bootstrap/install_macos.sh"))
+    (warn "mextdisplay is not installed; run bb bootstrap/install_macos.clj"))
 
   (let [[bat-spec ghostty-spec]
         (drop 11 (bootstrap.lib.common/resolved-link-specs repo-root))]
@@ -147,7 +147,7 @@
     (if (or (bootstrap.lib.common/command-path "ghostty")
             (fs/executable? "/Applications/Ghostty.app/Contents/MacOS/ghostty"))
       (ok "Ghostty is installed")
-      (warn "Ghostty is not installed; run bootstrap/install_macos.sh"))
+      (warn "Ghostty is not installed; run bb bootstrap/install_macos.clj"))
     (check-symlink ghostty-spec))
 
   (heading "Homebrew")

@@ -7,7 +7,10 @@ require "tmpdir"
 
 class InstallMacosTest < Minitest::Test
   REPO_ROOT = File.expand_path("..", __dir__)
-  INSTALLER = File.join(REPO_ROOT, "bootstrap/install_macos.sh")
+  SOURCE_INSTALLER = File.join(REPO_ROOT, "bootstrap/install_macos.clj")
+  BINARY_INSTALLER = File.join(
+    REPO_ROOT, "bootstrap/bin/dotfiles-bootstrap-macos-aarch64"
+  )
   LEGACY_INSTALLER = File.join(REPO_ROOT, "bootstrap/legacy/install_macos.sh")
   BB_BIN = ENV["BB_BIN"] || ENV.fetch("PATH").split(File::PATH_SEPARATOR)
     .map { |directory| File.join(directory, "bb") }
@@ -126,13 +129,17 @@ class InstallMacosTest < Minitest::Test
     assert_includes output, "✗ Error:"
   end
 
-  def test_bootstrap_installs_babashka_when_the_binary_is_missing
-    output = run_installer(include_bb: false)
+  def test_aarch64_binary_is_runnable_without_bb_on_path
+    skip "build the aarch64 binary to run this test" unless File.executable?(BINARY_INSTALLER)
 
-    assert_includes output, "• Installing Babashka..."
-    assert_includes output, "╭─ SETUP COMPLETE"
-    assert_includes File.readlines(@log, chomp: true),
-      "brew install borkdude/brew/babashka"
+    stdout, stderr, status = invoke_installer(
+      installer: BINARY_INSTALLER,
+      include_bb_in_path: false
+    )
+
+    assert status.success?, "binary installer failed:\n#{stdout}\n#{stderr}"
+    assert_includes stdout, "╭─ DOT-FILES :: MACOS SETUP"
+    assert_includes stdout, "╭─ SETUP COMPLETE"
   end
 
   def test_legacy_installer_remains_runnable
@@ -145,20 +152,19 @@ class InstallMacosTest < Minitest::Test
 
   private
 
-  def run_installer(interactive: false, timings: false, include_bb: true)
+  def run_installer(interactive: false, timings: false)
     stdout, stderr, status = invoke_installer(
       interactive: interactive,
-      timings: timings,
-      include_bb: include_bb
+      timings: timings
     )
     assert status.success?, "installer failed:\n#{stdout}\n#{stderr}"
     stdout
   end
 
   def invoke_installer(interactive: false, fail_brew: false, timings: false,
-    include_bb: true, installer: INSTALLER)
+    include_bb_in_path: true, installer: SOURCE_INSTALLER)
     path = [@bin]
-    path << File.dirname(BB_BIN) if include_bb
+    path << File.dirname(BB_BIN) if include_bb_in_path
     path.concat(["/usr/bin", "/bin", "/usr/sbin", "/sbin"])
     env = {
       "HOME" => @home,
@@ -172,7 +178,8 @@ class InstallMacosTest < Minitest::Test
       "GHOSTTY_APP_PATH" => @ghostty_app,
       "TERM" => "xterm-256color"
     }
-    command = [installer, "--skip-checks"]
+    command = installer == SOURCE_INSTALLER ? [BB_BIN, installer] : [installer]
+    command << "--skip-checks"
     command << "--timings" if timings
     if interactive
       command = [
@@ -232,11 +239,17 @@ class InstallMacosTest < Minitest::Test
             printf '%s/homebrew\n' "$(dirname "$state")"
             exit 0
           fi
-          case "$2" in mextdisplay|ruby|vim) ;; *) exit 1 ;; esac
+          case "$2" in babashka|mextdisplay|ruby|vim) ;; *) exit 1 ;; esac
           prefix="$(dirname "$state")/homebrew/opt/$2"
           mkdir -p "$prefix/bin"
-          touch "$prefix/bin/${2}"
-          chmod +x "$prefix/bin/${2}"
+          executable="$2"
+          if [ "$2" = 'babashka' ]; then
+            executable='bb'
+            ln -sf "${INSTALLER_TEST_BB_BIN:?}" "$prefix/bin/$executable"
+          else
+            touch "$prefix/bin/$executable"
+            chmod +x "$prefix/bin/$executable"
+          fi
           printf '%s\n' "$prefix"
           ;;
         update)

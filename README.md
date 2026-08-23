@@ -23,12 +23,13 @@ Contains my dot-files for easy usage across different OSs.
 
 ## Install on macOS
 
-Clone the repository, then run the idempotent macOS installer:
+Clone the repository, install Babashka, then run the idempotent macOS installer:
 
 ```sh
 git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
 cd ~/dot-files
-./bootstrap/install_macos.sh
+brew install borkdude/brew/babashka
+bb bootstrap/install_macos.clj
 ```
 
 On an untouched Mac, the first `git` command may ask to install Apple Command
@@ -45,13 +46,20 @@ alone on later runs. Conflicting config files are moved to timestamped
 
 There are three ways to run the setup:
 
-1. Use an existing `bb` binary: `bb bootstrap/install_macos.clj`.
-2. Let `bootstrap/install_macos.sh` install Babashka and launch the modern setup.
+1. Build or download the self-contained Apple Silicon binary, then run
+   `bootstrap/bin/dotfiles-bootstrap-macos-aarch64`.
+2. Install `bb` and run the source: `bb bootstrap/install_macos.clj`.
 3. Run the cleaned-up Bash version: `bootstrap/legacy/install_macos.sh`.
 
 The modern commands are `.clj` files and do not have redundant shell wrappers.
 Shared output, process, and symlink behavior lives in
 `bootstrap/lib/common.clj`.
+
+Build the macOS aarch64 executable from the checked-in sources with
+`bb bootstrap/binary/build.clj`. It embeds the checksum-verified Babashka
+runtime, so running the resulting binary does not require Babashka, Clojure, or
+a JVM. The generated ~70 MiB binary is kept out of Git history and should be
+distributed as a GitHub release asset.
 
 Use `--skip-checks` only when the installation must finish before running the
 repository validator and environment doctor manually.
