@@ -18,6 +18,9 @@ trust_level = "trusted"
 [projects."/Users/marian/work/fws-cms"]
 trust_level = "trusted"
 
+[projects."/Users/marian/work/fws_mark_seed_data"]
+trust_level = "trusted"
+
 [features]
 apps = false
 fast_mode = false
