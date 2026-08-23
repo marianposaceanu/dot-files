@@ -17,7 +17,8 @@
 
 # dot-files
 
-Contains my dot-files for easy usage across different OSs.
+My reproducible Apple Silicon macOS development environment: Ghostty, Zsh,
+Vim, tmux, Git, Homebrew dependencies, and an idempotent Babashka bootstrapper.
 
 **Website:** [dotfiles overview](https://dot.marianposaceanu.com/) · [Ghostty + `rz` quick start](https://dot.marianposaceanu.com/ghostty.html) · [zoxide directory jumping](https://dot.marianposaceanu.com/zoxide.html)
 
@@ -31,6 +32,27 @@ cd ~/dot-files
 brew install borkdude/brew/babashka
 bb bootstrap/install_macos.clj
 ```
+
+Bootstrap commands share a compact terminal UI with rounded start, stage,
+completion, and failure panels:
+
+```text
+╭─ DOT-FILES :: MACOS SETUP
+│  Idempotent setup powered by Babashka
+╰─ Existing files are backed up before links are changed
+
+╭─ [01/09] Apple Command Line Tools
+╰─
+✓ Apple Command Line Tools are available.
+
+╭─ SETUP COMPLETE
+│  Your macOS dot-files environment is ready.
+╰─ Next: restart the terminal or run source ~/.zshrc
+```
+
+Long-running installer output keeps its progress bar pinned to the bottom of an
+interactive terminal. Individual actions remain readable `✓`, `•`, and `!`
+lines, while `--summary` modes stay plain for use by other scripts.
 
 On an untouched Mac, the first `git` command may ask to install Apple Command
 Line Tools. Complete that installation and rerun the clone; the installer checks
@@ -52,7 +74,7 @@ There are three ways to run the setup:
 3. Run the cleaned-up Bash version: `bootstrap/legacy/install_macos.sh`.
 
 The modern commands are `.clj` files and do not have redundant shell wrappers.
-Shared output, process, and symlink behavior lives in
+Shared panels, process execution, and symlink behavior live in
 `bootstrap/lib/common.clj`.
 
 Build the macOS aarch64 executable from the checked-in sources with
