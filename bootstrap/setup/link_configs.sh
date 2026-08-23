@@ -30,6 +30,7 @@ LINK_SPECS=(
   ".zlogin|$HOME/.zlogin"
   ".bashrc|$HOME/.bashrc"
   "codex/config.toml|$HOME/.codex/config.toml"
+  "amp/settings.json|$HOME/.config/amp/settings.json"
   "bat|$HOME/.config/bat"
   "ghostty/config|$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 )

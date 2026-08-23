@@ -44,6 +44,7 @@ class InstallMacosTest < Minitest::Test
     assert_equal REPO_ROOT, File.realpath(File.join(@home, "dot-files"))
     assert_equal File.join(REPO_ROOT, ".zshrc"), File.realpath(File.join(@home, ".zshrc"))
     assert_equal File.join(REPO_ROOT, "codex/config.toml"), File.realpath(File.join(@home, ".codex/config.toml"))
+    assert_equal File.join(REPO_ROOT, "amp/settings.json"), File.realpath(File.join(@home, ".config/amp/settings.json"))
     assert File.file?(File.join(@home, ".oh-my-zsh/oh-my-zsh.sh"))
     assert File.executable?(File.join(@tmp_dir, "homebrew/opt/mextdisplay/bin/mextdisplay"))
     assert File.executable?(File.join(@ghostty_app, "Contents/MacOS/ghostty"))
@@ -58,7 +59,7 @@ class InstallMacosTest < Minitest::Test
     assert_includes second_output, "Ghostty is already installed"
     assert_includes second_output, "Oh My Zsh is already installed"
     assert_includes second_output, "==> Initializing pinned Vim plugins ... ready."
-    assert_includes second_output, "==> Linking configuration files ... 12 unchanged, 0 updated, 0 backups."
+    assert_includes second_output, "==> Linking configuration files ... 13 unchanged, 0 updated, 0 backups."
     refute_includes second_output, "Already linked:"
     assert_equal backups, Dir.glob(File.join(@home, ".zshrc.backup.*"))
 

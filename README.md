@@ -576,6 +576,7 @@ It links:
 - `~/.zlogin`
 - `~/.bashrc`
 - `~/.codex/config.toml`
+- `~/.config/amp/settings.json`
 - `~/.config/bat`
 - `$HOME/Library/Application Support/com.mitchellh.ghostty/config`
 
