@@ -36,11 +36,22 @@ Line Tools. Complete that installation and rerun the clone; the installer checks
 the tools again before changing the machine.
 
 The installer checks Apple Command Line Tools, installs Homebrew when missing,
-installs the Brewfile formulae, mextdisplay, and Ghostty, clones Oh My Zsh
-without replacing shell files, initializes the pinned Vim submodules, and
-invokes the existing backup-aware config linker. Correct links and existing
-installations are left alone on later runs. Conflicting config files are moved
-to timestamped `.backup.<timestamp>` paths before linking.
+bootstraps [Babashka](https://github.com/babashka/babashka), installs the
+Brewfile formulae, mextdisplay, and Ghostty, clones Oh My Zsh without replacing
+shell files, initializes the pinned Vim submodules, and invokes the
+backup-aware config linker. Correct links and existing installations are left
+alone on later runs. Conflicting config files are moved to timestamped
+`.backup.<timestamp>` paths before linking.
+
+There are three ways to run the setup:
+
+1. Use an existing `bb` binary: `bb bootstrap/install_macos.clj`.
+2. Let `bootstrap/install_macos.sh` install Babashka and launch the modern setup.
+3. Run the cleaned-up Bash version: `bootstrap/legacy/install_macos.sh`.
+
+The modern commands are `.clj` files and do not have redundant shell wrappers.
+Shared output, process, and symlink behavior lives in
+`bootstrap/lib/common.clj`.
 
 Use `--skip-checks` only when the installation must finish before running the
 repository validator and environment doctor manually.
@@ -164,20 +175,20 @@ recovery.
 
 #### update the bundles
 
-    ./bootstrap/submodules/update_submodules.sh
+    bb bootstrap/submodules/update_submodules.clj
 
 #### fully update all bundles
 
-    ./bootstrap/submodules/update_submodules.sh --remote
+    bb bootstrap/submodules/update_submodules.clj --remote
 
 This updates plugin pointers in your repo; run it only when you intentionally want to bump submodule versions.
 
 #### install deps:
 
-- via script: `./bootstrap/setup/install_brew_deps.sh`
+- via script: `bb bootstrap/setup/install_brew_deps.clj`
 - via Brewfile: `brew bundle --file Brewfile`
 - custom tap: `marianposaceanu/tap`
-- current formulae: `fzf`, `zoxide`, `zsh-autosuggestions`, `mextdisplay`, `rz`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
+- current formulae: `babashka`, `fzf`, `zoxide`, `zsh-autosuggestions`, `mextdisplay`, `rz`, `ripgrep`, `bat`, `ruby`, `openjdk`, `universal-ctags`, `tmux`, `vim`
 
 #### mextdisplay
 
@@ -452,8 +463,8 @@ Git is faster or saves power.
 
 #### config and benchmark checks
 
-- run environment doctor: `./bootstrap/checks/doctor.sh`
-- run config checks: `./bootstrap/checks/check_configs.sh`
+- run environment doctor: `bb bootstrap/checks/doctor.clj`
+- run config checks: `bb bootstrap/checks/check_configs.clj`
 - single-run Vim profile: `./benchmarks/profile_vim_plugins.sh`
 - median profile (default 7 runs): `./benchmarks/profile_vim_plugins_median.sh`
 
@@ -558,7 +569,7 @@ when the correct link is already installed is safe and makes no changes.
 
 #### *nix symbolic links
 
-    ./bootstrap/setup/link_configs.sh
+    bb bootstrap/setup/link_configs.clj
 
 The all-config installer includes Ghostty and creates symlinks for every
 repo-managed config. It backs up existing local files/directories first using a

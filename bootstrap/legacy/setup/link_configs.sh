@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 BACKUP_STAMP="$(date +%Y%m%d%H%M%S)"
 SUMMARY=0
 UNCHANGED_COUNT=0
@@ -131,8 +131,13 @@ for spec in "${LINK_SPECS[@]}"; do
 done
 
 if [ "$SUMMARY" -eq 1 ]; then
-  printf '%d unchanged, %d updated, %d backups.\n' \
-    "$UNCHANGED_COUNT" "$LINKED_COUNT" "$BACKUP_COUNT"
+  if [ "$BACKUP_COUNT" -eq 1 ]; then
+    printf '%d unchanged, %d updated, 1 backup.\n' \
+      "$UNCHANGED_COUNT" "$LINKED_COUNT"
+  else
+    printf '%d unchanged, %d updated, %d backups.\n' \
+      "$UNCHANGED_COUNT" "$LINKED_COUNT" "$BACKUP_COUNT"
+  fi
 else
   printf 'Done.\n'
 fi

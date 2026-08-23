@@ -1,5 +1,7 @@
 tap "marianposaceanu/tap"
+tap "borkdude/brew"
 
+brew "babashka"
 brew "fzf"
 brew "zoxide"
 brew "zsh-autosuggestions"

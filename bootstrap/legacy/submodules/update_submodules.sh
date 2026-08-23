@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd -P)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd -P)"
 
 [ "$#" -le 1 ] || { printf 'Usage: %s [--remote]\n' "$0" >&2; exit 2; }
 case "${1:-}" in

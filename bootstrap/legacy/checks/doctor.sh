@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 BREWFILE="$REPO_ROOT/Brewfile"
 WARNINGS=0
 
@@ -215,7 +215,7 @@ fi
 if command -v mextdisplay >/dev/null 2>&1; then
   ok 'mextdisplay is installed'
 else
-  warn 'mextdisplay is not installed; run bootstrap/install_macos.sh'
+  warn 'mextdisplay is not installed; run bootstrap/legacy/install_macos.sh'
 fi
 
 BAT_CONFIG_DIR="$HOME/.config/bat"
@@ -229,7 +229,7 @@ GHOSTTY_SYMLINK="$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 if command -v ghostty >/dev/null 2>&1 || [ -x /Applications/Ghostty.app/Contents/MacOS/ghostty ]; then
   ok 'Ghostty is installed'
 else
-  warn 'Ghostty is not installed; run bootstrap/install_macos.sh'
+  warn 'Ghostty is not installed; run bootstrap/legacy/install_macos.sh'
 fi
 
 if [ -e "$GHOSTTY_SYMLINK" ] || [ -L "$GHOSTTY_SYMLINK" ]; then

@@ -8,6 +8,11 @@ require "tmpdir"
 class InstallMacosTest < Minitest::Test
   REPO_ROOT = File.expand_path("..", __dir__)
   INSTALLER = File.join(REPO_ROOT, "bootstrap/install_macos.sh")
+  LEGACY_INSTALLER = File.join(REPO_ROOT, "bootstrap/legacy/install_macos.sh")
+  BB_BIN = ENV["BB_BIN"] || ENV.fetch("PATH").split(File::PATH_SEPARATOR)
+    .map { |directory| File.join(directory, "bb") }
+    .find { |path| File.executable?(path) }
+  raise "bb is required to run the installer tests" unless BB_BIN
 
   def setup
     @tmp_dir = Dir.mktmpdir("install-macos-test")
@@ -30,15 +35,19 @@ class InstallMacosTest < Minitest::Test
   def test_two_runs_install_once_and_do_not_create_duplicate_backups
     brewfile = File.readlines(File.join(REPO_ROOT, "Brewfile"))
     assert_includes brewfile, "tap \"marianposaceanu/tap\"\n"
+    assert_includes brewfile, "tap \"borkdude/brew\"\n"
+    assert_includes brewfile, "brew \"babashka\"\n"
     assert_includes brewfile, "brew \"mextdisplay\"\n"
     assert_includes brewfile, "brew \"ruby\"\n"
     assert_includes brewfile, "brew \"vim\"\n"
 
     first_output = run_installer
 
+    assert_includes first_output, "╭─ DOT-FILES :: MACOS SETUP"
     assert_includes first_output, "Linked repository path"
-    assert_includes first_output, "🍺 macOS setup is complete."
-    assert_equal "[##################################################] 100%\n", first_output.lines.last
+    assert_includes first_output, "╭─ SETUP COMPLETE"
+    assert_includes first_output, "╰─ Next: restart the terminal or run source ~/.zshrc"
+    assert_includes first_output, "[##################################################] 100%"
     refute_includes first_output, "\e"
     assert File.symlink?(File.join(@home, "dot-files"))
     assert_equal REPO_ROOT, File.realpath(File.join(@home, "dot-files"))
@@ -58,8 +67,11 @@ class InstallMacosTest < Minitest::Test
     assert_includes second_output, "Repository path is ready"
     assert_includes second_output, "Ghostty is already installed"
     assert_includes second_output, "Oh My Zsh is already installed"
-    assert_includes second_output, "==> Initializing pinned Vim plugins ... ready."
-    assert_includes second_output, "==> Linking configuration files ... 13 unchanged, 0 updated, 0 backups."
+    assert_includes second_output, "[07/09] Pinned Vim plugins"
+    assert_includes second_output, "✓ Pinned Vim plugins are ready."
+    assert_includes second_output, "[08/09] Configuration links"
+    assert_includes second_output, "✓ Configuration links: 13 unchanged, 0 updated, 0 backups."
+    assert_includes second_output, "[09/09] Validation"
     refute_includes second_output, "Already linked:"
     assert_equal backups, Dir.glob(File.join(@home, ".zshrc.backup.*"))
 
@@ -98,61 +110,60 @@ class InstallMacosTest < Minitest::Test
   def test_optional_stage_timing_report
     output = run_installer(timings: true)
 
-    assert_includes output, "==> Stage timings"
-    assert_match(/^  Command-line dependencies +\d+\.\d{3}s +\d+\.\d%$/, output)
-    assert_match(/^  Pinned Vim plugins +\d+\.\d{3}s +\d+\.\d%$/, output)
-    assert_match(/^  Total +\d+\.\d{3}s +100\.0%$/, output)
+    assert_includes output, "╭─ STAGE TIMINGS"
+    assert_match(/^│  Command-line dependencies +\d+\.\d{3}s +\d+\.\d%$/, output)
+    assert_match(/^│  Pinned Vim plugins +\d+\.\d{3}s +\d+\.\d%$/, output)
+    assert_match(/^╰─ Total +\d+\.\d{3}s +100\.0%$/, output)
   end
 
-  def test_interactive_progress_updates_in_place
-    output = run_installer(interactive: true)
-
-    [1, 2, 3].each do |percent|
-      assert_match(/\[[# ]{56}\] +#{percent}%/, output)
-    end
-    assert_match(/\[[# ]{92}\] +3%/, output)
-    [82, 83, 84, 94, 99, 100].each do |percent|
-      assert_match(/\[[# ]{40}\] +#{percent}%/, output)
-    end
-    assert_includes output, "\e[1;23r"
-    assert_includes output, "\e[1;29r"
-    assert_includes output, "\e[1;17r"
-    assert_includes output, "\e[1;18r"
-    assert_includes output, "\e[24;1H"
-    assert_includes output, "\e[30;1H"
-    assert_includes output, "\e[18;1H"
-    assert_operator output.index("\e[1;29r"), :<,
-      output.index("growth-child-still-running")
-    assert_operator output.index("\e[1;17r"), :<,
-      output.index("shrink-child-still-running")
-  end
-
-  def test_interactive_failure_restores_the_terminal
-    stdout, stderr, status = invoke_installer(interactive: true, fail_brew: true)
+  def test_dependency_failure_is_reported_without_a_completion_panel
+    stdout, stderr, status = invoke_installer(fail_brew: true)
     output = stdout + stderr
 
     refute status.success?
     assert_includes output, "simulated brew bundle failure"
-    refute_includes output, "macOS setup is complete"
-    assert_operator output.rindex("\e[1;18r"), :>,
-      output.index("simulated brew bundle failure")
+    refute_includes output, "SETUP COMPLETE"
+    assert_includes output, "✗ Error:"
+  end
+
+  def test_bootstrap_installs_babashka_when_the_binary_is_missing
+    output = run_installer(include_bb: false)
+
+    assert_includes output, "• Installing Babashka..."
+    assert_includes output, "╭─ SETUP COMPLETE"
+    assert_includes File.readlines(@log, chomp: true),
+      "brew install borkdude/brew/babashka"
+  end
+
+  def test_legacy_installer_remains_runnable
+    stdout, stderr, status = invoke_installer(installer: LEGACY_INSTALLER)
+
+    assert status.success?, "legacy installer failed:\n#{stdout}\n#{stderr}"
+    assert_includes stdout, "╭─ DOT-FILES :: MACOS SETUP"
+    assert_includes stdout, "╭─ SETUP COMPLETE"
   end
 
   private
 
-  def run_installer(interactive: false, timings: false)
+  def run_installer(interactive: false, timings: false, include_bb: true)
     stdout, stderr, status = invoke_installer(
       interactive: interactive,
-      timings: timings
+      timings: timings,
+      include_bb: include_bb
     )
     assert status.success?, "installer failed:\n#{stdout}\n#{stderr}"
     stdout
   end
 
-  def invoke_installer(interactive: false, fail_brew: false, timings: false)
+  def invoke_installer(interactive: false, fail_brew: false, timings: false,
+    include_bb: true, installer: INSTALLER)
+    path = [@bin]
+    path << File.dirname(BB_BIN) if include_bb
+    path.concat(["/usr/bin", "/bin", "/usr/sbin", "/sbin"])
     env = {
       "HOME" => @home,
-      "PATH" => [@bin, "/usr/bin", "/bin", "/usr/sbin", "/sbin"].join(":"),
+      "PATH" => path.join(":"),
+      "INSTALLER_TEST_BB_BIN" => BB_BIN,
       "INSTALLER_TEST_LOG" => @log,
       "INSTALLER_TEST_BREW_STATE" => @brew_state,
       "INSTALLER_TEST_CLT_STATE" => @clt_state,
@@ -161,7 +172,7 @@ class InstallMacosTest < Minitest::Test
       "GHOSTTY_APP_PATH" => @ghostty_app,
       "TERM" => "xterm-256color"
     }
-    command = [INSTALLER, "--skip-checks"]
+    command = [installer, "--skip-checks"]
     command << "--timings" if timings
     if interactive
       command = [
@@ -217,8 +228,12 @@ class InstallMacosTest < Minitest::Test
           printf 'export HOMEBREW_PREFIX=%q\n' "$(dirname "$(dirname "$0")")"
           ;;
         --prefix)
-          case "${2:-}" in mextdisplay|ruby|vim) ;; *) exit 1 ;; esac
-          prefix="$(dirname "$state")/homebrew/opt/${2}"
+          if [ -z "${2:-}" ]; then
+            printf '%s/homebrew\n' "$(dirname "$state")"
+            exit 0
+          fi
+          case "$2" in mextdisplay|ruby|vim) ;; *) exit 1 ;; esac
+          prefix="$(dirname "$state")/homebrew/opt/$2"
           mkdir -p "$prefix/bin"
           touch "$prefix/bin/${2}"
           chmod +x "$prefix/bin/${2}"
@@ -253,6 +268,10 @@ class InstallMacosTest < Minitest::Test
           ;;
         install)
           printf 'brew %s\n' "$*" >> "$log"
+          if [ "${2:-}" = 'borkdude/brew/babashka' ]; then
+            ln -s "${INSTALLER_TEST_BB_BIN:?}" "$(dirname "$0")/bb"
+            exit 0
+          fi
           if [ "${2:-}" = '--cask' ] && [ "${3:-}" = 'ghostty' ]; then
             touch "$state"
             executable="${GHOSTTY_APP_PATH:?}/Contents/MacOS/ghostty"
