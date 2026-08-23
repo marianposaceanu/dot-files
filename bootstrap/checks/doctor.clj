@@ -13,10 +13,6 @@
 
 (def warnings (atom 0))
 
-(defn heading [title]
-  (println)
-  (println (str "── " title)))
-
 (defn warn [message]
   (swap! warnings inc)
   (bootstrap.lib.common/warning message))
@@ -119,10 +115,11 @@
               (ok "no outdated Brewfile formulas"))))))))
 
 (try
-  (println "╭─ DOT-FILES :: DOCTOR")
-  (println "╰─ Inspecting links, tools, and Homebrew dependencies")
+  (bootstrap.lib.common/start-panel
+   "DOT-FILES :: DOCTOR"
+   "Inspecting links, tools, and Homebrew dependencies")
 
-  (heading "Configuration links")
+  (bootstrap.lib.common/heading "CONFIGURATION LINKS")
   (check-symlink-capability)
   (doseq [spec (take 11 (bootstrap.lib.common/resolved-link-specs repo-root))]
     (check-symlink spec))
@@ -150,18 +147,20 @@
       (warn "Ghostty is not installed; run bb bootstrap/install_macos.clj"))
     (check-symlink ghostty-spec))
 
-  (heading "Homebrew")
+  (bootstrap.lib.common/heading "HOMEBREW")
   (check-brew-deps)
 
   (println)
   (if (zero? @warnings)
+    (bootstrap.lib.common/success-panel
+     "DOCTOR COMPLETE"
+     "No issues found.")
     (do
-      (println "╭─ DOCTOR COMPLETE")
-      (println "╰─ No issues found."))
-    (do
-      (bootstrap.lib.common/failure
-       (format "Doctor found %d warning%s."
-               @warnings (if (= 1 @warnings) "" "s")))
+      (binding [*out* *err*]
+        (bootstrap.lib.common/failure-panel
+         "DOCTOR FOUND ISSUES"
+         (format "%d warning%s require attention."
+                 @warnings (if (= 1 @warnings) "" "s"))))
       (System/exit 1)))
   (catch Exception error
     (bootstrap.lib.common/abort! error)))

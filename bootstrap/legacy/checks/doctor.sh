@@ -7,13 +7,13 @@ BREWFILE="$REPO_ROOT/Brewfile"
 WARNINGS=0
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-}" != "dumb" ]; then
-  OK_LABEL="$(printf '\033[1;32mOK:\033[0m')"
-  INFO_LABEL="$(printf '\033[1;34mInfo:\033[0m')"
-  WARNING_LABEL="$(printf '\033[1;33mWarning:\033[0m')"
+  OK_LABEL="$(printf '\033[1;32m✓\033[0m')"
+  INFO_LABEL="$(printf '\033[1;34m•\033[0m')"
+  WARNING_LABEL="$(printf '\033[1;33m!\033[0m')"
 else
-  OK_LABEL='OK:'
-  INFO_LABEL='Info:'
-  WARNING_LABEL='Warning:'
+  OK_LABEL='✓'
+  INFO_LABEL='•'
+  WARNING_LABEL='!'
 fi
 
 warn() {
@@ -30,7 +30,8 @@ info() {
 }
 
 section() {
-  printf '\n==> %s\n' "$1"
+  printf '\n╭─ %s\n' "$1"
+  printf '╰─\n'
 }
 
 canonical_path() {
@@ -192,9 +193,10 @@ check_brew_deps() {
   fi
 }
 
-printf 'dot-files doctor\n'
+printf '╭─ DOT-FILES :: DOCTOR\n'
+printf '╰─ Inspecting links, tools, and Homebrew dependencies\n'
 
-section 'Symlink checks'
+section 'CONFIGURATION LINKS'
 check_symlink_capability
 check_symlink "$HOME/.vimrc" "$REPO_ROOT/.vimrc" '~/.vimrc'
 check_symlink "$HOME/.vim" "$REPO_ROOT/.vim" '~/.vim'
@@ -222,7 +224,7 @@ BAT_CONFIG_DIR="$HOME/.config/bat"
 if command -v bat >/dev/null 2>&1 || [ -e "$BAT_CONFIG_DIR" ] || [ -L "$BAT_CONFIG_DIR" ]; then
   check_symlink "$BAT_CONFIG_DIR" "$REPO_ROOT/bat" 'bat config'
 else
-  printf 'Info: skipping bat config symlink check (bat not detected)\n'
+  info 'Skipping bat config symlink check (bat not detected).'
 fi
 
 GHOSTTY_SYMLINK="$HOME/Library/Application Support/com.mitchellh.ghostty/config"
@@ -238,13 +240,15 @@ else
   warn "Ghostty config is missing ($GHOSTTY_SYMLINK)"
 fi
 
-section 'Brew checks'
+section 'HOMEBREW'
 check_brew_deps
 
 printf '\n'
 if [ "$WARNINGS" -eq 0 ]; then
-  printf 'No issues found.\n'
+  printf '╭─ DOCTOR COMPLETE\n'
+  printf '╰─ No issues found.\n'
 else
-  printf 'Found %d warning(s).\n' "$WARNINGS"
+  printf '╭─ DOCTOR FOUND ISSUES\n' >&2
+  printf '╰─ %d warning(s) require attention.\n' "$WARNINGS" >&2
   exit 1
 fi

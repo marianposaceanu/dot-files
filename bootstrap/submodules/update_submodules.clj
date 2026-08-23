@@ -16,6 +16,11 @@
       (println "Usage: bb bootstrap/submodules/update_submodules.clj [--remote]")
       (System/exit 0))
 
+    (bootstrap.lib.common/start-panel
+     "VIM PLUGIN SUBMODULES"
+     (if (= "--remote" arg)
+       "Updating from configured remotes"
+       "Restoring repository-pinned revisions"))
     (if (= "--remote" arg)
       (bootstrap.lib.common/info "Updating submodules from configured remotes...")
       (bootstrap.lib.common/info "Updating submodules to repository-pinned revisions..."))
@@ -25,6 +30,9 @@
      (cond-> ["git" "-C" repo-root "submodule" "--quiet" "update" "--init"]
        (= "--remote" arg) (conj "--remote")
        true (conj "--recursive")))
-    (bootstrap.lib.common/success "Submodules are up to date."))
+    (println)
+    (bootstrap.lib.common/success-panel
+     "SUBMODULES COMPLETE"
+     "Submodules are up to date."))
   (catch Exception error
     (bootstrap.lib.common/abort! error)))

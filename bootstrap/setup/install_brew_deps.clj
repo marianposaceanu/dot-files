@@ -18,6 +18,10 @@
     (when-not (fs/regular-file? brewfile)
       (throw (ex-info (str "Brewfile not found at " brewfile) {})))
 
+    (bootstrap.lib.common/start-panel
+     "HOMEBREW DEPENDENCIES"
+     "Installing the repository Brewfile")
+
     (bootstrap.lib.common/info "Updating Homebrew metadata...")
     (bootstrap.lib.common/run! [brew "update"])
 
@@ -27,6 +31,9 @@
                     (re-find #"--no-lock" help) (conj "--no-lock"))]
       (bootstrap.lib.common/run! command))
 
-    (bootstrap.lib.common/success "Brewfile dependencies are installed."))
+    (println)
+    (bootstrap.lib.common/success-panel
+     "DEPENDENCIES COMPLETE"
+     "Brewfile dependencies are installed."))
   (catch Exception error
     (bootstrap.lib.common/abort! error)))

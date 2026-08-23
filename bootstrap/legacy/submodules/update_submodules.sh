@@ -18,7 +18,14 @@ case "${1:-}" in
   *) printf 'Usage: %s [--remote]\n' "$0" >&2; exit 2 ;;
 esac
 
-printf '%s\n' "$update_message"
+printf '╭─ VIM PLUGIN SUBMODULES\n'
+if [ "${1:-}" = '--remote' ]; then
+  printf '╰─ Updating from configured remotes\n'
+else
+  printf '╰─ Restoring repository-pinned revisions\n'
+fi
+printf '• %s\n' "$update_message"
 git -C "$REPO_ROOT" submodule --quiet sync --recursive
 git -C "$REPO_ROOT" submodule --quiet update "${update_args[@]}"
-printf 'Submodules are up to date.\n'
+printf '\n╭─ SUBMODULES COMPLETE\n'
+printf '╰─ Submodules are up to date.\n'

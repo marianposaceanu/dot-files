@@ -70,11 +70,11 @@ class InstallMacosTest < Minitest::Test
     assert_includes second_output, "Repository path is ready"
     assert_includes second_output, "Ghostty is already installed"
     assert_includes second_output, "Oh My Zsh is already installed"
-    assert_includes second_output, "[07/09] Pinned Vim plugins"
+    assert_includes second_output, "╭─ [07/09] Pinned Vim plugins"
     assert_includes second_output, "✓ Pinned Vim plugins are ready."
-    assert_includes second_output, "[08/09] Configuration links"
+    assert_includes second_output, "╭─ [08/09] Configuration links"
     assert_includes second_output, "✓ Configuration links: 13 unchanged, 0 updated, 0 backups."
-    assert_includes second_output, "[09/09] Validation"
+    assert_includes second_output, "╭─ [09/09] Validation"
     refute_includes second_output, "Already linked:"
     assert_equal backups, Dir.glob(File.join(@home, ".zshrc.backup.*"))
 
@@ -142,7 +142,7 @@ class InstallMacosTest < Minitest::Test
     refute status.success?
     assert_includes output, "simulated brew bundle failure"
     refute_includes output, "SETUP COMPLETE"
-    assert_includes output, "✗ Error:"
+    assert_includes output, "╭─ COMMAND FAILED"
   end
 
   def test_interactive_failure_restores_the_full_terminal_region

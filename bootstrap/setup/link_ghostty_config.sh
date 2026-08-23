@@ -48,7 +48,8 @@ next_backup_path() {
 }
 
 if [ ! -f "$SOURCE_PATH" ]; then
-  printf 'Error: Ghostty config is missing: %s\n' "$SOURCE_PATH" >&2
+  printf '╭─ COMMAND FAILED\n' >&2
+  printf '╰─ Ghostty config is missing: %s\n' "$SOURCE_PATH" >&2
   exit 1
 fi
 
@@ -56,15 +57,20 @@ mkdir -p "$GHOSTTY_DIR"
 
 if [ -L "$CONFIG_PATH" ] &&
   [ "$(canonical_link_target)" = "$(canonical_path "$SOURCE_PATH")" ]; then
-  printf 'Already linked: %s -> %s\n' "$CONFIG_PATH" "$SOURCE_PATH"
+  printf '╭─ GHOSTTY LINK COMPLETE\n'
+  printf '╰─ Config already points to %s\n' "$SOURCE_PATH"
   exit 0
 fi
+
+printf '╭─ GHOSTTY CONFIG LINK\n'
+printf '╰─ Linking the managed config into Ghostty\n'
 
 if [ -e "$CONFIG_PATH" ] || [ -L "$CONFIG_PATH" ]; then
   backup_path="$(next_backup_path)"
   mv "$CONFIG_PATH" "$backup_path"
-  printf 'Backed up: %s -> %s\n' "$CONFIG_PATH" "$backup_path"
+  printf '• Backed up %s to %s\n' "$CONFIG_PATH" "$backup_path"
 fi
 
 ln -s "$SOURCE_PATH" "$CONFIG_PATH"
-printf 'Linked: %s -> %s\n' "$CONFIG_PATH" "$SOURCE_PATH"
+printf '\n╭─ GHOSTTY LINK COMPLETE\n'
+printf '╰─ %s -> %s\n' "$CONFIG_PATH" "$SOURCE_PATH"

@@ -71,7 +71,8 @@ EOF
 
 die() {
   clear_progress
-  printf '%s✗%s %sError:%s %s\n' "$RED" "$RESET" "$BOLD" "$RESET" "$1" >&2
+  printf '%s╭─ COMMAND FAILED%s\n' "${BOLD}${RED}" "$RESET" >&2
+  printf '╰─ %s\n' "$1" >&2
   exit 1
 }
 
@@ -404,9 +405,10 @@ run_with_progress() {
 section() {
   clear_progress
   STAGE_INDEX=$((STAGE_INDEX + 1))
-  printf '\n%s[%02d/%02d]%s %s%s%s\n' \
+  printf '\n%s╭─ [%02d/%02d]%s %s%s%s\n' \
     "${BOLD}${CYAN}" "$STAGE_INDEX" "$STAGE_TOTAL" "$RESET" \
     "$BOLD" "$1" "$RESET"
+  printf '╰─\n'
 }
 
 cleanup() {

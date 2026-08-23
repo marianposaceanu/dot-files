@@ -62,22 +62,26 @@
 set -euo pipefail
 
 fail() {
-  printf 'Error: %s\n' "$1" >&2
+  printf '╭─ NATIVE VIM BUILD FAILED\n' >&2
+  printf '╰─ %s\n' "$1" >&2
   exit 1
 }
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-}" != "dumb" ]; then
-  BOLD="$(printf '\033[1m')"
+  CYAN="$(printf '\033[1;36m')"
   GREEN="$(printf '\033[1;32m')"
   YELLOW="$(printf '\033[1;33m')"
   RESET="$(printf '\033[0m')"
 else
-  BOLD="" GREEN="" YELLOW="" RESET=""
+  CYAN="" GREEN="" YELLOW="" RESET=""
 fi
 
-info()    { printf '%s==>%s %s\n' "$BOLD" "$RESET" "$1"; }
-success() { printf '%s==>%s %s\n' "$GREEN" "$RESET" "$1"; }
-warn()    { printf '%s==>%s %s\n' "$YELLOW" "$RESET" "$1"; }
+info()    { printf '%s•%s %s\n' "$CYAN" "$RESET" "$1"; }
+success() { printf '\n%s╭─ NATIVE VIM BUILD COMPLETE%s\n╰─ %s\n' "$GREEN" "$RESET" "$1"; }
+warn()    { printf '%s!%s %s\n' "$YELLOW" "$RESET" "$1"; }
+
+printf '%s╭─ NATIVE VIM BUILD%s\n' "$CYAN" "$RESET"
+printf '╰─ Rebuilding the active Homebrew binary for this Apple CPU\n'
 
 OPTIMIZATION_FLAGS="-O3 -mcpu=native -ffp-contract=fast -flto"
 
@@ -358,7 +362,7 @@ tar -xzf "$SOURCE_TARBALL" -C "$BUILD_DIR" --strip-components=1
 # Reuse Vim's centered MODIFIED_BY intro line to describe this native build.
 perl -pi -e 's/\Q(char_u *)_("Modified by ")\E/(char_u *)_("Optimized for ")/' "$BUILD_DIR/src/version.c"
 grep -Fq '(char_u *)_("Optimized for ")' "$BUILD_DIR/src/version.c" \
-  || { printf 'Error: Could not customize Vim intro text.\n' >&2; exit 1; }
+  || fail "Could not customize Vim intro text."
 
 # ── Configure ─────────────────────────────────────────────────────────────────
 
@@ -455,7 +459,7 @@ chmod "$CELLAR_BIN_MODE" "$CELLAR_BIN"
 
 # ── Verify ────────────────────────────────────────────────────────────────────
 
-success "Done."
+info "Final verification complete."
 printf '\n'
 "$TARGET" --version | head -4
 printf '\n'
@@ -468,3 +472,4 @@ printf '\n'
 
 warn "vim is now pinned. To upgrade later:"
 printf '    brew unpin vim && brew upgrade vim && ./bootstrap/native/compile_vim_native.sh\n'
+success "Installed and pinned Vim ${VIM_VERSION} for ${RESOLVED_CPU}."

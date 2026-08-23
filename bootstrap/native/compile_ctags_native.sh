@@ -5,9 +5,10 @@ set -euo pipefail
 
 USE_PGO=0
 case "${1:-}" in '') ;; --pgo) USE_PGO=1 ;; *) echo "Usage: $0 [--pgo]" >&2; exit 2;; esac
-fail() { printf 'Error: %s\n' "$1" >&2; exit 1; }
-info() { printf '==> %s\n' "$1"; }
-warn() { printf '==> %s\n' "$1" >&2; }
+fail() { printf '╭─ NATIVE CTAGS BUILD FAILED\n╰─ %s\n' "$1" >&2; exit 1; }
+info() { printf '• %s\n' "$1"; }
+warn() { printf '! %s\n' "$1" >&2; }
+complete() { printf '\n╭─ NATIVE CTAGS BUILD COMPLETE\n╰─ %s\n' "$1"; }
 sha256() { shasum -a 256 "$1" | awk '{print $1}'; }
 pin_state() {
   local pins
@@ -48,6 +49,9 @@ PY
     printf '%s\n' "$records" | grep -Fxq "$record" || fail "Deterministic parser smoke test lacks $record."
   done
 }
+
+printf '╭─ NATIVE CTAGS BUILD\n'
+printf '╰─ Rebuilding the active Homebrew binary for this Apple CPU\n'
 
 command -v brew >/dev/null || fail "Homebrew is required."
 [ "$(uname -m)" = arm64 ] || fail "This script supports Apple Silicon only."
@@ -175,4 +179,4 @@ brew pin universal-ctags; [ "$(pin_state)" = pinned ] || fail "Could not verify 
 chmod "$DIR_MODE" "$BIN_DIR"; trap '' INT TERM
 rm -f "$BACKUP" || fail "Could not retire published backup."; BACKUP=""; BACKUP_READY=0; COMMITTED=1
 trap - INT TERM
-info "Done: Universal Ctags $VERSION, -O3 -mcpu=native --enable-lto$([ "$USE_PGO" -eq 1 ] && printf ' + PGO')"
+complete "Universal Ctags $VERSION, -O3 -mcpu=native --enable-lto$([ "$USE_PGO" -eq 1 ] && printf ' + PGO')"

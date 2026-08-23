@@ -23,17 +23,21 @@ case "${1:-}" in
 esac
 
 fail() {
-  printf 'Error: %s\n' "$1" >&2
+  printf '╭─ NATIVE RIPGREP BUILD FAILED\n' >&2
+  printf '╰─ %s\n' "$1" >&2
   exit 1
 }
 
 info() {
-  printf '==> %s\n' "$1"
+  printf '• %s\n' "$1"
 }
 
 warn() {
-  printf '==> %s\n' "$1" >&2
+  printf '! %s\n' "$1" >&2
 }
+
+printf '╭─ NATIVE RIPGREP BUILD\n'
+printf '╰─ Rebuilding the active Homebrew binary for this Apple CPU\n'
 
 sha256() {
   shasum -a 256 "$1" | awk '{print $1}'
@@ -369,7 +373,6 @@ BACKUP_READY=0
 COMMITTED=1
 trap - INT TERM
 
-info "Done"
 "$TARGET" --version
 printf '\nNative target: %s\n' "$RESOLVED_CPU"
 if [ "$USE_PGO" -eq 1 ]; then
@@ -383,3 +386,6 @@ if [ "$USE_PGO" -eq 1 ]; then
 else
   printf '  brew unpin ripgrep && brew upgrade ripgrep && ./bootstrap/native/compile_ripgrep_native.sh\n'
 fi
+printf '\n╭─ NATIVE RIPGREP BUILD COMPLETE\n'
+printf '╰─ Installed and pinned ripgrep %s for %s\n' \
+  "$RIPGREP_VERSION" "$RESOLVED_CPU"

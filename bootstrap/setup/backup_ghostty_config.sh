@@ -7,12 +7,14 @@ CONFIG_PATH="$GHOSTTY_DIR/config"
 BACKUP_PATH="$GHOSTTY_DIR/config.backup"
 
 if [ ! -e "$CONFIG_PATH" ] && [ ! -L "$CONFIG_PATH" ]; then
-  echo "No Ghostty config found at $CONFIG_PATH"
+  printf '╭─ GHOSTTY CONFIG\n'
+  printf '╰─ No existing config found; nothing to back up.\n'
   exit 0
 fi
 
 if [ -L "$CONFIG_PATH" ]; then
-  echo "Ghostty config is already a symlink; skipping backup move."
+  printf '╭─ GHOSTTY CONFIG\n'
+  printf '╰─ Config is already a symlink; nothing to back up.\n'
   exit 0
 fi
 
@@ -22,4 +24,5 @@ if [ -e "$backup_target" ] || [ -L "$backup_target" ]; then
 fi
 
 mv "$CONFIG_PATH" "$backup_target"
-printf 'Moved Ghostty config to %s\n' "$backup_target"
+printf '╭─ GHOSTTY BACKUP COMPLETE\n'
+printf '╰─ Moved the existing config to %s\n' "$backup_target"

@@ -21,6 +21,10 @@
         (recur)))))
 
 (try
+  (bootstrap.lib.common/start-panel
+   "DOT-FILES :: CONFIG CHECKS"
+   "Validating scripts, generated pages, Vim, and Ghostty")
+
   (bootstrap.lib.common/info "Checking shell script syntax...")
   (doseq [script (concat
                   (sort (fs/glob (repo-path "bootstrap") "**.sh"))
@@ -66,6 +70,9 @@
       (bootstrap.lib.common/run! {:out :string} [ghostty "+validate-config"]))
     (bootstrap.lib.common/info "Skipping Ghostty validation (ghostty not found)."))
 
-  (bootstrap.lib.common/success "All checks passed.")
+  (println)
+  (bootstrap.lib.common/success-panel
+   "CHECKS COMPLETE"
+   "All configuration checks passed.")
   (catch Exception error
     (bootstrap.lib.common/abort! error)))

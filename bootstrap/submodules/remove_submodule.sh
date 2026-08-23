@@ -12,7 +12,8 @@ fi
 SUBMODULE_PATH="$1"
 
 if [ ! -f "$REPO_ROOT/.gitmodules" ]; then
-  echo "Error: .gitmodules not found at repository root."
+  printf '╭─ COMMAND FAILED\n' >&2
+  printf '╰─ .gitmodules was not found at the repository root.\n' >&2
   exit 1
 fi
 
@@ -27,19 +28,23 @@ done < <(
 )
 
 if [ "${#MATCHING_SECTIONS[@]}" -eq 0 ]; then
-  echo "Error: Submodule path '$SUBMODULE_PATH' does not exist in .gitmodules."
+  printf '╭─ COMMAND FAILED\n' >&2
+  printf "╰─ Submodule path '%s' does not exist in .gitmodules.\n" \
+    "$SUBMODULE_PATH" >&2
   exit 1
 fi
 
 if [ "${#MATCHING_SECTIONS[@]}" -gt 1 ]; then
-  echo "Error: Multiple submodule sections match '$SUBMODULE_PATH'."
-  printf ' - %s\n' "${MATCHING_SECTIONS[@]}"
+  printf '╭─ COMMAND FAILED\n' >&2
+  printf "╰─ Multiple submodule sections match '%s'.\n" "$SUBMODULE_PATH" >&2
+  printf '  • %s\n' "${MATCHING_SECTIONS[@]}" >&2
   exit 1
 fi
 
 SUBMODULE_NAME="${MATCHING_SECTIONS[0]}"
 
-echo "Removing submodule '$SUBMODULE_NAME' at path '$SUBMODULE_PATH'..."
+printf '╭─ REMOVE SUBMODULE\n'
+printf "╰─ Removing '%s' from '%s'\n" "$SUBMODULE_NAME" "$SUBMODULE_PATH"
 
 # Deinitialize and remove submodule from index/working tree.
 git submodule deinit -f -- "$SUBMODULE_PATH" >/dev/null 2>&1 || true
@@ -59,4 +64,5 @@ fi
 # Remove submodule metadata.
 rm -rf ".git/modules/$SUBMODULE_PATH"
 
-echo "Submodule '$SUBMODULE_NAME' removed successfully."
+printf '\n╭─ SUBMODULE REMOVED\n'
+printf "╰─ '%s' was removed successfully.\n" "$SUBMODULE_NAME"

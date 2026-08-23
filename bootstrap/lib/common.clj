@@ -19,6 +19,32 @@
     (str "\u001b[" code "m" text "\u001b[0m")
     text))
 
+(def ^:private tone-codes
+  {:info "1;36"
+   :success "1;32"
+   :failure "1;31"})
+
+(defn- panel [tone title details]
+  (let [lines (cond
+                (nil? details) []
+                (string? details) [details]
+                :else details)]
+    (println (styled (get tone-codes tone "1;36") (str "╭─ " title)))
+    (doseq [line (butlast lines)]
+      (println (str "│  " line)))
+    (if-let [line (last lines)]
+      (println (str "╰─ " line))
+      (println "╰─"))))
+
+(defn start-panel [title & details]
+  (panel :info title details))
+
+(defn success-panel [title & details]
+  (panel :success title details))
+
+(defn failure-panel [title & details]
+  (panel :failure title details))
+
 (defn success [message]
   (println (styled "1;32" (str "✓ " message))))
 
@@ -30,7 +56,7 @@
 
 (defn failure [message]
   (binding [*out* *err*]
-    (println (styled "1;31" (str "✗ Error: " message)))))
+    (failure-panel "COMMAND FAILED" message)))
 
 (defn abort! [error]
   (failure (or (some-> error .getMessage str/trim not-empty)
@@ -39,7 +65,11 @@
 
 (defn section [number total title]
   (println)
-  (println (styled "1;36" (format "[%02d/%02d] %s" number total title))))
+  (start-panel (format "[%02d/%02d] %s" number total title)))
+
+(defn heading [title]
+  (println)
+  (start-panel title))
 
 (defn command-path [command]
   (some-> (fs/which command) str))

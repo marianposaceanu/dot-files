@@ -16,6 +16,8 @@
 (def default-output
   (str (fs/path repo-root "bootstrap/bin/dotfiles-bootstrap-macos-aarch64")))
 
+(load-file (str (fs/path repo-root "bootstrap/lib/common.clj")))
+
 (defn usage []
   (println "Usage: bb bootstrap/binary/build.clj [--output <path>]"))
 
@@ -47,58 +49,72 @@
       (with-open [input (io/input-stream path)]
         (io/copy input destination)))))
 
-(let [output (parse-output *command-line-args*)
-      build-dir (fs/create-temp-dir {:prefix "dotfiles-bootstrap-build-"})
-      archive (str (fs/path build-dir archive-name))
-      runtime-dir (str (fs/path build-dir "runtime"))
-      runtime (str (fs/path runtime-dir "bb"))
-      source-dir (str (fs/path build-dir "sources"))
-      uberjar (str (fs/path build-dir "dotfiles-bootstrap.jar"))
-      current-bb (or (some-> (fs/which "bb") str)
-                     (throw (ex-info "bb is required to build the binary" {})))]
-  (try
-    (println "[1/5] Building the embedded Clojure sources...")
-    (doseq [relative-path ["bootstrap/app/install_macos.clj"
-                           "bootstrap/lib/common.clj"
-                           "bootstrap/lib/progress.clj"]]
-      (let [destination (fs/path source-dir relative-path)]
-        (fs/create-dirs (fs/parent destination))
-        (fs/copy (fs/path repo-root relative-path) destination)))
-    (run! current-bb "--classpath" source-dir "uberjar" uberjar
-          "-m" "bootstrap.app.install-macos")
+(try
+  (let [output (parse-output *command-line-args*)
+        build-dir (fs/create-temp-dir {:prefix "dotfiles-bootstrap-build-"})
+        archive (str (fs/path build-dir archive-name))
+        runtime-dir (str (fs/path build-dir "runtime"))
+        runtime (str (fs/path runtime-dir "bb"))
+        source-dir (str (fs/path build-dir "sources"))
+        uberjar (str (fs/path build-dir "dotfiles-bootstrap.jar"))
+        current-bb (or (some-> (fs/which "bb") str)
+                       (throw (ex-info "bb is required to build the binary" {})))]
+    (try
+      (bootstrap.lib.common/start-panel
+       "STANDALONE ARM64 INSTALLER"
+       (str "Embedding Babashka " babashka-version " for macOS aarch64"))
 
-    (println (str "[2/5] Downloading Babashka " babashka-version
-                  " for macOS aarch64..."))
-    (run! "curl" "-fsSL" download-url "-o" archive)
-    (let [actual-sha256 (sha256 archive)]
-      (when-not (= babashka-sha256 actual-sha256)
-        (throw (ex-info
-                (str "Babashka checksum mismatch: expected " babashka-sha256
-                     ", got " actual-sha256)
-                {}))))
+      (bootstrap.lib.common/section 1 5 "EMBEDDED CLOJURE SOURCES")
+      (doseq [relative-path ["bootstrap/app/install_macos.clj"
+                             "bootstrap/lib/common.clj"
+                             "bootstrap/lib/progress.clj"]]
+        (let [destination (fs/path source-dir relative-path)]
+          (fs/create-dirs (fs/parent destination))
+          (fs/copy (fs/path repo-root relative-path) destination)))
+      (run! current-bb "--classpath" source-dir "uberjar" uberjar
+            "-m" "bootstrap.app.install-macos")
 
-    (println "[3/5] Extracting the pinned arm64 runtime...")
-    (fs/create-dirs runtime-dir)
-    (run! "tar" "-xzf" archive "-C" runtime-dir)
+      (bootstrap.lib.common/section 2 5 "PINNED BABASHKA RUNTIME")
+      (bootstrap.lib.common/info
+       (str "Downloading Babashka " babashka-version " for macOS aarch64..."))
+      (run! "curl" "-fsSL" download-url "-o" archive)
+      (let [actual-sha256 (sha256 archive)]
+        (when-not (= babashka-sha256 actual-sha256)
+          (throw (ex-info
+                  (str "Babashka checksum mismatch: expected " babashka-sha256
+                       ", got " actual-sha256)
+                  {}))))
 
-    (println "[4/5] Creating the self-contained executable...")
-    (fs/create-dirs (fs/parent output))
-    (append-files! output [runtime uberjar])
-    (run! "chmod" "+x" output)
-    (spit (str output ".sha256") (str (sha256 output) "\n"))
+      (bootstrap.lib.common/section 3 5 "ARM64 RUNTIME")
+      (bootstrap.lib.common/info "Extracting the pinned arm64 runtime...")
+      (fs/create-dirs runtime-dir)
+      (run! "tar" "-xzf" archive "-C" runtime-dir)
 
-    (println "[5/5] Verifying the Mach-O binary and embedded entry point...")
-    (let [{:keys [exit out]}
-          (process/shell {:continue true :out :string :err :string}
-                         "file" output)]
-      (when (or (not (zero? exit))
-                (not (re-find #"Mach-O 64-bit executable arm64" out)))
-        (throw (ex-info (str "Unexpected binary format: " out) {}))))
-    (run! output "--help")
+      (bootstrap.lib.common/section 4 5 "SELF-CONTAINED EXECUTABLE")
+      (bootstrap.lib.common/info "Combining the runtime and embedded sources...")
+      (fs/create-dirs (fs/parent output))
+      (append-files! output [runtime uberjar])
+      (run! "chmod" "+x" output)
+      (spit (str output ".sha256") (str (sha256 output) "\n"))
 
-    (println)
-    (println (str "✓ Built " output))
-    (println (format "  Size: %.1f MiB" (/ (double (fs/size output)) 1048576.0)))
-    (println (str "  SHA-256: " (sha256 output)))
-    (finally
-      (fs/delete-tree build-dir))))
+      (bootstrap.lib.common/section 5 5 "BINARY VERIFICATION")
+      (bootstrap.lib.common/info
+       "Verifying the Mach-O binary and embedded entry point...")
+      (let [{:keys [exit out]}
+            (process/shell {:continue true :out :string :err :string}
+                           "file" output)]
+        (when (or (not (zero? exit))
+                  (not (re-find #"Mach-O 64-bit executable arm64" out)))
+          (throw (ex-info (str "Unexpected binary format: " out) {}))))
+      (run! output "--help")
+
+      (println)
+      (bootstrap.lib.common/success-panel
+       "BUILD COMPLETE"
+       (str "Binary  " output)
+       (format "Size    %.1f MiB" (/ (double (fs/size output)) 1048576.0))
+       (str "SHA-256 " (sha256 output)))
+      (finally
+        (fs/delete-tree build-dir))))
+  (catch Exception error
+    (bootstrap.lib.common/abort! error)))

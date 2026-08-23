@@ -286,9 +286,10 @@
   (reset! child-env {})
 
   (try
-    (println "╭─ DOT-FILES :: MACOS SETUP")
-    (println "│  Idempotent setup powered by Babashka")
-    (println "╰─ Existing files are backed up before links are changed")
+    (bootstrap.lib.common/start-panel
+     "DOT-FILES :: MACOS SETUP"
+     "Idempotent setup powered by Babashka"
+     "Existing files are backed up before links are changed")
     (progress/start!)
 
     (stage! 1 "Apple Command Line Tools" ensure-command-line-tools!)
@@ -304,9 +305,10 @@
     (print-timings)
     (println)
     (progress/complete!)
-    (println "╭─ SETUP COMPLETE")
-    (println "│  Your macOS dot-files environment is ready.")
-    (println "╰─ Next: restart the terminal or run source ~/.zshrc")
+    (bootstrap.lib.common/success-panel
+     "SETUP COMPLETE"
+     "Your macOS dot-files environment is ready."
+     "Next: restart the terminal or run source ~/.zshrc")
     (catch Exception error
       (progress/stop!)
       (when-let [temporary @oh-my-zsh-temp]

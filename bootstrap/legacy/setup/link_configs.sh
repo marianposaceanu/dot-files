@@ -93,7 +93,8 @@ link_config() {
   local link_parent backup_path
 
   if [ ! -e "$source_path" ] && [ ! -L "$source_path" ]; then
-    printf 'Error: source config is missing: %s\n' "$source_path" >&2
+    printf '╭─ COMMAND FAILED\n' >&2
+    printf '╰─ Source config is missing: %s\n' "$source_path" >&2
     exit 1
   fi
 
@@ -126,6 +127,11 @@ link_config() {
   fi
 }
 
+if [ "$SUMMARY" -eq 0 ]; then
+  printf '╭─ CONFIGURATION LINKS\n'
+  printf '╰─ Linking managed dot-files into your home directory\n'
+fi
+
 for spec in "${LINK_SPECS[@]}"; do
   link_config "${spec%%|*}" "${spec#*|}"
 done
@@ -139,5 +145,12 @@ if [ "$SUMMARY" -eq 1 ]; then
       "$UNCHANGED_COUNT" "$LINKED_COUNT" "$BACKUP_COUNT"
   fi
 else
-  printf 'Done.\n'
+  printf '\n╭─ LINKS COMPLETE\n'
+  if [ "$BACKUP_COUNT" -eq 1 ]; then
+    printf '╰─ %d unchanged, %d updated, 1 backup.\n' \
+      "$UNCHANGED_COUNT" "$LINKED_COUNT"
+  else
+    printf '╰─ %d unchanged, %d updated, %d backups.\n' \
+      "$UNCHANGED_COUNT" "$LINKED_COUNT" "$BACKUP_COUNT"
+  fi
 fi

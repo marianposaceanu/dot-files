@@ -13,10 +13,17 @@
         (println "Usage: bb bootstrap/setup/link_configs.clj [--summary]"))
       (System/exit 2))
 
-    (let [counts (bootstrap.lib.common/link-configs! repo-root)]
-      (if (contains? args "--summary")
-        (println (bootstrap.lib.common/summary counts))
-        (bootstrap.lib.common/success
-         (str "Configuration links: " (bootstrap.lib.common/summary counts))))))
+    (if (contains? args "--summary")
+      (println (bootstrap.lib.common/summary
+                (bootstrap.lib.common/link-configs! repo-root)))
+      (do
+        (bootstrap.lib.common/start-panel
+         "CONFIGURATION LINKS"
+         "Linking managed dot-files into your home directory")
+        (let [counts (bootstrap.lib.common/link-configs! repo-root)]
+          (println)
+          (bootstrap.lib.common/success-panel
+           "LINKS COMPLETE"
+           (bootstrap.lib.common/summary counts))))))
   (catch Exception error
     (bootstrap.lib.common/abort! error)))
