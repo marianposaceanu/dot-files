@@ -575,6 +575,7 @@ It links:
 - `~/.zshrc`
 - `~/.zlogin`
 - `~/.bashrc`
+- `~/.codex/config.toml`
 - `~/.config/bat`
 - `$HOME/Library/Application Support/com.mitchellh.ghostty/config`
 

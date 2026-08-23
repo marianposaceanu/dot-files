@@ -1,0 +1,45 @@
+model = "gpt-5.6-sol"
+model_reasoning_effort = "xhigh"
+service_tier = "default"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+plan_mode_reasoning_effort = "medium"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+"gpt-5.6-sol" = 4
+
+[projects."/Users/marian/work/fws_scraper_v4"]
+trust_level = "trusted"
+
+[projects."/Users/marian/dot-files"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/fws-cms"]
+trust_level = "trusted"
+
+[features]
+apps = false
+fast_mode = false
+memories = false
+plugins = false
+remote_plugin = false
+skill_mcp_dependency_install = false
+
+[notice]
+hide_rate_limit_model_nudge = true
+
+[tui]
+animations = false
+show_tooltips = false
+status_line = [
+                "model-with-reasoning",
+                "current-dir",
+                "five-hour-limit",
+                "weekly-limit",
+                "git-branch",
+                "context-used",
+                "context-window-size"
+              ]
+status_line_use_colors = true
+terminal_resize_reflow_max_rows = 2000

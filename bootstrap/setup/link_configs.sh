@@ -29,6 +29,7 @@ LINK_SPECS=(
   ".zshrc|$HOME/.zshrc"
   ".zlogin|$HOME/.zlogin"
   ".bashrc|$HOME/.bashrc"
+  "codex/config.toml|$HOME/.codex/config.toml"
   "bat|$HOME/.config/bat"
   "ghostty/config|$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 )

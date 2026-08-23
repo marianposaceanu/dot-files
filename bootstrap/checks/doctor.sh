@@ -205,6 +205,7 @@ check_symlink "$HOME/.zprofile" "$REPO_ROOT/.zprofile" '~/.zprofile'
 check_symlink "$HOME/.zshrc" "$REPO_ROOT/.zshrc" '~/.zshrc'
 check_symlink "$HOME/.zlogin" "$REPO_ROOT/.zlogin" '~/.zlogin'
 check_symlink "$HOME/.bashrc" "$REPO_ROOT/.bashrc" '~/.bashrc'
+check_symlink "$HOME/.codex/config.toml" "$REPO_ROOT/codex/config.toml" 'Codex config'
 
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   warn 'oh-my-zsh not installed (~/.oh-my-zsh missing); see https://github.com/ohmyzsh/ohmyzsh'
