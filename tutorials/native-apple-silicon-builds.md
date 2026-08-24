@@ -137,7 +137,7 @@ These are separate interleaved runs, so their absolute medians should not be cha
 
 ## Git: same contract, no measured win
 
-Git 2.55.0 was the most demanding compatibility case and the least exciting benchmark result. Homebrew's main `git` executable also implements its builtins through symlinks such as `git-add` and `git-status`, so replacing that one file optimizes builtins without claiming that external helpers were rebuilt.
+Git was the most demanding compatibility case and the least exciting benchmark result. The build script derives the active Homebrew version and checksum-verified source from the installed formula snapshot, then fails closed if the formula's feature or runtime-path contract has changed. Homebrew's main `git` executable also implements its builtins through symlinks such as `git-add` and `git-status`, so replacing that one file optimizes builtins without claiming that external helpers were rebuilt.
 
 The candidate must preserve Git's CommonCrypto choice, PCRE2 and gettext linkage, system libcurl and libiconv, SHA implementations, shell path, executable path, documentation paths, and `FALLBACK_RUNTIME_PREFIX`. Smoke tests create temporary repositories and exercise commits, branches, PCRE2 grep, fsck, garbage collection, bundles, and clones without reading global Git configuration.
 
@@ -182,7 +182,7 @@ brew install llvm pkgconf
 brew unpin git && brew reinstall git
 ```
 
-After a formula upgrade, unpin and upgrade first, inspect the changed formula contract, then rerun the corresponding script. The Git workflow intentionally stops until its exact version and source contract are updated.
+After a formula upgrade, unpin and upgrade first, inspect the changed formula contract, then rerun the corresponding script. The Git workflow follows the active version automatically but intentionally stops when the formula's build contract changes.
 
 ## Where the evidence lands
 
@@ -195,4 +195,4 @@ The experiment produced four different answers:
 
 The general lesson is not to rebuild every Homebrew formula. It is to make optimization falsifiable: preserve the package contract, compare the same version, train PGO on representative work, publish regressions beside gains, and keep a one-command route back to the bottle.
 
-The implementation lives in [`bootstrap/`](https://github.com/marianposaceanu/dot-files/tree/main/bootstrap), [`benchmarks/`](https://github.com/marianposaceanu/dot-files/tree/main/benchmarks), and the native-build documentation in the [dot-files README](https://github.com/marianposaceanu/dot-files#what-lto-and-pgo-mean).
+The implementation lives in [`bootstrap/`](https://github.com/marianposaceanu/dot-files/tree/main/bootstrap), [`benchmarks/`](https://github.com/marianposaceanu/dot-files/tree/main/benchmarks), and the concise command summary in the [dot-files README](https://github.com/marianposaceanu/dot-files#optional-native-apple-silicon-builds).

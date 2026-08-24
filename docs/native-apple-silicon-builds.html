@@ -266,7 +266,7 @@ augroup END</code></pre>
       </section>
       <section id="git-same-contract-no-measured-win">
         <h2>Git: same contract, no measured win</h2>
-        <p>Git 2.55.0 was the most demanding compatibility case and the least exciting benchmark result. Homebrew&#39;s main <code>git</code> executable also implements its builtins through symlinks such as <code>git-add</code> and <code>git-status</code>, so replacing that one file optimizes builtins without claiming that external helpers were rebuilt.</p>
+        <p>Git was the most demanding compatibility case and the least exciting benchmark result. The build script derives the active Homebrew version and checksum-verified source from the installed formula snapshot, then fails closed if the formula&#39;s feature or runtime-path contract has changed. Homebrew&#39;s main <code>git</code> executable also implements its builtins through symlinks such as <code>git-add</code> and <code>git-status</code>, so replacing that one file optimizes builtins without claiming that external helpers were rebuilt.</p>
         <p>The candidate must preserve Git&#39;s CommonCrypto choice, PCRE2 and gettext linkage, system libcurl and libiconv, SHA implementations, shell path, executable path, documentation paths, and <code>FALLBACK_RUNTIME_PREFIX</code>. Smoke tests create temporary repositories and exercise commits, branches, PCRE2 grep, fsck, garbage collection, bundles, and clones without reading global Git configuration.</p>
         <figure class="chart" role="img" aria-label="Git aggregate benchmark CPU time: lower is better: Homebrew bottle 0.070 s, Native/LTO 0.070 s, Native/LTO plus PGO 0.070 s">
           <figcaption class="chart-title">Git aggregate benchmark CPU time: lower is better</figcaption>
@@ -314,7 +314,7 @@ brew unpin universal-ctags &amp;&amp; brew reinstall universal-ctags
 brew install llvm pkgconf
 ./bootstrap/native/compile_git_native.sh --pgo
 brew unpin git &amp;&amp; brew reinstall git</code></pre>
-        <p>After a formula upgrade, unpin and upgrade first, inspect the changed formula contract, then rerun the corresponding script. The Git workflow intentionally stops until its exact version and source contract are updated.</p>
+        <p>After a formula upgrade, unpin and upgrade first, inspect the changed formula contract, then rerun the corresponding script. The Git workflow follows the active version automatically but intentionally stops when the formula&#39;s build contract changes.</p>
       </section>
       <section id="where-the-evidence-lands">
         <h2>Where the evidence lands</h2>
@@ -326,7 +326,7 @@ brew unpin git &amp;&amp; brew reinstall git</code></pre>
           <li><strong>Git:</strong> native/LTO and PGO preserved behavior but did not measurably improve the aggregate workload.</li>
         </ul>
         <p>The general lesson is not to rebuild every Homebrew formula. It is to make optimization falsifiable: preserve the package contract, compare the same version, train PGO on representative work, publish regressions beside gains, and keep a one-command route back to the bottle.</p>
-        <p>The implementation lives in <a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a>, <a href="https://github.com/marianposaceanu/dot-files/tree/main/benchmarks"><code>benchmarks/</code></a>, and the native-build documentation in the <a href="https://github.com/marianposaceanu/dot-files#what-lto-and-pgo-mean">dot-files README</a>.</p>
+        <p>The implementation lives in <a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a>, <a href="https://github.com/marianposaceanu/dot-files/tree/main/benchmarks"><code>benchmarks/</code></a>, and the concise command summary in the <a href="https://github.com/marianposaceanu/dot-files#optional-native-apple-silicon-builds">dot-files README</a>.</p>
       </section>
     </article>
   </main>
