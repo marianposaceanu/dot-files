@@ -62,11 +62,7 @@ brew install borkdude/brew/babashka
 bb bootstrap/install_macos.clj
 ```
 
-### Legacy Bash
-
-From a clone, run `bootstrap/legacy/install_macos.sh`.
-
-All three paths present the same rounded bootstrap UI:
+Both paths present the same rounded bootstrap UI:
 
 ```text
 ╭─ DOT-FILES :: MACOS SETUP
@@ -215,7 +211,7 @@ bb bootstrap/submodules/update_submodules.clj --remote
 Remove a submodule through the repository helper:
 
 ```sh
-./bootstrap/submodules/remove_submodule.sh <submodule-path>
+bb bootstrap/submodules/remove_submodule.clj <submodule-path>
 ```
 
 ## Symbolic links

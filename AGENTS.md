@@ -22,7 +22,7 @@
 - After clone, initialize plugins/submodules with `bb bootstrap/submodules/update_submodules.clj`.
 - Intentionally update plugin pointers with `bb bootstrap/submodules/update_submodules.clj --remote`; this changes tracked submodule commits.
 - Update submodules from `.gitmodules` paths instead of assuming every plugin branch is `master`.
-- Remove a submodule with the repo script: `./bootstrap/submodules/remove_submodule.sh <submodule-path>`.
+- Remove a submodule with the repo script: `bb bootstrap/submodules/remove_submodule.clj <submodule-path>`.
 
 ## Editing guardrails
 - Do not hand-edit files inside `.vim/pack/bundles/**` unless the task explicitly asks to patch vendored plugin code.

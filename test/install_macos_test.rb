@@ -11,7 +11,6 @@ class InstallMacosTest < Minitest::Test
   BINARY_INSTALLER = File.join(
     REPO_ROOT, "bootstrap/bin/dotfiles-bootstrap-macos-aarch64"
   )
-  LEGACY_INSTALLER = File.join(REPO_ROOT, "bootstrap/legacy/install_macos.sh")
   BB_BIN = ENV["BB_BIN"] || ENV.fetch("PATH").split(File::PATH_SEPARATOR)
     .map { |directory| File.join(directory, "bb") }
     .find { |path| File.executable?(path) }
@@ -165,14 +164,6 @@ class InstallMacosTest < Minitest::Test
     )
 
     assert status.success?, "binary installer failed:\n#{stdout}\n#{stderr}"
-    assert_includes stdout, "╭─ DOT-FILES :: MACOS SETUP"
-    assert_includes stdout, "╭─ SETUP COMPLETE"
-  end
-
-  def test_legacy_installer_remains_runnable
-    stdout, stderr, status = invoke_installer(installer: LEGACY_INSTALLER)
-
-    assert status.success?, "legacy installer failed:\n#{stdout}\n#{stderr}"
     assert_includes stdout, "╭─ DOT-FILES :: MACOS SETUP"
     assert_includes stdout, "╭─ SETUP COMPLETE"
   end
