@@ -1,4 +1,5 @@
 (require '[babashka.fs :as fs]
+         '[cheshire.core :as json]
          '[clojure.java.io :as io])
 
 (def repo-root
@@ -26,23 +27,33 @@
    "Validating scripts, generated pages, Vim, and Ghostty")
 
   (bootstrap.lib.common/info "Checking shell script syntax...")
-  (doseq [script (concat
-                  (sort (fs/glob (repo-path "bootstrap") "**.sh"))
-                  (map #(apply repo-path %)
-                       [["benchmarks" "benchmark_ripgrep_native.sh"]
-                        ["benchmarks" "benchmark_ctags_native.sh"]
-                        ["benchmarks" "benchmark_git_native.sh"]
-                        ["benchmarks" "profile_vim_plugins.sh"]
-                        ["benchmarks" "profile_vim_plugins_median.sh"]]))]
+  (doseq [script (sort (concat
+                        (fs/glob (repo-path "bootstrap") "**.sh")
+                        (fs/glob (repo-path "benchmarks") "*.sh")))]
     (bootstrap.lib.common/run! ["bash" "-n" (str script)]))
 
   (bootstrap.lib.common/info "Checking Babashka script syntax...")
   (doseq [script (sort (fs/glob (repo-path "bootstrap") "**.clj"))]
     (parse-clojure-file! script))
 
+  (bootstrap.lib.common/info "Checking Bash config syntax...")
+  (bootstrap.lib.common/run! ["bash" "-n" (repo-path ".bashrc")])
+
   (bootstrap.lib.common/info "Checking Zsh config syntax...")
   (doseq [config [".zprofile" ".zshrc" ".zlogin"]]
     (bootstrap.lib.common/run! ["zsh" "-n" (repo-path config)]))
+
+  (bootstrap.lib.common/info "Checking Git, Amp, and bat configs...")
+  (bootstrap.lib.common/run!
+   {:out :string}
+   ["git" "config" "-f" (repo-path ".gitconfig") "--list"])
+  (json/parse-string (slurp (repo-path "amp" "settings.json")))
+  (if-let [bat (bootstrap.lib.common/command-path "bat")]
+    (bootstrap.lib.common/run!
+     {:out :string}
+     [bat "--config-file" (repo-path "bat" "config")
+      "--plain" "--color=never" "/dev/null"])
+    (bootstrap.lib.common/info "Skipping bat config validation (bat not found)."))
 
   (bootstrap.lib.common/info "Checking macOS installer idempotence...")
   (bootstrap.lib.common/run!

@@ -98,5 +98,14 @@ if (( $+commands[zoxide] )); then
   eval "$(zoxide init zsh)"
 fi
 
-# Suggest matching commands from shell history as text is entered.
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# Suggest matching commands from shell history without assuming a Homebrew prefix.
+for _zsh_autosuggestions in \
+  "${HOMEBREW_PREFIX:-}/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
+  /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh; do
+  if [[ -r "$_zsh_autosuggestions" ]]; then
+    source "$_zsh_autosuggestions"
+    break
+  fi
+done
+unset _zsh_autosuggestions

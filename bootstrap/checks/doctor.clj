@@ -20,6 +20,16 @@
 (defn ok [message]
   (bootstrap.lib.common/success message))
 
+(def managed-link-specs
+  (bootstrap.lib.common/resolved-link-specs repo-root))
+
+(defn link-spec [label]
+  (or (some #(when (= label (:label %)) %) managed-link-specs)
+      (throw (ex-info (str "Managed link spec is missing: " label) {}))))
+
+(def bat-spec (link-spec "bat config"))
+(def ghostty-spec (link-spec "Ghostty config"))
+
 (defn check-symlink [{:keys [source target label]}]
   (cond
     (not (bootstrap.lib.common/path-present? target))
@@ -121,7 +131,7 @@
 
   (bootstrap.lib.common/heading "CONFIGURATION LINKS")
   (check-symlink-capability)
-  (doseq [spec (take 11 (bootstrap.lib.common/resolved-link-specs repo-root))]
+  (doseq [spec (remove #{bat-spec ghostty-spec} managed-link-specs)]
     (check-symlink spec))
 
   (if (fs/regular-file? (fs/path (or (System/getenv "HOME")
@@ -134,18 +144,16 @@
     (ok "mextdisplay is installed")
     (warn "mextdisplay is not installed; run bb bootstrap/install_macos.clj"))
 
-  (let [[bat-spec ghostty-spec]
-        (drop 11 (bootstrap.lib.common/resolved-link-specs repo-root))]
-    (if (or (bootstrap.lib.common/command-path "bat")
-            (bootstrap.lib.common/path-present? (:target bat-spec)))
-      (check-symlink bat-spec)
-      (bootstrap.lib.common/info "Skipping bat config symlink check (bat not detected)."))
+  (if (or (bootstrap.lib.common/command-path "bat")
+          (bootstrap.lib.common/path-present? (:target bat-spec)))
+    (check-symlink bat-spec)
+    (bootstrap.lib.common/info "Skipping bat config symlink check (bat not detected)."))
 
-    (if (or (bootstrap.lib.common/command-path "ghostty")
-            (fs/executable? "/Applications/Ghostty.app/Contents/MacOS/ghostty"))
-      (ok "Ghostty is installed")
-      (warn "Ghostty is not installed; run bb bootstrap/install_macos.clj"))
-    (check-symlink ghostty-spec))
+  (if (or (bootstrap.lib.common/command-path "ghostty")
+          (fs/executable? "/Applications/Ghostty.app/Contents/MacOS/ghostty"))
+    (ok "Ghostty is installed")
+    (warn "Ghostty is not installed; run bb bootstrap/install_macos.clj"))
+  (check-symlink ghostty-spec)
 
   (bootstrap.lib.common/heading "HOMEBREW")
   (check-brew-deps)
