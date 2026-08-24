@@ -3,7 +3,7 @@
 ## What this repo is
 - Personal dotfiles repo, not an app/library project. There is no package build, lint, unit test suite, or CI workflow to run.
 - Main first-party configs live at repo root: `.vimrc`, `.zprofile`, `.zshrc`, `.zlogin`, `.bashrc`, `.tmux.conf`, `.gitconfig`, and `.gitignore_global`.
-- Additional first-party configs live in `bat/`, `ghostty/`, `kitty/`, `bootstrap/`, `benchmarks/`, and `tutorials/`.
+- Additional first-party configs live in `bat/`, `ghostty/`, `bootstrap/`, `benchmarks/`, and `tutorials/`.
 
 ## High-impact structure
 - Vim plugin code under `.vim/pack/bundles/**` is Git submodule/vendor code, not normal first-party config.

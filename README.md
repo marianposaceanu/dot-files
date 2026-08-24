@@ -118,9 +118,8 @@ permissions, snapshot storage, and recovery details.
 
 ### mextdisplay
 
-Install [mextdisplay](https://github.com/marianposaceanu/mextdisplay) separately
-with `brew install marianposaceanu/tap/mextdisplay` (the main Brewfile also
-installs it). The `mext` alias opens its interface:
+[mextdisplay](https://github.com/marianposaceanu/mextdisplay) is installed
+through the main Brewfile. The `mext` alias opens its interface:
 
 ```sh
 mext
