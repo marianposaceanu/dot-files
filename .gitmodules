@@ -32,9 +32,6 @@
 [submodule ".vim/pack/bundles/opt/GoldenView.Vim"]
 	path = .vim/pack/bundles/opt/GoldenView.Vim
 	url = https://github.com/zhaocai/GoldenView.Vim
-[submodule ".vim/pack/bundles/start/ayu-vim"]
-	path = .vim/pack/bundles/start/ayu-vim
-	url = https://github.com/ayu-theme/ayu-vim.git
 [submodule ".vim/pack/bundles/start/lightline.vim"]
 	path = .vim/pack/bundles/start/lightline.vim
 	url = https://github.com/itchyny/lightline.vim.git
