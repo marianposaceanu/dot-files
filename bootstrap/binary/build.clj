@@ -95,7 +95,8 @@
       (fs/create-dirs (fs/parent output))
       (append-files! output [runtime uberjar])
       (run! "chmod" "+x" output)
-      (spit (str output ".sha256") (str (sha256 output) "\n"))
+      (spit (str output ".sha256")
+            (str (sha256 output) "  " (fs/file-name output) "\n"))
 
       (bootstrap.lib.common/section 5 5 "BINARY VERIFICATION")
       (bootstrap.lib.common/info

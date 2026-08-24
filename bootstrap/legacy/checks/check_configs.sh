@@ -20,8 +20,9 @@ zsh -n "$REPO_ROOT/.zlogin"
 printf '• Checking macOS installer idempotence...\n'
 env -u GEM_HOME -u GEM_PATH ruby "$REPO_ROOT/test/install_macos_test.rb"
 
-printf '• Checking tutorial page generator...\n'
-env -u GEM_HOME -u GEM_PATH ruby -c "$REPO_ROOT/bootstrap/site/build_tutorial_pages.rb" >/dev/null
+printf '• Checking generated tutorial pages...\n'
+env -u GEM_HOME -u GEM_PATH ruby \
+  "$REPO_ROOT/bootstrap/site/build_tutorial_pages.rb" --check
 
 printf '• Checking published site contract...\n'
 env -u GEM_HOME -u GEM_PATH ruby "$REPO_ROOT/bootstrap/site/validate_site.rb"

@@ -13,6 +13,15 @@ DEFAULT_PUBLISHED_DATE = "2026-07-20"
 DEFAULT_VISIBLE_DATE = "20th July 2026"
 DEFAULT_CATEGORY = "Vim tutorial"
 DEFAULT_EYEBROW = "Vim field guide · dot-files"
+CHECK_ONLY = case ARGV
+when []
+  false
+when ["--check"]
+  true
+else
+  warn "Usage: ruby bootstrap/site/build_tutorial_pages.rb [--check]"
+  exit 2
+end
 
 def slug(text)
   text.downcase
@@ -297,7 +306,7 @@ def page_for(path, css_hash, dotfiles_hash, js_hash)
   HTML
 end
 
-FileUtils.mkdir_p(OUTPUT_DIR)
+FileUtils.mkdir_p(OUTPUT_DIR) unless CHECK_ONLY
 css_hash = Digest::SHA256.file(OUTPUT_DIR.join("assets/site.css")).hexdigest[0, 12]
 dotfiles_hash = Digest::SHA256.file(OUTPUT_DIR.join("assets/dotfiles.css")).hexdigest[0, 12]
 js_hash = Digest::SHA256.file(OUTPUT_DIR.join("assets/site.js")).hexdigest[0, 12]
@@ -305,8 +314,22 @@ js_hash = Digest::SHA256.file(OUTPUT_DIR.join("assets/site.js")).hexdigest[0, 12
 sources = SOURCE_DIR.glob("*.md").sort
 abort "No Markdown tutorials found in #{SOURCE_DIR}" if sources.empty?
 
+stale_outputs = []
 sources.each do |source|
   output = OUTPUT_DIR.join("#{slug(source.basename(".md").to_s)}.html")
-  output.write(page_for(source, css_hash, dotfiles_hash, js_hash), encoding: "UTF-8")
-  puts "built #{output.relative_path_from(ROOT)}"
+  rendered = page_for(source, css_hash, dotfiles_hash, js_hash)
+  relative_output = output.relative_path_from(ROOT)
+  if CHECK_ONLY
+    stale_outputs << relative_output unless output.file? && output.read(encoding: "UTF-8") == rendered
+  else
+    output.write(rendered, encoding: "UTF-8")
+    puts "built #{relative_output}"
+  end
+end
+
+if CHECK_ONLY
+  unless stale_outputs.empty?
+    abort "Generated tutorial pages are stale:\n#{stale_outputs.map { |path| "  #{path}" }.join("\n")}"
+  end
+  puts "Generated tutorial pages match #{sources.length} Markdown sources."
 end

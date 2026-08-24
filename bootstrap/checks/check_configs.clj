@@ -49,11 +49,10 @@
    ["env" "-u" "GEM_HOME" "-u" "GEM_PATH" "ruby"
     (repo-path "test" "install_macos_test.rb")])
 
-  (bootstrap.lib.common/info "Checking tutorial page generator...")
+  (bootstrap.lib.common/info "Checking generated tutorial pages...")
   (bootstrap.lib.common/run!
-   {:out :string}
-   ["env" "-u" "GEM_HOME" "-u" "GEM_PATH" "ruby" "-c"
-    (repo-path "bootstrap" "site" "build_tutorial_pages.rb")])
+   ["env" "-u" "GEM_HOME" "-u" "GEM_PATH" "ruby"
+    (repo-path "bootstrap" "site" "build_tutorial_pages.rb") "--check"])
 
   (bootstrap.lib.common/info "Checking published site contract...")
   (bootstrap.lib.common/run!
