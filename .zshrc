@@ -51,9 +51,6 @@ else
   print -u2 -- "[zshrc] Warning: oh-my-zsh not found at $ZSH"
 fi
 
-# Clear the function used before rz moved to Homebrew when reloading an old shell.
-unfunction rz 2>/dev/null
-
 # Open the external display manager with a shorter command.
 alias mext=mextdisplay
 
