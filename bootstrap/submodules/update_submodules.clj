@@ -1,38 +1,47 @@
-(require '[babashka.fs :as fs])
+(require '[babashka.classpath :as classpath]
+         '[babashka.fs :as fs])
 
-(def repo-root
+(def ^:private repo-root
   (-> *file* fs/parent fs/parent fs/parent fs/canonicalize str))
 
-(load-file (str (fs/path repo-root "bootstrap/lib/common.clj")))
+(classpath/add-classpath repo-root)
+(require '[bootstrap.lib.common :as common])
 
-(try
-  (let [arg (first *command-line-args*)]
-    (when (or (> (count *command-line-args*) 1)
-              (not (contains? #{nil "--remote" "-h" "--help"} arg)))
-      (binding [*out* *err*]
-        (println "Usage: bb bootstrap/submodules/update_submodules.clj [--remote]"))
-      (System/exit 2))
-    (when (contains? #{"-h" "--help"} arg)
-      (println "Usage: bb bootstrap/submodules/update_submodules.clj [--remote]")
-      (System/exit 0))
+(def ^:private usage
+  "Usage: bb bootstrap/submodules/update_submodules.clj [--remote]")
 
-    (bootstrap.lib.common/start-panel
+(defn- parse-mode [args]
+  (case (vec args)
+    [] :pinned
+    ["--remote"] :remote
+    (["-h"] ["--help"]) (do (println usage) (System/exit 0))
+    (common/usage-error! usage)))
+
+(defn- update-command [mode]
+  (cond-> ["git" "-C" repo-root "submodule" "--quiet" "update" "--init"]
+    (= :remote mode) (conj "--remote")
+    true (conj "--recursive")))
+
+(defn -main [& args]
+  (let [mode (parse-mode args)
+        remote? (= :remote mode)]
+    (common/start-panel
      "VIM PLUGIN SUBMODULES"
-     (if (= "--remote" arg)
+     (if remote?
        "Updating from configured remotes"
        "Restoring repository-pinned revisions"))
-    (if (= "--remote" arg)
-      (bootstrap.lib.common/info "Updating submodules from configured remotes...")
-      (bootstrap.lib.common/info "Updating submodules to repository-pinned revisions..."))
-    (bootstrap.lib.common/run!
+
+    (common/info
+     (if remote?
+       "Updating submodules from configured remotes..."
+       "Updating submodules to repository-pinned revisions..."))
+    (common/run!
      ["git" "-C" repo-root "submodule" "--quiet" "sync" "--recursive"])
-    (bootstrap.lib.common/run!
-     (cond-> ["git" "-C" repo-root "submodule" "--quiet" "update" "--init"]
-       (= "--remote" arg) (conj "--remote")
-       true (conj "--recursive")))
+    (common/run! (update-command mode))
+
     (println)
-    (bootstrap.lib.common/success-panel
+    (common/success-panel
      "SUBMODULES COMPLETE"
-     "Submodules are up to date."))
-  (catch Exception error
-    (bootstrap.lib.common/abort! error)))
+     "Submodules are up to date.")))
+
+(common/run-script! -main *command-line-args*)

@@ -12,7 +12,7 @@
    :signal nil
    :previous-handler nil
    :shutdown-hook nil})
-(def ^:private state (atom initial-state))
+(def ^:private terminal-state (atom initial-state))
 
 (defn- write-terminal! [& values]
   (print (apply str values))
@@ -47,18 +47,18 @@
                      percent)]
     (subs text 0 (min (count text) (max 1 (dec columns))))))
 
-(defn- draw! []
-  (when (:active @state)
-    (let [{:keys [rows] :as current} @state]
+(defn- draw-progress! []
+  (when (:active @terminal-state)
+    (let [{:keys [rows] :as current} @terminal-state]
       (write-terminal! escape "7"
                        escape "[" rows ";1H"
                        escape "[2K"
                        (progress-text current)
                        escape "8"))))
 
-(defn- clear-reservation! []
-  (when (:active @state)
-    (let [{old-rows :rows} @state
+(defn- restore-terminal! []
+  (when (:active @terminal-state)
+    (let [{old-rows :rows} @terminal-state
           {current-rows :rows} (or (terminal-size) {:rows old-rows})
           extra-clear (if (not= old-rows current-rows)
                         (str escape "[" current-rows ";1H" escape "[2K")
@@ -70,26 +70,26 @@
                        escape "7"
                        escape "[1;" current-rows "r"
                        escape "8")
-      (swap! state assoc :active false :rows current-rows))))
+      (swap! terminal-state assoc :active false :rows current-rows))))
 
-(defn- reserve! [{:keys [rows columns]}]
+(defn- reserve-progress-line! [{:keys [rows columns]}]
   (write-terminal! escape "[1;" (dec rows) "r"
                    escape "[" (dec rows) ";1H")
-  (swap! state assoc
+  (swap! terminal-state assoc
          :active true
          :rows rows
          :columns columns)
-  (draw!))
+  (draw-progress!))
 
-(defn- refresh! []
+(defn- refresh-terminal! []
   (when-let [size (terminal-size)]
-    (when (or (not (:active @state))
-              (not= size (select-keys @state [:rows :columns])))
-      (clear-reservation!)
-      (reserve! size))))
+    (when (or (not (:active @terminal-state))
+              (not= size (select-keys @terminal-state [:rows :columns])))
+      (restore-terminal!)
+      (reserve-progress-line! size))))
 
 (defn- uninstall-handlers! []
-  (let [{:keys [signal previous-handler shutdown-hook]} @state]
+  (let [{:keys [signal previous-handler shutdown-hook]} @terminal-state]
     (when (and signal previous-handler)
       (try
         (sun.misc.Signal/handle signal previous-handler)
@@ -99,7 +99,7 @@
       (try
         (.removeShutdownHook (Runtime/getRuntime) shutdown-hook)
         (catch Exception _)))
-    (swap! state assoc
+    (swap! terminal-state assoc
            :signal nil
            :previous-handler nil
            :shutdown-hook nil)))
@@ -107,8 +107,8 @@
 (defn stop! []
   (locking terminal-lock
     (uninstall-handlers!)
-    (clear-reservation!)
-    (swap! state assoc :interactive false)))
+    (restore-terminal!)
+    (swap! terminal-state assoc :interactive false)))
 
 (defn- install-handlers! []
   (let [signal (sun.misc.Signal. "WINCH")
@@ -116,44 +116,44 @@
                   (handle [_ _]
                     (try
                       (locking terminal-lock
-                        (refresh!)
-                        (draw!))
+                        (refresh-terminal!)
+                        (draw-progress!))
                       (catch Exception _))))
         previous-handler (sun.misc.Signal/handle signal handler)
         shutdown-hook (Thread. ^Runnable (fn [] (stop!)))]
     (.addShutdownHook (Runtime/getRuntime) shutdown-hook)
-    (swap! state assoc
+    (swap! terminal-state assoc
            :signal signal
            :previous-handler previous-handler
            :shutdown-hook shutdown-hook)))
 
 (defn start! []
   (locking terminal-lock
-    (reset! state initial-state)
+    (reset! terminal-state initial-state)
     (when (interactive-terminal?)
       (when-let [size (terminal-size)]
-        (swap! state assoc :interactive true)
-        (reserve! size)
+        (swap! terminal-state assoc :interactive true)
+        (reserve-progress-line! size)
         (install-handlers!)))))
 
 (defn update! [completed total]
   (locking terminal-lock
     (let [percent (min 100 (quot (* completed 100) total))]
-      (swap! state assoc :percent percent)
-      (when (:interactive @state)
-        (refresh!)
-        (draw!)))))
+      (swap! terminal-state assoc :percent percent)
+      (when (:interactive @terminal-state)
+        (refresh-terminal!)
+        (draw-progress!)))))
 
 (defn complete! []
   (locking terminal-lock
-    (swap! state assoc :percent 100)
-    (when (:interactive @state)
-      (refresh!)
-      (draw!))
-    (let [text (if (:interactive @state)
-                 (progress-text @state)
+    (swap! terminal-state assoc :percent 100)
+    (when (:interactive @terminal-state)
+      (refresh-terminal!)
+      (draw-progress!))
+    (let [text (if (:interactive @terminal-state)
+                 (progress-text @terminal-state)
                  "[##################################################] 100%")]
       (uninstall-handlers!)
-      (clear-reservation!)
+      (restore-terminal!)
       (println text)
-      (swap! state assoc :interactive false))))
+      (swap! terminal-state assoc :interactive false))))

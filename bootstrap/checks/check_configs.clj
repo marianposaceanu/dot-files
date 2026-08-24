@@ -1,88 +1,102 @@
-(require '[babashka.fs :as fs]
+(require '[babashka.classpath :as classpath]
+         '[babashka.fs :as fs]
          '[cheshire.core :as json]
          '[clojure.java.io :as io])
 
-(def repo-root
+(def ^:private repo-root
   (-> *file* fs/parent fs/parent fs/parent fs/canonicalize str))
 
-(load-file (str (fs/path repo-root "bootstrap/lib/common.clj")))
+(classpath/add-classpath repo-root)
+(require '[bootstrap.lib.common :as common])
 
-(when (seq *command-line-args*)
-  (binding [*out* *err*]
-    (println "Usage: bb bootstrap/checks/check_configs.clj"))
-  (System/exit 2))
+(def ^:private usage "Usage: bb bootstrap/checks/check_configs.clj")
 
-(defn repo-path [& parts]
+(defn- repo-path [& parts]
   (str (apply fs/path repo-root parts)))
 
-(defn parse-clojure-file! [path]
+(defn- parse-clojure-file! [path]
   (with-open [reader (java.io.PushbackReader. (io/reader (str path)))]
     (loop []
       (when-not (= ::eof (read {:eof ::eof} reader))
         (recur)))))
 
-(try
-  (bootstrap.lib.common/start-panel
-   "DOT-FILES :: CONFIG CHECKS"
-   "Validating scripts, generated pages, Vim, and Ghostty")
-
-  (bootstrap.lib.common/info "Checking shell script syntax...")
+(defn- check-shell-scripts! []
+  (common/info "Checking shell script syntax...")
   (doseq [script (sort (concat
                         (fs/glob (repo-path "bootstrap") "**.sh")
                         (fs/glob (repo-path "benchmarks") "*.sh")))]
-    (bootstrap.lib.common/run! ["bash" "-n" (str script)]))
+    (common/run! ["bash" "-n" (str script)])))
 
-  (bootstrap.lib.common/info "Checking Babashka script syntax...")
+(defn- check-babashka-scripts! []
+  (common/info "Checking Babashka script syntax...")
   (doseq [script (sort (fs/glob (repo-path "bootstrap") "**.clj"))]
-    (parse-clojure-file! script))
+    (parse-clojure-file! script)))
 
-  (bootstrap.lib.common/info "Checking Bash config syntax...")
-  (bootstrap.lib.common/run! ["bash" "-n" (repo-path ".bashrc")])
+(defn- check-shell-configs! []
+  (common/info "Checking Bash config syntax...")
+  (common/run! ["bash" "-n" (repo-path ".bashrc")])
 
-  (bootstrap.lib.common/info "Checking Zsh config syntax...")
+  (common/info "Checking Zsh config syntax...")
   (doseq [config [".zprofile" ".zshrc" ".zlogin"]]
-    (bootstrap.lib.common/run! ["zsh" "-n" (repo-path config)]))
+    (common/run! ["zsh" "-n" (repo-path config)])))
 
-  (bootstrap.lib.common/info "Checking Git, Amp, and bat configs...")
-  (bootstrap.lib.common/run!
-   {:out :string}
-   ["git" "config" "-f" (repo-path ".gitconfig") "--list"])
+(defn- check-application-configs! []
+  (common/info "Checking Git, Amp, and bat configs...")
+  (common/run! {:out :string}
+               ["git" "config" "-f" (repo-path ".gitconfig") "--list"])
   (json/parse-string (slurp (repo-path "amp" "settings.json")))
-  (if-let [bat (bootstrap.lib.common/command-path "bat")]
-    (bootstrap.lib.common/run!
-     {:out :string}
-     [bat "--config-file" (repo-path "bat" "config")
-      "--plain" "--color=never" "/dev/null"])
-    (bootstrap.lib.common/info "Skipping bat config validation (bat not found)."))
+  (if-let [bat (common/command-path "bat")]
+    (common/run! {:out :string}
+                 [bat "--config-file" (repo-path "bat" "config")
+                  "--plain" "--color=never" "/dev/null"])
+    (common/info "Skipping bat config validation (bat not found).")))
 
-  (bootstrap.lib.common/info "Checking macOS installer idempotence...")
-  (bootstrap.lib.common/run!
-   ["env" "-u" "GEM_HOME" "-u" "GEM_PATH" "ruby"
-    (repo-path "test" "install_macos_test.rb")])
+(defn- run-ruby! [& args]
+  (common/run! (into ["env" "-u" "GEM_HOME" "-u" "GEM_PATH" "ruby"] args)))
 
-  (bootstrap.lib.common/info "Checking generated tutorial pages...")
-  (bootstrap.lib.common/run!
-   ["env" "-u" "GEM_HOME" "-u" "GEM_PATH" "ruby"
-    (repo-path "bootstrap" "site" "build_tutorial_pages.rb") "--check"])
+(defn- check-installer! []
+  (common/info "Checking macOS installer idempotence...")
+  (run-ruby! (repo-path "test" "install_macos_test.rb")))
 
-  (bootstrap.lib.common/info "Checking published site contract...")
-  (bootstrap.lib.common/run!
-   ["env" "-u" "GEM_HOME" "-u" "GEM_PATH" "ruby"
-    (repo-path "bootstrap" "site" "validate_site.rb")])
+(defn- check-published-site! []
+  (common/info "Checking generated tutorial pages...")
+  (run-ruby! (repo-path "bootstrap" "site" "build_tutorial_pages.rb") "--check")
 
-  (bootstrap.lib.common/info "Checking Vim config load...")
-  (bootstrap.lib.common/run!
-   ["vim" "-Nu" (repo-path ".vimrc") "-i" "NONE" "-n" "-es" "-c" "qall"])
+  (common/info "Checking published site contract...")
+  (run-ruby! (repo-path "bootstrap" "site" "validate_site.rb")))
 
-  (if-let [ghostty (bootstrap.lib.common/command-path "ghostty")]
+(defn- check-vim! []
+  (common/info "Checking Vim config load...")
+  (common/run!
+   ["vim" "-Nu" (repo-path ".vimrc") "-i" "NONE" "-n" "-es" "-c" "qall"]))
+
+(defn- check-ghostty! []
+  (if-let [ghostty (common/command-path "ghostty")]
     (do
-      (bootstrap.lib.common/info "Validating Ghostty config...")
-      (bootstrap.lib.common/run! {:out :string} [ghostty "+validate-config"]))
-    (bootstrap.lib.common/info "Skipping Ghostty validation (ghostty not found)."))
+      (common/info "Validating Ghostty config...")
+      (common/run! {:out :string} [ghostty "+validate-config"]))
+    (common/info "Skipping Ghostty validation (ghostty not found).")))
+
+(defn -main [& args]
+  (when (seq args)
+    (common/usage-error! usage))
+
+  (common/start-panel
+   "DOT-FILES :: CONFIG CHECKS"
+   "Validating scripts, generated pages, Vim, and Ghostty")
+
+  (check-shell-scripts!)
+  (check-babashka-scripts!)
+  (check-shell-configs!)
+  (check-application-configs!)
+  (check-installer!)
+  (check-published-site!)
+  (check-vim!)
+  (check-ghostty!)
 
   (println)
-  (bootstrap.lib.common/success-panel
+  (common/success-panel
    "CHECKS COMPLETE"
-   "All configuration checks passed.")
-  (catch Exception error
-    (bootstrap.lib.common/abort! error)))
+   "All configuration checks passed."))
+
+(common/run-script! -main *command-line-args*)

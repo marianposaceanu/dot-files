@@ -1,29 +1,30 @@
-(require '[babashka.fs :as fs])
+(require '[babashka.classpath :as classpath]
+         '[babashka.fs :as fs])
 
-(def repo-root
+(def ^:private repo-root
   (-> *file* fs/parent fs/parent fs/parent fs/canonicalize str))
 
-(load-file (str (fs/path repo-root "bootstrap/lib/common.clj")))
+(classpath/add-classpath repo-root)
+(require '[bootstrap.lib.common :as common])
 
-(try
-  (let [args (set *command-line-args*)]
-    (when (or (not (every? #{"--summary"} args))
-              (> (count *command-line-args*) 1))
-      (binding [*out* *err*]
-        (println "Usage: bb bootstrap/setup/link_configs.clj [--summary]"))
-      (System/exit 2))
+(def ^:private usage
+  "Usage: bb bootstrap/setup/link_configs.clj [--summary]")
 
-    (if (contains? args "--summary")
-      (println (bootstrap.lib.common/summary
-                (bootstrap.lib.common/link-configs! repo-root)))
-      (do
-        (bootstrap.lib.common/start-panel
-         "CONFIGURATION LINKS"
-         "Linking managed dot-files into your home directory")
-        (let [counts (bootstrap.lib.common/link-configs! repo-root)]
-          (println)
-          (bootstrap.lib.common/success-panel
-           "LINKS COMPLETE"
-           (bootstrap.lib.common/summary counts))))))
-  (catch Exception error
-    (bootstrap.lib.common/abort! error)))
+(defn- summary-only? [args]
+  (case (vec args)
+    [] false
+    ["--summary"] true
+    (common/usage-error! usage)))
+
+(defn -main [& args]
+  (if (summary-only? args)
+    (println (common/summary (common/link-configs! repo-root)))
+    (do
+      (common/start-panel
+       "CONFIGURATION LINKS"
+       "Linking managed dot-files into your home directory")
+      (let [counts (common/link-configs! repo-root)]
+        (println)
+        (common/success-panel "LINKS COMPLETE" (common/summary counts))))))
+
+(common/run-script! -main *command-line-args*)

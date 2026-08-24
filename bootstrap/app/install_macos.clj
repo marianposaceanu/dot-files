@@ -1,21 +1,30 @@
 (ns bootstrap.app.install-macos
   (:require [babashka.fs :as fs]
-            [bootstrap.lib.common]
-            [bootstrap.lib.progress :as progress]
-            [clojure.string :as str]))
+            [bootstrap.lib.common :as common]
+            [bootstrap.lib.progress :as progress]))
 
-(defn dot-files-repo? [path]
+(def ^:private total-stages 9)
+
+(def ^:private required-formulas
+  [{:formula "babashka" :executable "bb"}
+   {:formula "mextdisplay" :executable "mextdisplay"}
+   {:formula "ruby" :executable "ruby"}
+   {:formula "vim" :executable "vim"}])
+
+(defn- dot-files-repo? [path]
   (and path
        (fs/regular-file? (fs/path path "Brewfile"))
        (fs/regular-file? (fs/path path ".vimrc"))
        (fs/directory? (fs/path path "bootstrap"))))
 
-(defn ancestors [path]
+(defn- ancestors [path]
   (take-while some? (iterate fs/parent path)))
 
-(defn find-repo-root []
-  (let [home (or (System/getenv "HOME") (System/getProperty "user.home"))
-        executable (.. (java.lang.ProcessHandle/current) info command (orElse nil))
+(defn- process-command []
+  (.. (java.lang.ProcessHandle/current) info command (orElse nil)))
+
+(defn- find-repo-root [home]
+  (let [executable (process-command)
         source-file (when (and *file* (fs/exists? *file*)) *file*)
         candidates (concat
                     [(System/getenv "DOT_FILES_REPO")]
@@ -29,30 +38,12 @@
                 "Unable to find the dot-files repository. Run from the repository or set DOT_FILES_REPO."
                 {})))))
 
-(def repo-root (atom nil))
-
-(def total-stages 9)
-(def home (or (System/getenv "HOME") (System/getProperty "user.home")))
-(def expected-repo (str (fs/path home "dot-files")))
-(def ghostty-app (or (System/getenv "GHOSTTY_APP_PATH")
-                     "/Applications/Ghostty.app"))
-(def oh-my-zsh-dir (str (fs/path home ".oh-my-zsh")))
-(def oh-my-zsh-temp (atom nil))
-(def timings (atom []))
-(def child-env (atom {}))
-
-(defn find-brew []
-  (or (bootstrap.lib.common/command-path "brew")
+(defn- find-brew []
+  (or (common/command-path "brew")
       (some #(when (fs/executable? %) %)
             ["/opt/homebrew/bin/brew" "/usr/local/bin/brew"])))
 
-(def brew-bin (atom (find-brew)))
-(def bb-bin
-  (atom (or (bootstrap.lib.common/command-path "bb")
-            (.. (java.lang.ProcessHandle/current) info command (orElse nil))
-            "bb")))
-
-(defn usage []
+(defn- usage []
   (println "Usage:")
   (println "  dotfiles-bootstrap-macos-aarch64 [--skip-checks] [--timings]")
   (println "  bb bootstrap/install_macos.clj [--skip-checks] [--timings]")
@@ -62,7 +53,7 @@
   (println "  --timings      Print elapsed time for each setup stage")
   (println "  -h, --help     Show this help"))
 
-(defn parse-args [args]
+(defn- parse-options [args]
   (reduce
    (fn [options arg]
      (case arg
@@ -76,243 +67,256 @@
    {:skip-checks false :show-timings false}
    args))
 
-(def options (atom {:skip-checks false :show-timings false}))
+(defn- initial-state [options]
+  (let [home (or (System/getenv "HOME") (System/getProperty "user.home"))]
+    {:options options
+     :repo-root (find-repo-root home)
+     :expected-repo (str (fs/path home "dot-files"))
+     :ghostty-app (or (System/getenv "GHOSTTY_APP_PATH")
+                      "/Applications/Ghostty.app")
+     :oh-my-zsh-dir (str (fs/path home ".oh-my-zsh"))
+     :brew (find-brew)
+     :bb (or (common/command-path "bb") (process-command) "bb")
+     :child-env {}
+     :timings []}))
 
-(defn run!
-  ([command]
-   (bootstrap.lib.common/run! {:extra-env @child-env} command))
-  ([opts command]
-   (bootstrap.lib.common/run! (merge {:extra-env @child-env} opts) command)))
+(defn- run-command!
+  ([state command]
+   (common/run! {:extra-env (:child-env state)} command))
+  ([state options command]
+   (let [extra-env (merge (:child-env state) (:extra-env options))]
+     (common/run! (assoc options :extra-env extra-env) command))))
 
-(defn stage! [number title action]
-  (bootstrap.lib.common/section number total-stages title)
-  (let [started (System/nanoTime)]
-    (action)
-    (swap! timings conj
-           {:title title
-            :seconds (/ (- (System/nanoTime) started) 1000000000.0)})
-    (progress/update! number total-stages)))
+(defn- run-stage! [state number title action]
+  (common/section number total-stages title)
+  (let [started (System/nanoTime)
+        next-state (action state)
+        elapsed-seconds (/ (- (System/nanoTime) started) 1000000000.0)]
+    (progress/update! number total-stages)
+    (update next-state :timings conj
+            {:title title :seconds elapsed-seconds})))
 
-(defn find-ghostty []
-  (or (bootstrap.lib.common/command-path "ghostty")
+(defn- find-ghostty [{:keys [ghostty-app]}]
+  (or (common/command-path "ghostty")
       (let [candidate (str (fs/path ghostty-app "Contents/MacOS/ghostty"))]
         (when (fs/executable? candidate) candidate))))
 
-(defn print-timings []
-  (when (:show-timings @options)
-    (let [total (reduce + (map :seconds @timings))]
+(defn- print-timings [{:keys [options timings]}]
+  (when (:show-timings options)
+    (let [total (reduce + (map :seconds timings))]
       (println)
       (println "╭─ STAGE TIMINGS")
-      (doseq [{:keys [title seconds]} @timings]
+      (doseq [{:keys [title seconds]} timings]
         (println
          (format "│  %-30s %7.3fs %5.1f%%"
                  title seconds
                  (if (zero? total) 0.0 (* 100.0 (/ seconds total))))))
       (println (format "╰─ %-30s %7.3fs %5.1f%%" "Total" total 100.0)))))
 
-(defn ensure-command-line-tools! []
-  (when-not (zero? (:exit (bootstrap.lib.common/result ["xcode-select" "-p"])))
-    (bootstrap.lib.common/run!
+(defn- ensure-command-line-tools! [state]
+  (when-not (common/successful? ["xcode-select" "-p"])
+    (common/run!
      {:continue true :out :string :err :string}
      ["xcode-select" "--install"])
     (throw (ex-info
             "Command Line Tools installation was requested; finish it, then rerun this installer."
             {})))
-  (bootstrap.lib.common/success "Apple Command Line Tools are available."))
+  (common/success "Apple Command Line Tools are available.")
+  state)
 
-(defn ensure-repository-path! []
+(defn- ensure-repository-path! [{:keys [expected-repo repo-root] :as state}]
   (cond
     (fs/directory? expected-repo)
-    (if (= @repo-root (bootstrap.lib.common/canonical expected-repo))
-      (bootstrap.lib.common/success
+    (if (= repo-root (common/canonical expected-repo))
+      (common/success
        (str "Repository path is ready: " expected-repo))
       (throw (ex-info
               (str expected-repo " points to "
-                   (bootstrap.lib.common/canonical expected-repo)
-                   " instead of " @repo-root)
+                   (common/canonical expected-repo)
+                   " instead of " repo-root)
               {})))
 
-    (bootstrap.lib.common/path-present? expected-repo)
+    (common/path-present? expected-repo)
     (throw (ex-info (str expected-repo " exists but is not this repository") {}))
 
     :else
     (do
-      (fs/create-sym-link expected-repo @repo-root)
-      (bootstrap.lib.common/success
-       (str "Linked repository path: " expected-repo " -> " @repo-root)))))
+      (fs/create-sym-link expected-repo repo-root)
+      (common/success
+       (str "Linked repository path: " expected-repo " -> " repo-root))))
+  state)
 
-(defn configure-homebrew-env! [brew]
-  (let [prefix (bootstrap.lib.common/capture [brew "--prefix"])]
-    (swap! child-env assoc
-           "HOMEBREW_PREFIX" prefix
-           "PATH" (str (fs/path prefix "bin") ":"
-                       (fs/path prefix "sbin") ":"
-                       (System/getenv "PATH")))))
+(defn- configure-homebrew-env [state brew]
+  (let [prefix (common/capture [brew "--prefix"])
+        path (str (fs/path prefix "bin") ":"
+                  (fs/path prefix "sbin") ":"
+                  (System/getenv "PATH"))]
+    (-> state
+        (assoc :brew brew)
+        (assoc :child-env {"HOMEBREW_PREFIX" prefix "PATH" path}))))
 
-(defn verify-homebrew! []
-  (if-let [brew @brew-bin]
+(defn- ensure-homebrew! [state]
+  (if-let [brew (:brew state)]
+    (let [next-state (configure-homebrew-env state brew)]
+      (common/success (str "Homebrew is already installed: " brew))
+      next-state)
     (do
-      (configure-homebrew-env! brew)
-      (bootstrap.lib.common/success
-       (str "Homebrew is already installed: " brew)))
-    (do
-      (when-not (bootstrap.lib.common/command-path "curl")
+      (when-not (common/command-path "curl")
         (throw (ex-info "curl is required to install Homebrew." {})))
-      (bootstrap.lib.common/info "Installing Homebrew...")
-      (run! ["/bin/bash" "-c"
-             (bootstrap.lib.common/capture
-              ["curl" "-fsSL"
-               "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"])])
-      (reset! brew-bin (find-brew))
-      (when-not @brew-bin
-        (throw (ex-info
-                "Homebrew installation completed but brew was not found." {})))
-      (configure-homebrew-env! @brew-bin)
-      (bootstrap.lib.common/success
-       (str "Homebrew installed: " @brew-bin)))))
+      (common/info "Installing Homebrew...")
+      (run-command!
+       state
+       ["/bin/bash" "-c"
+        (common/capture
+         ["curl" "-fsSL"
+          "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"])])
+      (let [brew (or (find-brew)
+                     (throw (ex-info
+                             "Homebrew installation completed but brew was not found."
+                             {})))
+            next-state (configure-homebrew-env state brew)]
+        (common/success (str "Homebrew installed: " brew))
+        next-state))))
 
-(defn install-dependencies! []
-  (let [brew @brew-bin
-        brewfile (str (fs/path @repo-root "Brewfile"))
-        help (:out (bootstrap.lib.common/result [brew "bundle" "--help"]))
-        bundle-command (cond-> [brew "bundle" "--file" brewfile]
-                         (re-find #"--no-lock" help) (conj "--no-lock"))]
-    (bootstrap.lib.common/info "Updating Homebrew metadata...")
-    (run! [brew "update"])
-    (bootstrap.lib.common/info "Installing dependencies from Brewfile...")
-    (run! bundle-command)
-    (bootstrap.lib.common/success "Brewfile dependencies are installed.")
-    (let [requirements {"babashka" "bb"
-                        "mextdisplay" "mextdisplay"
-                        "ruby" "ruby"
-                        "vim" "vim"}
-          prefixes (into {}
-                         (map (fn [[formula executable]]
-                                (let [prefix (str/trim
-                                              (:out
-                                               (bootstrap.lib.common/result
-                                                [brew "--prefix" formula])))
-                                      binary (str (fs/path prefix "bin" executable))]
-                                  (when-not (fs/executable? binary)
-                                    (throw (ex-info
-                                            (str formula " is missing from " binary) {})))
-                                  [formula prefix])))
-                         requirements)
+(defn- formula-prefix! [brew {:keys [formula executable]}]
+  (let [prefix (common/capture [brew "--prefix" formula])
+        binary (str (fs/path prefix "bin" executable))]
+    (when-not (fs/executable? binary)
+      (throw (ex-info (str formula " is missing from " binary) {})))
+    [formula prefix]))
+
+(defn- install-dependencies! [{:keys [brew repo-root] :as state}]
+  (let [brewfile (fs/path repo-root "Brewfile")]
+    (common/info "Updating Homebrew metadata...")
+    (run-command! state [brew "update"])
+    (common/info "Installing dependencies from Brewfile...")
+    (run-command! state (common/brew-bundle-command brew brewfile))
+    (common/success "Brewfile dependencies are installed.")
+    (let [prefixes (into {} (map #(formula-prefix! brew %) required-formulas))
           ruby-bin (str (fs/path (get prefixes "ruby") "bin"))
-          installed-bb (str (fs/path (get prefixes "babashka") "bin/bb"))]
-      (swap! child-env assoc
-             "PATH" (str ruby-bin ":"
-                         (get @child-env "PATH" (System/getenv "PATH"))))
-      (reset! bb-bin installed-bb)
-      (bootstrap.lib.common/success
-       "Verified mextdisplay, Ruby, and Vim executables."))))
+          installed-bb (str (fs/path (get prefixes "babashka") "bin/bb"))
+          path (str ruby-bin ":" (get-in state [:child-env "PATH"]))]
+      (common/success "Verified mextdisplay, Ruby, and Vim executables.")
+      (-> state
+          (assoc :bb installed-bb)
+          (assoc-in [:child-env "PATH"] path)))))
 
-(defn install-ghostty! []
-  (let [brew @brew-bin]
-    (if-let [ghostty (find-ghostty)]
-      (bootstrap.lib.common/info (str "Ghostty is already installed: " ghostty))
-      (if (zero? (:exit (bootstrap.lib.common/result
-                         [brew "list" "--cask" "ghostty"])))
-        (do
-          (bootstrap.lib.common/info "Repairing the Homebrew Ghostty installation...")
-          (run! {:extra-env (assoc @child-env "HOMEBREW_NO_AUTO_UPDATE" "1")}
-                [brew "reinstall" "--cask" "ghostty"]))
-        (do
-          (bootstrap.lib.common/info "Installing Ghostty...")
-          (run! {:extra-env (assoc @child-env "HOMEBREW_NO_AUTO_UPDATE" "1")}
-                [brew "install" "--cask" "ghostty"]))))
-  (when-not (find-ghostty)
+(defn- install-ghostty! [{:keys [brew ghostty-app] :as state}]
+  (if-let [ghostty (find-ghostty state)]
+    (common/info (str "Ghostty is already installed: " ghostty))
+    (if (common/successful? [brew "list" "--cask" "ghostty"])
+      (do
+        (common/info "Repairing the Homebrew Ghostty installation...")
+        (run-command! state
+                      {:extra-env {"HOMEBREW_NO_AUTO_UPDATE" "1"}}
+                      [brew "reinstall" "--cask" "ghostty"]))
+      (do
+        (common/info "Installing Ghostty...")
+        (run-command! state
+                      {:extra-env {"HOMEBREW_NO_AUTO_UPDATE" "1"}}
+                      [brew "install" "--cask" "ghostty"]))))
+  (when-not (find-ghostty state)
     (throw (ex-info
             (str "Ghostty was installed but its executable is missing from "
                  ghostty-app)
             {})))
-  (bootstrap.lib.common/success "Ghostty is ready.")))
+  (common/success "Ghostty is ready.")
+  state)
 
-(defn install-oh-my-zsh! []
-  (let [entrypoint (str (fs/path oh-my-zsh-dir "oh-my-zsh.sh"))]
+(defn- install-oh-my-zsh! [{:keys [oh-my-zsh-dir] :as state}]
+  (let [entrypoint (fs/path oh-my-zsh-dir "oh-my-zsh.sh")]
     (cond
       (fs/regular-file? entrypoint)
-      (bootstrap.lib.common/success
-       (str "Oh My Zsh is already installed: " oh-my-zsh-dir))
+      (common/success (str "Oh My Zsh is already installed: " oh-my-zsh-dir))
 
-      (bootstrap.lib.common/path-present? oh-my-zsh-dir)
+      (common/path-present? oh-my-zsh-dir)
       (throw (ex-info
               (str oh-my-zsh-dir
-                   " exists but is not a complete Oh My Zsh installation") {}))
+                   " exists but is not a complete Oh My Zsh installation")
+              {}))
 
       :else
-      (let [candidate (str oh-my-zsh-dir ".install." (java.util.UUID/randomUUID))]
-        (reset! oh-my-zsh-temp candidate)
-        (run! ["git" "clone" "--depth=1"
-               "https://github.com/ohmyzsh/ohmyzsh.git" candidate])
-        (fs/move candidate oh-my-zsh-dir)
-        (reset! oh-my-zsh-temp nil)
-        (bootstrap.lib.common/success
-         (str "Oh My Zsh installed: " oh-my-zsh-dir))))))
+      (let [candidate (str oh-my-zsh-dir ".install." (random-uuid))]
+        (try
+          (run-command! state ["git" "clone" "--depth=1"
+                               "https://github.com/ohmyzsh/ohmyzsh.git"
+                               candidate])
+          (fs/move candidate oh-my-zsh-dir)
+          (common/success (str "Oh My Zsh installed: " oh-my-zsh-dir))
+          (catch Exception error
+            (when (common/path-present? candidate)
+              (fs/delete-tree candidate))
+            (throw error))))))
+  state)
 
-(defn update-submodules! []
-  (run! [@bb-bin (str (fs/path @repo-root
-                               "bootstrap/submodules/update_submodules.clj"))])
-  (bootstrap.lib.common/success "Pinned Vim plugins are ready."))
+(defn- update-submodules! [{:keys [bb repo-root] :as state}]
+  (run-command! state [bb (str (fs/path repo-root
+                                        "bootstrap/submodules/update_submodules.clj"))])
+  (common/success "Pinned Vim plugins are ready.")
+  state)
 
-(defn link-configs! []
-  (bootstrap.lib.common/success
+(defn- link-configs! [{:keys [repo-root] :as state}]
+  (common/success
    (str "Configuration links: "
-        (bootstrap.lib.common/summary
-         (bootstrap.lib.common/link-configs! @repo-root)))))
+        (common/summary (common/link-configs! repo-root))))
+  state)
 
-(defn validate! []
-  (if (:skip-checks @options)
+(defn- validate! [{:keys [bb options repo-root] :as state}]
+  (if (:skip-checks options)
     (do
-      (bootstrap.lib.common/warning "Final checks were skipped. Run these when ready:")
-      (println (str "    bb " @repo-root "/bootstrap/checks/check_configs.clj"))
-      (println (str "    bb " @repo-root "/bootstrap/checks/doctor.clj")))
-    (let [ghostty (find-ghostty)]
-      (run! [@bb-bin (str (fs/path @repo-root "bootstrap/checks/check_configs.clj"))])
-      (run! {:out :string} [ghostty "+validate-config"])
-      (run! [@bb-bin (str (fs/path @repo-root "bootstrap/checks/doctor.clj"))])
-      (bootstrap.lib.common/success
-       "Repository, Ghostty, and environment checks passed."))))
+      (common/warning "Final checks were skipped. Run these when ready:")
+      (println (str "    bb " repo-root "/bootstrap/checks/check_configs.clj"))
+      (println (str "    bb " repo-root "/bootstrap/checks/doctor.clj")))
+    (let [ghostty (find-ghostty state)]
+      (run-command! state [bb (str (fs/path repo-root
+                                            "bootstrap/checks/check_configs.clj"))])
+      (run-command! state {:out :string} [ghostty "+validate-config"])
+      (run-command! state [bb (str (fs/path repo-root
+                                            "bootstrap/checks/doctor.clj"))])
+      (common/success "Repository, Ghostty, and environment checks passed.")))
+  state)
+
+(def ^:private stages
+  [["Apple Command Line Tools" ensure-command-line-tools!]
+   ["Repository path" ensure-repository-path!]
+   ["Homebrew" ensure-homebrew!]
+   ["Command-line dependencies" install-dependencies!]
+   ["Ghostty" install-ghostty!]
+   ["Oh My Zsh" install-oh-my-zsh!]
+   ["Pinned Vim plugins" update-submodules!]
+   ["Configuration links" link-configs!]
+   ["Validation" validate!]])
+
+(defn- run-stages! [initial-state]
+  (reduce-kv
+   (fn [state index [title action]]
+     (run-stage! state (inc index) title action))
+   initial-state
+   stages))
+
+(defn- run-installer! [options]
+  (common/start-panel
+   "DOT-FILES :: MACOS SETUP"
+   "Idempotent setup powered by Babashka"
+   "Existing files are backed up before links are changed")
+  (progress/start!)
+
+  (let [final-state (run-stages! (initial-state options))]
+    (print-timings final-state)
+    (println)
+    (progress/complete!)
+    (common/success-panel
+     "SETUP COMPLETE"
+     "Your macOS dot-files environment is ready."
+     "Next: restart the terminal or run source ~/.zshrc")))
 
 (defn -main [& args]
   (when (some #{"-h" "--help"} args)
     (usage)
     (System/exit 0))
 
-  (reset! options (parse-args args))
-  (reset! repo-root (find-repo-root))
-  (reset! oh-my-zsh-temp nil)
-  (reset! timings [])
-  (reset! child-env {})
-
   (try
-    (bootstrap.lib.common/start-panel
-     "DOT-FILES :: MACOS SETUP"
-     "Idempotent setup powered by Babashka"
-     "Existing files are backed up before links are changed")
-    (progress/start!)
-
-    (stage! 1 "Apple Command Line Tools" ensure-command-line-tools!)
-    (stage! 2 "Repository path" ensure-repository-path!)
-    (stage! 3 "Homebrew" verify-homebrew!)
-    (stage! 4 "Command-line dependencies" install-dependencies!)
-    (stage! 5 "Ghostty" install-ghostty!)
-    (stage! 6 "Oh My Zsh" install-oh-my-zsh!)
-    (stage! 7 "Pinned Vim plugins" update-submodules!)
-    (stage! 8 "Configuration links" link-configs!)
-    (stage! 9 "Validation" validate!)
-
-    (print-timings)
-    (println)
-    (progress/complete!)
-    (bootstrap.lib.common/success-panel
-     "SETUP COMPLETE"
-     "Your macOS dot-files environment is ready."
-     "Next: restart the terminal or run source ~/.zshrc")
+    (run-installer! (parse-options args))
     (catch Exception error
       (progress/stop!)
-      (when-let [temporary @oh-my-zsh-temp]
-        (when (bootstrap.lib.common/path-present? temporary)
-          (fs/delete-tree temporary)))
-      (bootstrap.lib.common/failure (.getMessage error))
-      (System/exit 1))))
+      (common/abort! error))))

@@ -9,13 +9,13 @@
 (def ^:private no-follow-links
   (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))
 
-(def color?
+(def ^:private color-output?
   (and (some? (System/console))
        (str/blank? (System/getenv "NO_COLOR"))
        (not= "dumb" (System/getenv "TERM"))))
 
 (defn- styled [code text]
-  (if color?
+  (if color-output?
     (str "\u001b[" code "m" text "\u001b[0m")
     text))
 
@@ -25,10 +25,7 @@
    :failure "1;31"})
 
 (defn- panel [tone title details]
-  (let [lines (cond
-                (nil? details) []
-                (string? details) [details]
-                :else details)]
+  (let [lines (remove nil? details)]
     (println (styled (get tone-codes tone "1;36") (str "╭─ " title)))
     (doseq [line (butlast lines)]
       (println (str "│  " line)))
@@ -58,10 +55,21 @@
   (binding [*out* *err*]
     (failure-panel "COMMAND FAILED" message)))
 
+(defn usage-error! [usage]
+  (binding [*out* *err*]
+    (println usage))
+  (System/exit 2))
+
 (defn abort! [error]
   (failure (or (some-> error .getMessage str/trim not-empty)
                (str error)))
   (System/exit 1))
+
+(defn run-script! [main args]
+  (try
+    (apply main args)
+    (catch Exception error
+      (abort! error))))
 
 (defn section [number total title]
   (println)
@@ -81,7 +89,10 @@
    (apply process/shell opts command)))
 
 (defn result [command]
-  (apply process/shell {:continue true :out :string :err :string} command))
+  (run! {:continue true :out :string :err :string} command))
+
+(defn successful? [command]
+  (zero? (:exit (result command))))
 
 (defn capture [command]
   (let [{:keys [exit out err]} (result command)]
@@ -91,13 +102,18 @@
                       {:exit exit :command command})))
     (str/trim out)))
 
+(defn brew-bundle-command [brew brewfile]
+  (let [help-output (:out (result [brew "bundle" "--help"]))]
+    (cond-> [brew "bundle" "--file" (str brewfile)]
+      (str/includes? help-output "--no-lock") (conj "--no-lock"))))
+
 (defn path-present? [path]
   (Files/exists (fs/path path) no-follow-links))
 
 (defn canonical [path]
   (str (fs/canonicalize path)))
 
-(def link-specs
+(def ^:private link-specs
   [{:source ".vimrc" :target ".vimrc" :label "~/.vimrc"}
    {:source ".vim" :target ".vim" :label "~/.vim"}
    {:source ".gitconfig" :target ".gitconfig" :label "~/.gitconfig"}
@@ -121,7 +137,7 @@
                (update :target (fn [path] (str (fs/path home path)))))
           link-specs)))
 
-(defn link-target [path]
+(defn- link-target [path]
   (let [link (fs/path path)
         target (Files/readSymbolicLink link)]
     (if (.isAbsolute ^Path target)
@@ -134,32 +150,33 @@
          (= (canonical source) (canonical (link-target target)))
          (catch Exception _ false))))
 
-(defn backup-path [target stamp]
-  (loop [candidate (str target ".backup." stamp)
+(defn- next-backup-path [target timestamp]
+  (loop [candidate (str target ".backup." timestamp)
          suffix 1]
     (if (path-present? candidate)
-      (recur (str target ".backup." stamp "." suffix) (inc suffix))
+      (recur (str target ".backup." timestamp "." suffix) (inc suffix))
       candidate)))
 
+(defn- link-config! [timestamp counts {:keys [source target]}]
+  (when-not (path-present? source)
+    (throw (ex-info (str "Source does not exist: " source) {:source source})))
+
+  (if (correct-link? source target)
+    (update counts :unchanged inc)
+    (let [backed-up? (path-present? target)]
+      (fs/create-dirs (fs/parent target))
+      (when backed-up?
+        (fs/move target (next-backup-path target timestamp)))
+      (fs/create-sym-link target source)
+      (cond-> (update counts :updated inc)
+        backed-up? (update :backups inc)))))
+
 (defn link-configs! [repo-root]
-  (let [stamp (.format (LocalDateTime/now)
-                       (DateTimeFormatter/ofPattern "yyyyMMddHHmmss"))]
-    (reduce
-     (fn [counts {:keys [source target]}]
-       (when-not (path-present? source)
-         (throw (ex-info (str "Source does not exist: " source) {:source source})))
-       (if (correct-link? source target)
-         (update counts :unchanged inc)
-         (do
-           (fs/create-dirs (fs/parent target))
-           (let [backed-up? (path-present? target)]
-             (when backed-up?
-               (fs/move target (backup-path target stamp)))
-             (fs/create-sym-link target source)
-             (cond-> (update counts :updated inc)
-               backed-up? (update :backups inc))))))
-     {:unchanged 0 :updated 0 :backups 0}
-     (resolved-link-specs repo-root))))
+  (let [timestamp (.format (LocalDateTime/now)
+                           (DateTimeFormatter/ofPattern "yyyyMMddHHmmss"))]
+    (reduce (partial link-config! timestamp)
+            {:unchanged 0 :updated 0 :backups 0}
+            (resolved-link-specs repo-root))))
 
 (defn summary [{:keys [unchanged updated backups]}]
   (format "%d unchanged, %d updated, %d %s."

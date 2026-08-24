@@ -1,7 +1,7 @@
 (require '[babashka.classpath :as classpath]
          '[babashka.fs :as fs])
 
-(def repo-root
+(def ^:private repo-root
   (-> *file* fs/parent fs/parent fs/canonicalize str))
 
 (classpath/add-classpath repo-root)
