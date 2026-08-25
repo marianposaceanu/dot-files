@@ -34,14 +34,9 @@
 (defn- metadata-path [submodule-path]
   (let [git-path (common/capture
                   ["git" "-C" repo-root "rev-parse" "--git-path" "modules"])
-        raw-root (fs/path git-path)
-        root (-> (if (.isAbsolute raw-root)
-                   raw-root
-                   (.resolve (fs/path repo-root) raw-root))
-                 .toAbsolutePath
-                 .normalize)
-        target (-> (.resolve root submodule-path) .normalize)]
-    (when-not (.startsWith target root)
+        root (-> (fs/path repo-root git-path) fs/absolutize fs/normalize)
+        target (-> (fs/path root submodule-path) fs/normalize)]
+    (when-not (fs/starts-with? target root)
       (throw (ex-info "Submodule metadata path would escape Git's modules directory"
                       {:path submodule-path})))
     target))

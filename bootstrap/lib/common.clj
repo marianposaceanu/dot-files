@@ -1,13 +1,10 @@
 (ns bootstrap.lib.common
+  (:refer-clojure :exclude [run!])
   (:require [babashka.fs :as fs]
             [babashka.process :as process]
             [clojure.string :as str])
-  (:import [java.nio.file Files LinkOption Path]
-           [java.time LocalDateTime]
+  (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]))
-
-(def ^:private no-follow-links
-  (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))
 
 (def ^:private color-output?
   (and (some? (System/console))
@@ -108,7 +105,7 @@
       (str/includes? help-output "--no-lock") (conj "--no-lock"))))
 
 (defn path-present? [path]
-  (Files/exists (fs/path path) no-follow-links))
+  (fs/exists? path {:nofollow-links true}))
 
 (defn canonical [path]
   (str (fs/canonicalize path)))
@@ -137,17 +134,10 @@
                (update :target (fn [path] (str (fs/path home path)))))
           link-specs)))
 
-(defn- link-target [path]
-  (let [link (fs/path path)
-        target (Files/readSymbolicLink link)]
-    (if (.isAbsolute ^Path target)
-      target
-      (.resolve (.getParent ^Path link) target))))
-
 (defn correct-link? [source target]
   (and (fs/sym-link? target)
        (try
-         (= (canonical source) (canonical (link-target target)))
+         (= (canonical source) (canonical target))
          (catch Exception _ false))))
 
 (defn- next-backup-path [target timestamp]

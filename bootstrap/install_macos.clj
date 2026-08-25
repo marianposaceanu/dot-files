@@ -22,7 +22,7 @@
        (fs/regular-file? (fs/path path ".vimrc"))
        (fs/directory? (fs/path path "bootstrap"))))
 
-(defn- ancestors [path]
+(defn- ancestor-paths [path]
   (take-while some? (iterate fs/parent path)))
 
 (defn- process-command []
@@ -32,7 +32,7 @@
   (let [source-file (when (and *file* (fs/exists? *file*)) *file*)
         candidates (concat
                     [(System/getenv "DOT_FILES_REPO")]
-                    (when source-file (ancestors (fs/parent source-file)))
+                    (when source-file (ancestor-paths (fs/parent source-file)))
                     [(System/getProperty "user.dir")
                      (fs/path home "dot-files")])]
     (or (some #(when (dot-files-repo? %) (str (fs/canonicalize %)))
@@ -103,17 +103,19 @@
       (let [candidate (str (fs/path ghostty-app "Contents/MacOS/ghostty"))]
         (when (fs/executable? candidate) candidate))))
 
+(defn- timing-line [title seconds percent]
+  (format "%-30s %7.3fs %5.1f%%" title seconds percent))
+
 (defn- print-timings [{:keys [options timings]}]
   (when (:show-timings options)
-    (let [total (reduce + (map :seconds timings))]
+    (let [total (reduce + (map :seconds timings))
+          percent-of-total #(if (zero? total) 0.0 (* 100.0 (/ % total)))]
       (println)
-      (println "╭─ STAGE TIMINGS")
-      (doseq [{:keys [title seconds]} timings]
-        (println
-         (format "│  %-30s %7.3fs %5.1f%%"
-                 title seconds
-                 (if (zero? total) 0.0 (* 100.0 (/ seconds total))))))
-      (println (format "╰─ %-30s %7.3fs %5.1f%%" "Total" total 100.0)))))
+      (apply common/start-panel "STAGE TIMINGS"
+             (concat
+              (for [{:keys [title seconds]} timings]
+                (timing-line title seconds (percent-of-total seconds)))
+              [(timing-line "Total" total 100.0)])))))
 
 (defn- ensure-command-line-tools! [state]
   (when-not (common/successful? ["xcode-select" "-p"])

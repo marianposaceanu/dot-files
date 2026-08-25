@@ -1,24 +1,16 @@
 model = "gpt-5.6-sol"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "high"
 service_tier = "default"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 plan_mode_reasoning_effort = "max"
+approvals_reviewer = "user"
 
 [tui.model_availability_nux]
 "gpt-5.5" = 4
 "gpt-5.6-sol" = 4
 
-[projects."/Users/marian/work/fws_scraper_v4"]
-trust_level = "trusted"
-
-[projects."/Users/marian/dot-files"]
-trust_level = "trusted"
-
 [projects."/Users/marian/work/fws-cms"]
-trust_level = "trusted"
-
-[projects."/Users/marian/work/fws_mark_seed_data"]
 trust_level = "trusted"
 
 [features]

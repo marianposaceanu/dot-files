@@ -1,5 +1,6 @@
 (ns bootstrap.lib.progress
-  (:require [babashka.process :as process]))
+  (:require [babashka.process :as process])
+  (:import [sun.misc Signal SignalHandler]))
 
 (def ^:private escape "\u001b")
 (def ^:private terminal-lock (Object.))
@@ -92,7 +93,7 @@
   (let [{:keys [signal previous-handler shutdown-hook]} @terminal-state]
     (when (and signal previous-handler)
       (try
-        (sun.misc.Signal/handle signal previous-handler)
+        (Signal/handle signal previous-handler)
         (catch Exception _)))
     (when (and shutdown-hook
                (not= shutdown-hook (Thread/currentThread)))
@@ -111,15 +112,15 @@
     (swap! terminal-state assoc :interactive false)))
 
 (defn- install-handlers! []
-  (let [signal (sun.misc.Signal. "WINCH")
-        handler (reify sun.misc.SignalHandler
+  (let [signal (Signal. "WINCH")
+        handler (reify SignalHandler
                   (handle [_ _]
                     (try
                       (locking terminal-lock
                         (refresh-terminal!)
                         (draw-progress!))
                       (catch Exception _))))
-        previous-handler (sun.misc.Signal/handle signal handler)
+        previous-handler (Signal/handle signal handler)
         shutdown-hook (Thread. ^Runnable (fn [] (stop!)))]
     (.addShutdownHook (Runtime/getRuntime) shutdown-hook)
     (swap! terminal-state assoc

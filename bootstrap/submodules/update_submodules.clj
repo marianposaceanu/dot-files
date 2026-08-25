@@ -18,9 +18,9 @@
     (common/usage-error! usage)))
 
 (defn- update-command [mode]
-  (cond-> ["git" "-C" repo-root "submodule" "--quiet" "update" "--init"]
-    (= :remote mode) (conj "--remote")
-    true (conj "--recursive")))
+  (-> ["git" "-C" repo-root "submodule" "--quiet" "update" "--init"]
+      (cond-> (= :remote mode) (conj "--remote"))
+      (conj "--recursive")))
 
 (defn -main [& args]
   (let [mode (parse-mode args)
