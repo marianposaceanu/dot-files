@@ -10,13 +10,26 @@
 
 (def ^:private usage "Usage: bb bootstrap/checks/doctor.clj")
 
-(defn- warn [message]
-  (common/warning message)
-  1)
+;; Checks return result maps ({:status :ok/:warn/:info :message ...}) or
+;; sequences of them; report! prints a section and returns its warning count.
 
 (defn- ok [message]
-  (common/success message)
-  0)
+  {:status :ok :message message})
+
+(defn- warn [message]
+  {:status :warn :message message})
+
+(defn- note [message]
+  {:status :info :message message})
+
+(defn- report! [results]
+  (let [results (vec results)]
+    (doseq [{:keys [status message]} results]
+      (case status
+        :ok (common/success message)
+        :warn (common/warning message)
+        :info (common/info message)))
+    (count (filterv #(= :warn (:status %)) results))))
 
 (defn- link-spec [managed-links label]
   (or (some #(when (= label (:label %)) %) managed-links)
@@ -52,6 +65,41 @@
       (finally
         (fs/delete-tree directory)))))
 
+(defn- check-oh-my-zsh []
+  (let [home (or (System/getenv "HOME") (System/getProperty "user.home"))]
+    (if (fs/regular-file? (fs/path home ".oh-my-zsh/oh-my-zsh.sh"))
+      (ok "Oh My Zsh is installed")
+      (warn "Oh My Zsh is not installed (~/.oh-my-zsh missing)"))))
+
+(defn- check-mextdisplay []
+  (if (common/command-path "mextdisplay")
+    (ok "mextdisplay is installed")
+    (warn "mextdisplay is not installed; run bb bootstrap/install_macos.clj")))
+
+(defn- check-bat [bat-spec]
+  (if (or (common/command-path "bat")
+          (common/path-present? (:target bat-spec)))
+    (check-symlink bat-spec)
+    (note "Skipping bat config symlink check (bat not detected).")))
+
+(defn- check-ghostty [ghostty-spec]
+  [(if (or (common/command-path "ghostty")
+           (fs/executable? "/Applications/Ghostty.app/Contents/MacOS/ghostty"))
+     (ok "Ghostty is installed")
+     (warn "Ghostty is not installed; run bb bootstrap/install_macos.clj"))
+   (check-symlink ghostty-spec)])
+
+(defn- link-results [managed-links]
+  (let [bat-spec (link-spec managed-links "bat config")
+        ghostty-spec (link-spec managed-links "Ghostty config")
+        regular-links (remove #{bat-spec ghostty-spec} managed-links)]
+    (concat [(check-symlink-capability)]
+            (map check-symlink regular-links)
+            [(check-oh-my-zsh)
+             (check-mextdisplay)
+             (check-bat bat-spec)]
+            (check-ghostty ghostty-spec))))
+
 (defn- brew-formulas [brewfile]
   (map second (re-seq #"(?m)^brew\s+\"([^\"]+)\"" (slurp brewfile))))
 
@@ -78,75 +126,43 @@
   (if (and (= "vim" formula)
            (active-vim-is-custom-brew-build? brew))
     (if (brew-pinned? brew "vim")
-      (do
-        (common/info
-         "Homebrew has a Vim update, but the active Vim is custom compiled and pinned; rebuild it when ready")
-        0)
-      (warn
-       "Homebrew has a Vim update and the active Vim is custom compiled but not pinned; run brew pin vim or rebuild it"))
+      (note "Homebrew has a Vim update, but the active Vim is custom compiled and pinned; rebuild it when ready")
+      (warn "Homebrew has a Vim update and the active Vim is custom compiled but not pinned; run brew pin vim or rebuild it"))
     (warn (str "outdated brew formula: " formula))))
 
 (defn- check-formulas [brew formulas]
-  (let [missing (vec (remove #(common/successful?
-                               [brew "list" "--versions" %])
-                             formulas))
+  (let [missing (remove #(common/successful?
+                          [brew "list" "--versions" %])
+                        formulas)
         outdated (->> (:out (common/result
                              [brew "outdated" "--formula" "--quiet"]))
                       str/split-lines
                       (remove str/blank?)
                       set)
-        outdated-formulas (filterv outdated formulas)]
-    (doseq [formula missing]
-      (warn (str "missing brew formula: " formula)))
-    (when (empty? missing)
-      (ok "all Brewfile formulas are installed"))
-    (let [outdated-warning-count
-          (reduce + (map #(check-outdated-formula brew %) outdated-formulas))]
-      (when (empty? outdated-formulas)
-        (ok "no outdated Brewfile formulas"))
-      (+ (count missing) outdated-warning-count))))
+        outdated-formulas (filter outdated formulas)]
+    (concat
+     (map #(warn (str "missing brew formula: " %)) missing)
+     (when (empty? missing)
+       [(ok "all Brewfile formulas are installed")])
+     (map #(check-outdated-formula brew %) outdated-formulas)
+     (when (empty? outdated-formulas)
+       [(ok "no outdated Brewfile formulas")]))))
 
-(defn- check-brew-dependencies []
+(defn- brew-results []
   (let [brew (common/command-path "brew")
         brewfile (str (fs/path repo-root "Brewfile"))]
     (cond
       (nil? brew)
-      (warn "Homebrew is not installed or not in PATH; skipping Brewfile checks")
+      [(warn "Homebrew is not installed or not in PATH; skipping Brewfile checks")]
 
       (not (fs/regular-file? brewfile))
-      (warn (str "Brewfile not found at " brewfile))
+      [(warn (str "Brewfile not found at " brewfile))]
 
       :else
-      (let [formulas (vec (brew-formulas brewfile))]
+      (let [formulas (brew-formulas brewfile)]
         (if (empty? formulas)
-          (warn "Brewfile has no brew formula entries")
+          [(warn "Brewfile has no brew formula entries")]
           (check-formulas brew formulas))))))
-
-(defn- check-oh-my-zsh []
-  (let [home (or (System/getenv "HOME") (System/getProperty "user.home"))]
-    (if (fs/regular-file? (fs/path home ".oh-my-zsh/oh-my-zsh.sh"))
-      (ok "Oh My Zsh is installed")
-      (warn "Oh My Zsh is not installed (~/.oh-my-zsh missing)"))))
-
-(defn- check-mextdisplay []
-  (if (common/command-path "mextdisplay")
-    (ok "mextdisplay is installed")
-    (warn "mextdisplay is not installed; run bb bootstrap/install_macos.clj")))
-
-(defn- check-bat [bat-spec]
-  (if (or (common/command-path "bat")
-          (common/path-present? (:target bat-spec)))
-    (check-symlink bat-spec)
-    (do
-      (common/info "Skipping bat config symlink check (bat not detected).")
-      0)))
-
-(defn- check-ghostty [ghostty-spec]
-  (+ (if (or (common/command-path "ghostty")
-             (fs/executable? "/Applications/Ghostty.app/Contents/MacOS/ghostty"))
-       (ok "Ghostty is installed")
-       (warn "Ghostty is not installed; run bb bootstrap/install_macos.clj"))
-     (check-symlink ghostty-spec)))
 
 (defn- finish! [warnings]
   (println)
@@ -168,18 +184,9 @@
    "DOT-FILES :: DOCTOR"
    "Inspecting links, tools, and Homebrew dependencies")
 
-  (let [managed-links (common/resolved-link-specs repo-root)
-        bat-spec (link-spec managed-links "bat config")
-        ghostty-spec (link-spec managed-links "Ghostty config")
-        regular-links (remove #{bat-spec ghostty-spec} managed-links)]
-    (common/heading "CONFIGURATION LINKS")
-    (let [warnings (+ (check-symlink-capability)
-                      (reduce + (map check-symlink regular-links))
-                      (check-oh-my-zsh)
-                      (check-mextdisplay)
-                      (check-bat bat-spec)
-                      (check-ghostty ghostty-spec))]
-      (common/heading "HOMEBREW")
-      (finish! (+ warnings (check-brew-dependencies))))))
+  (common/heading "CONFIGURATION LINKS")
+  (let [link-warnings (report! (link-results (common/resolved-link-specs repo-root)))]
+    (common/heading "HOMEBREW")
+    (finish! (+ link-warnings (report! (brew-results))))))
 
 (common/run-script! -main *command-line-args*)
