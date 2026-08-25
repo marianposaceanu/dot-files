@@ -1,4 +1,2 @@
 .DS_Store
 .vim/.netrwhist
-bootstrap/bin/*
-!bootstrap/bin/README.md

@@ -14,7 +14,6 @@
 ## Verification
 - For shell, Vim, or terminal config changes, prefer `bb bootstrap/checks/check_configs.clj`. It runs `bash -n` for repo scripts, loads `.vimrc` with Vim, and validates Ghostty config when `ghostty` is installed.
 - For local environment/symlink health, use `bb bootstrap/checks/doctor.clj`. It is environment-dependent and may fail because the user's home directory is not linked or dependencies are missing.
-- For standalone installer changes, run `bb bootstrap/binary/build.clj`; it builds and smoke-tests the ignored macOS aarch64 binary under `bootstrap/bin/`.
 - For Vim startup/performance work, use `./benchmarks/profile_vim_plugins.sh` or `./benchmarks/profile_vim_plugins_median.sh` when relevant.
 - If a command depends on local macOS/Homebrew state and fails for missing tools, report that directly instead of treating it as a repo regression.
 

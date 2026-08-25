@@ -7,10 +7,7 @@ require "tmpdir"
 
 class InstallMacosTest < Minitest::Test
   REPO_ROOT = File.expand_path("..", __dir__)
-  SOURCE_INSTALLER = File.join(REPO_ROOT, "bootstrap/install_macos.clj")
-  BINARY_INSTALLER = File.join(
-    REPO_ROOT, "bootstrap/bin/dotfiles-bootstrap-macos-aarch64"
-  )
+  INSTALLER = File.join(REPO_ROOT, "bootstrap/install_macos.clj")
   BB_BIN = ENV["BB_BIN"] || ENV.fetch("PATH").split(File::PATH_SEPARATOR)
     .map { |directory| File.join(directory, "bb") }
     .find { |path| File.executable?(path) }
@@ -155,19 +152,6 @@ class InstallMacosTest < Minitest::Test
       output.index("simulated brew bundle failure")
   end
 
-  def test_aarch64_binary_is_runnable_without_bb_on_path
-    skip "build the aarch64 binary to run this test" unless File.executable?(BINARY_INSTALLER)
-
-    stdout, stderr, status = invoke_installer(
-      installer: BINARY_INSTALLER,
-      include_bb_in_path: false
-    )
-
-    assert status.success?, "binary installer failed:\n#{stdout}\n#{stderr}"
-    assert_includes stdout, "╭─ DOT-FILES :: MACOS SETUP"
-    assert_includes stdout, "╭─ SETUP COMPLETE"
-  end
-
   private
 
   def run_installer(interactive: false, timings: false)
@@ -179,11 +163,8 @@ class InstallMacosTest < Minitest::Test
     stdout
   end
 
-  def invoke_installer(interactive: false, fail_brew: false, timings: false,
-    include_bb_in_path: true, installer: SOURCE_INSTALLER)
-    path = [@bin]
-    path << File.dirname(BB_BIN) if include_bb_in_path
-    path.concat(["/usr/bin", "/bin", "/usr/sbin", "/sbin"])
+  def invoke_installer(interactive: false, fail_brew: false, timings: false)
+    path = [@bin, File.dirname(BB_BIN), "/usr/bin", "/bin", "/usr/sbin", "/sbin"]
     env = {
       "HOME" => @home,
       "PATH" => path.join(":"),
@@ -196,7 +177,7 @@ class InstallMacosTest < Minitest::Test
       "GHOSTTY_APP_PATH" => @ghostty_app,
       "TERM" => "xterm-256color"
     }
-    command = installer == SOURCE_INSTALLER ? [BB_BIN, installer] : [installer]
+    command = [BB_BIN, INSTALLER]
     command << "--skip-checks"
     command << "--timings" if timings
     if interactive

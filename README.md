@@ -35,25 +35,7 @@ and installations are retained, while conflicts are moved to timestamped
 On a new Mac, the first `git` command may prompt for Apple Command Line Tools.
 Finish that installation, then rerun the command.
 
-### Release binary (no Babashka or JVM required)
-
-Clone the configs, download the latest-release assets into the ignored binary
-directory, verify the checksum, and run the standalone Apple Silicon binary:
-
-```sh
-git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
-cd ~/dot-files/bootstrap/bin
-curl -fLO https://github.com/marianposaceanu/dot-files/releases/latest/download/dotfiles-bootstrap-macos-aarch64
-curl -fLO https://github.com/marianposaceanu/dot-files/releases/latest/download/dotfiles-bootstrap-macos-aarch64.sha256
-shasum -a 256 -c dotfiles-bootstrap-macos-aarch64.sha256
-chmod +x dotfiles-bootstrap-macos-aarch64
-./dotfiles-bootstrap-macos-aarch64
-```
-
-The binary can also be built from a clone with
-`bb bootstrap/binary/build.clj`; the generated artifact is not tracked by Git.
-
-### Babashka source
+Clone the repository, install Babashka, and run the installer:
 
 ```sh
 git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
@@ -62,7 +44,7 @@ brew install borkdude/brew/babashka
 bb bootstrap/install_macos.clj
 ```
 
-Both paths present the same rounded bootstrap UI:
+The installer presents a rounded bootstrap UI:
 
 ```text
 ╭─ DOT-FILES :: MACOS SETUP
