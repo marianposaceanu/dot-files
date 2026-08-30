@@ -22,6 +22,7 @@ class InstallMacosTest < Minitest::Test
     @clt_state = File.join(@tmp_dir, "clt-state")
     @ghostty_app = File.join(@home, "Applications/Ghostty.app")
     FileUtils.mkdir_p([@home, @bin])
+    FileUtils.ln_s(File.expand_path(BB_BIN), File.join(@bin, "bb"))
     FileUtils.touch(@clt_state)
     File.write(File.join(@home, ".zshrc"), "original zsh config\n")
     write_stubs
@@ -164,7 +165,7 @@ class InstallMacosTest < Minitest::Test
   end
 
   def invoke_installer(interactive: false, fail_brew: false, timings: false)
-    path = [@bin, File.dirname(BB_BIN), "/usr/bin", "/bin", "/usr/sbin", "/sbin"]
+    path = [@bin, "/usr/bin", "/bin", "/usr/sbin", "/sbin"]
     env = {
       "HOME" => @home,
       "PATH" => path.join(":"),
