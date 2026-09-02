@@ -60,7 +60,7 @@ window-save-state = never
 window-vsync = true
 
 # Persist native windows, tabs, splits, dimensions, and working directories on quit.
-# Running processes still require `rz`, Codex resume, or an external multiplexer.
+# Supported agent sessions still require `rz`; arbitrary processes need an external multiplexer.
 # window-save-state = always
 
 # Preserve workspace ordering by appending new tabs instead of inserting nearby.
