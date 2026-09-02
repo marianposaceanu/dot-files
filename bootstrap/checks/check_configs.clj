@@ -41,10 +41,11 @@
     (common/run! ["zsh" "-n" (repo-path config)])))
 
 (defn- check-application-configs! []
-  (common/info "Checking Git, Amp, and bat configs...")
+  (common/info "Checking Git, Amp, Claude Code, and bat configs...")
   (common/run! {:out :string}
                ["git" "config" "-f" (repo-path ".gitconfig") "--list"])
   (json/parse-string (slurp (repo-path "amp" "settings.json")))
+  (json/parse-string (slurp (repo-path "claude" "settings.json")))
   (if-let [bat (common/command-path "bat")]
     (common/run! {:out :string}
                  [bat "--config-file" (repo-path "bat" "config")

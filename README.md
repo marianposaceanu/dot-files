@@ -68,7 +68,7 @@ credentials, keyboard preferences, and optional native builds remain manual.
 
 - Vim configuration, local customizations, and pinned plugin submodules
 - Zsh, Bash, tmux, Git, and global gitignore configuration
-- Ghostty, bat, Amp, and Codex configuration
+- Ghostty, bat, Amp, Codex, and Claude Code configuration
 - Homebrew dependencies in `Brewfile`
 - Bootstrap, linking, health-check, and benchmark tools
 
@@ -216,6 +216,8 @@ This includes Ghostty and backs up conflicting files or directories with a
 - `~/.zlogin`
 - `~/.bashrc`
 - `~/.codex/config.toml`
+- `~/.claude/settings.json`
+- `~/.claude/output-styles/amp.md`
 - `~/.config/amp/settings.json`
 - `~/.config/bat`
 - `$HOME/Library/Application Support/com.mitchellh.ghostty/config`

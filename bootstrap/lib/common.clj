@@ -121,6 +121,10 @@
    {:source ".zlogin" :target ".zlogin" :label "~/.zlogin"}
    {:source ".bashrc" :target ".bashrc" :label "~/.bashrc"}
    {:source "codex/config.toml" :target ".codex/config.toml" :label "Codex config"}
+   {:source "claude/settings.json" :target ".claude/settings.json" :label "Claude Code settings"}
+   {:source "claude/output-styles/amp.md"
+    :target ".claude/output-styles/amp.md"
+    :label "Claude Code Amp output style"}
    {:source "amp/settings.json" :target ".config/amp/settings.json" :label "Amp settings"}
    {:source "bat" :target ".config/bat" :label "bat config"}
    {:source "ghostty/config"
