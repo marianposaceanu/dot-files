@@ -1,5 +1,5 @@
 model = "gpt-5.6-sol"
-model_reasoning_effort = "high"
+model_reasoning_effort = "medium"
 service_tier = "default"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
@@ -11,6 +11,21 @@ approvals_reviewer = "user"
 "gpt-5.6-sol" = 4
 
 [projects."/Users/marian/work/fws-cms"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/fws_scraper_v4"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/fws-cms-tools"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/playground/ark-mp-com"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/fws_mark_seed_data"]
+trust_level = "trusted"
+
+[projects."/Users/marian/Desktop/JIRA"]
 trust_level = "trusted"
 
 [features]
