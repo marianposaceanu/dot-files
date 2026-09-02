@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tab Weight</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <header class="toolbar">
+      <div class="identity">
+        <h1 id="page-host">Tab Weight</h1>
+        <p id="page-title">Current tab metrics</p>
+      </div>
+      <button id="refresh" type="button" aria-label="Measure again" title="Measure again">↻</button>
+    </header>
+
+    <main>
+      <section id="loading" class="state" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        Measuring current tab…
+      </section>
+
+      <section id="error" class="state error" hidden aria-live="polite">
+        <strong>Could not inspect this tab</strong>
+        <p id="error-message"></p>
+      </section>
+
+      <div id="results" hidden>
+        <section class="group" aria-labelledby="rating-heading">
+          <h2 id="rating-heading">Weight estimate</h2>
+          <div id="weight-card" class="card rating-card" data-rating="low">
+            <div class="rating-row">
+              <div class="rating-name">
+                <span class="rating-dot" aria-hidden="true"></span>
+                <strong id="weight-rating">Low</strong>
+              </div>
+              <div class="rating-scale" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <p id="weight-reasons"></p>
+          </div>
+          <p id="weight-method" class="note"></p>
+        </section>
+
+        <section class="group" aria-labelledby="summary-heading">
+          <h2 id="summary-heading">Observed footprint</h2>
+          <div class="card metric-grid">
+            <article class="metric">
+              <span>Transferred</span>
+              <strong id="transfer-size"></strong>
+            </article>
+            <article class="metric">
+              <span>Decoded</span>
+              <strong id="decoded-size"></strong>
+            </article>
+            <article class="metric">
+              <span>Requests</span>
+              <strong id="request-count"></strong>
+            </article>
+            <article class="metric">
+              <span title="DOM elements">DOM</span>
+              <strong id="dom-nodes"></strong>
+            </article>
+          </div>
+          <p id="size-coverage" class="note"></p>
+        </section>
+
+        <section class="group" aria-labelledby="page-heading">
+          <h2 id="page-heading">Page</h2>
+          <dl class="card facts">
+            <div><dt>Scripts</dt><dd id="script-count"></dd></div>
+            <div><dt>Images</dt><dd id="image-count"></dd></div>
+            <div><dt>Stylesheets</dt><dd id="stylesheet-count"></dd></div>
+            <div><dt>Frames</dt><dd id="frame-count"></dd></div>
+            <div><dt>DOMContentLoaded</dt><dd id="dom-content-loaded"></dd></div>
+            <div><dt>Load event</dt><dd id="load-time"></dd></div>
+          </dl>
+        </section>
+
+        <section class="group" aria-labelledby="workers-heading">
+          <h2 id="workers-heading">Workers</h2>
+          <dl class="card facts">
+            <div><dt>Controls this page</dt><dd id="worker-controller"></dd></div>
+            <div><dt>Same-origin registrations</dt><dd id="worker-count"></dd></div>
+            <div><dt>Dedicated/shared workers</dt><dd>Not exposed</dd></div>
+          </dl>
+          <ul id="worker-list" class="card worker-list"></ul>
+          <p class="note">Safari does not provide an API to enumerate a page’s dedicated or shared workers.</p>
+        </section>
+
+        <section class="group">
+          <details class="card">
+            <summary>Resource breakdown</summary>
+            <table>
+              <thead>
+                <tr><th>Type</th><th>Count</th><th>Transferred</th><th>Decoded</th></tr>
+              </thead>
+              <tbody id="resource-breakdown"></tbody>
+            </table>
+          </details>
+        </section>
+      </div>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
