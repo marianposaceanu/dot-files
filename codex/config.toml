@@ -1,4 +1,4 @@
-model = "gpt-5.6-sol"
+model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 service_tier = "default"
 approval_policy = "never"
@@ -26,6 +26,30 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [projects."/Users/marian/Desktop/JIRA"]
+trust_level = "trusted"
+
+[projects."/Users/marian/dot-files"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/playground/mp-com-redux"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/playground"]
+trust_level = "trusted"
+
+[projects."/Users/marian/Desktop"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/playground/faux-fan"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/fe-forum-cms"]
+trust_level = "trusted"
+
+[projects."/Users/marian/Desktop/SSR"]
 trust_level = "trusted"
 
 [features]

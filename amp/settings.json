@@ -1,4 +1,5 @@
 {
-  "amp.gauge": "cost",
+  "amp.gauge": "tokens",
+  "amp.git.commit.ampThread.enabled": false,
   "amp.git.commit.coauthor.enabled": false
 }
