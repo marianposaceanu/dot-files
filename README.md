@@ -121,29 +121,62 @@ mext enable EV3285
 
 ## Optional native Apple Silicon builds
 
-The optional workflows rebuild the active Homebrew Vim, ripgrep, Universal
-Ctags, or Git for the local CPU. They validate and smoke-test candidates before
-replacement and pin the affected formula. Results are workload-dependent; see
+Vim, Git, ripgrep and Universal Ctags are built by Homebrew itself from a local
+tap (`marian/local`) with `-O3 -mcpu=<local Apple CPU>` (plus
+`RUSTFLAGS=-C target-cpu=...` and the `release-lto` profile for ripgrep).
+The generated formulas are versioned in `bootstrap/native/formulas/` and the
+tools are pinned so `brew upgrade` leaves them alone. Results are
+workload-dependent; see
 [Native Apple Silicon builds](https://dot.marianposaceanu.com/native-apple-silicon-builds.html)
-for design, prerequisites, benchmarks, and caveats.
+for design, benchmarks, and caveats.
+
+One command does everything (regenerate formulas, build, pin):
 
 ```sh
-./bootstrap/native/compile_vim_native.sh
-./bootstrap/native/compile_ripgrep_native.sh --pgo
-./bootstrap/native/compile_ctags_native.sh --pgo
-./bootstrap/native/compile_git_native.sh --pgo
+./bootstrap/native/brew_native.sh                  # all four
+./bootstrap/native/brew_native.sh vim ripgrep      # subset
+./bootstrap/native/brew_native.sh --formulas-only  # only refresh formulas/*.rb
 ```
 
-Omit `--pgo` for a native/LTO-only build. PGO adds an instrumented training pass
-before the final optimized build, so it takes longer and favors the trained
-workloads. Restore standard Homebrew bottles by unpinning and reinstalling:
+Why a tap: Homebrew's superenv compiler shim strips any `-O`/`-mcpu` flag and
+injects nothing for Apple CPUs, so plain `brew reinstall --build-from-source`
+yields a generic arm64 binary, and `--env=std` is no longer accepted on the
+command line. A formula can still opt into stdenv with `env :std`, where the
+real clang honours CFLAGS. The script copies the current homebrew-core formula,
+removes its bottle block, adds `env :std` and the flags, and lets brew build it.
+
+### Manual steps (what the script does)
+
+1. Resolve the CPU name: `clang -mcpu=native -### -x c /dev/null 2>&1 | grep target-cpu`
+   (e.g. `apple-m4`).
+2. Create the tap once: `brew tap-new --no-git marian/local`.
+3. Copy the core formula: `cp "$(brew formula homebrew/core/vim)" "$(brew --repo marian/local)/Formula/vim.rb"`.
+4. Edit it: delete the `bottle do ... end` block, add `env :std` above
+   `def install`, and as the first line of `install` add
+   `ENV.append_to_cflags "-O3 -mcpu=apple-m4"`. For vim also replace
+   `--with-compiledby=Homebrew` with `--with-compiledby=native-apple-m4` and add
+   `--with-modified-by=[ apple-m4 :: -O3 -mcpu=apple-m4 ]` so `:version` shows
+   the flags. For ripgrep set `ENV["RUSTFLAGS"] = "-C target-cpu=apple-m4"` and
+   pass `"--profile", "release-lto"` to `cargo install`.
+5. Save a copy to `bootstrap/native/formulas/<name>.rb` and commit it.
+6. Install: `brew uninstall --ignore-dependencies vim` then
+   `brew install --build-from-source marian/local/vim`. Uninstall first:
+   `brew reinstall marian/local/vim` on a keg that came from core silently
+   reuses the core formula.
+7. Pin: `brew pin vim`.
+
+To pick up a new upstream version, run the script again (it re-copies the
+current core formula). Restore stock Homebrew bottles with:
 
 ```sh
-brew unpin vim && brew reinstall vim
-brew unpin ripgrep && brew reinstall ripgrep
-brew unpin universal-ctags && brew reinstall universal-ctags
-brew unpin git && brew reinstall git
+for f in vim ripgrep universal-ctags git; do
+  brew unpin "$f" && brew uninstall --ignore-dependencies "$f" && brew install "homebrew/core/$f"
+done
 ```
+
+The older `bootstrap/native/compile_*_native.sh` scripts (which build outside
+brew and swap the binary into the keg, optionally with `--pgo`) are kept for
+reference and benchmarking but are superseded by the tap approach.
 
 Checks and profiles:
 

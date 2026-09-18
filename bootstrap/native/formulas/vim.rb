@@ -51,11 +51,12 @@ class Vim < Formula
 
   deny_network_access!
 
+  # ── native build (bootstrap/native/brew_native.sh) ──
+  # stdenv so the real clang sees our CFLAGS; superenv would strip them.
   env :std
 
   def install
-    opt_flags = "-O3 -mcpu=apple-m4"
-    ENV.append_to_cflags opt_flags
+    ENV.append_to_cflags "-O3 -mcpu=apple-m4"
     ENV.prepend_path "PATH", formula_opt_libexec("python@3.14")/"bin"
 
     # Allow dynamically loading formulae libraries when not linked
@@ -74,7 +75,7 @@ class Vim < Formula
                           "--enable-multibyte",
                           "--with-tlib=ncurses",
                           "--with-compiledby=native-apple-m4",
-                          "--with-modified-by=[ apple-m4 :: #{opt_flags} ]",
+                          "--with-modified-by=[ apple-m4 :: -O3 -mcpu=apple-m4 ]",
                           "--enable-cscope",
                           "--enable-terminal",
                           "--enable-perlinterp#{"=dynamic" unless OS.mac?}",
