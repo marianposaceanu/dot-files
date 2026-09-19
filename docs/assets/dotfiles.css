@@ -151,3 +151,14 @@
     white-space: normal;
   }
 }
+     [1mSTDIN[0m
+[38;2;116;115;105m   1[0m 
+[38;2;116;115;105m   2[0m [38;2;171;178;191m/* The shared stylesheet reserves the right side of the homepage hero for the[0m
+[38;2;116;115;105m   3[0m [38;2;171;178;191m   latest article's artwork (ark). dot-files has no hero art, so let the deck[0m
+[38;2;116;115;105m   4[0m [38;2;171;178;191m   use the full width. */[0m
+[38;2;116;115;105m   5[0m [38;2;171;178;191m@media screen and (min-width: 1001px) {[0m
+[38;2;116;115;105m   6[0m [38;2;171;178;191m  .site-home .hero .site-deck,[0m
+[38;2;116;115;105m   7[0m [38;2;171;178;191m  .site-home .hero .home-description {[0m
+[38;2;116;115;105m   8[0m [38;2;171;178;191m    max-width: none;[0m
+[38;2;116;115;105m   9[0m [38;2;171;178;191m  }[0m
+[38;2;116;115;105m  10[0m [38;2;171;178;191m}[0m
