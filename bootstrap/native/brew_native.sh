@@ -91,6 +91,12 @@ header = (
 )
 inject = f'    ENV.append_to_cflags "{cflags}"\n'
 
+def must_replace(text, old, new, what):
+    # Fail loudly if upstream changed the line we patch, instead of silently
+    # producing a formula without the native tweak.
+    assert old in text, f"{name}: could not find {what}: {old!r}"
+    return text.replace(old, new, 1)
+
 if name == "ripgrep":
     # Rust: cargo ignores CFLAGS; drive codegen via RUSTFLAGS and use the
     # upstream release-lto profile (fat LTO, 1 codegen unit, panic=abort).
@@ -98,18 +104,20 @@ if name == "ripgrep":
         f'    ENV["RUSTFLAGS"] = "-C target-cpu={cpu}"\n'
         f'    ENV.append_to_cflags "{cflags}" # for the bundled pcre2 C build\n'
     )
-    s = s.replace(
+    s = must_replace(
+        s,
         'system "cargo", "install", *std_cargo_args(features: "pcre2")',
         'system "cargo", "install", "--profile", "release-lto", *std_cargo_args(features: "pcre2")',
-        1,
+        "the cargo install line",
     )
 
 if name == "vim":
-    s = s.replace(
+    s = must_replace(
+        s,
         '"--with-compiledby=Homebrew",',
         f'"--with-compiledby=native-{cpu}",\n'
         f'                          "--with-modified-by=[ {cpu} :: {cflags} ]",',
-        1,
+        "the --with-compiledby configure argument",
     )
 
 marker = "  def install\n"

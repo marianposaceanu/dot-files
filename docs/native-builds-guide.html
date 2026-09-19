@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Vim, Git, ripgrep, and Ctags for your Apple CPU with Homebrew | dot-files</title>
+  <meta name="description" content="A step-by-step guide to compiling Vim, Git, ripgrep, and Universal Ctags through Homebrew with -O3 -mcpu tuned for Apple M1 through M6, using a local tap so brew upgrade keeps the native build.">
+  <meta name="author" content="Marian Posaceanu">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dot.marianposaceanu.com/native-builds-guide.html">
+  <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/site.css?v=3a4d88bd4f9f">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=87ba6108e585">
+  <script src="assets/site.js?v=1ed66fe08520" defer></script>
+</head>
+<body class="site-article" id="top">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <a class="nav-home" href="/">dot-files</a>
+      <a href="https://marianposaceanu.com/">marianposaceanu.com</a>
+    </nav>
+  </header>
+
+  <main class="page" id="main-content">
+    <header class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Apple Silicon · Homebrew · step-by-step</p>
+      <h1 id="page-title">Build Vim, Git, ripgrep, and Ctags for your Apple CPU with Homebrew</h1>
+      <p class="subtitle">How to make Homebrew itself compile four everyday tools with <code>-O3 -mcpu=apple-mN</code>, from M1 to M6, using a local tap so the tuned build survives <code>brew upgrade</code>. One script does it; every manual step is spelled out too.</p>
+      <ul class="meta" aria-label="Article metadata">
+        <li>Guide</li>
+        <li><time class="article-date" datetime="2026-09-19">19th September 2026</time></li>
+      </ul>
+    </header>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>On this page</h2>
+      <ol>
+        <li><a href="#what-you-get">What you get</a></li>
+        <li><a href="#why-homebrew-fights-you">Why Homebrew fights you</a></li>
+        <li><a href="#which-cpu-name-to-use">Which CPU name to use, M1 to M6</a></li>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#the-one-command-path">The one-command path</a></li>
+        <li><a href="#the-manual-path">The manual path, step by step</a></li>
+        <li><a href="#per-tool-details">Per-tool details</a></li>
+        <li><a href="#verifying-the-build">Verifying the build</a></li>
+        <li><a href="#upgrading-later">Upgrading later</a></li>
+        <li><a href="#restoring-stock-bottles">Restoring stock bottles</a></li>
+        <li><a href="#pitfalls">Pitfalls</a></li>
+      </ol>
+    </nav>
+
+    <article class="article article-flow">
+      <section id="what-you-get">
+        <h2>What you get</h2>
+        <p>Homebrew ships every Apple Silicon Mac the same bottle: a binary compiled for a generic ARMv8 baseline so it runs on an M1 and an M6 alike. Your Mac has exactly one CPU, and the compiler knows its instruction set, its pipeline widths, and its scheduling model. Passing <code>-mcpu=apple-m4</code> (or whichever generation you have) lets clang and rustc use that knowledge.</p>
+        <p>This guide rebuilds four tools this way: Vim, Git, ripgrep, and Universal Ctags. Unlike the <a href="native-apple-silicon-builds.html">earlier experiment</a>, which compiled outside Homebrew and swapped the binary into the keg, this approach makes Homebrew do the build from a formula you control. That has two practical consequences:</p>
+        <ul>
+          <li>the Homebrew receipt is truthful: <code>brew info</code> shows a source build from your tap, not a bottle;</li>
+          <li><code>brew upgrade</code> rebuilds from your formula instead of silently replacing the tuned binary with a bottle.</li>
+        </ul>
+        <p>Expect gains in CPU-bound work: Vim regex and Vimscript loops measured 15-23% faster on an M4; Ctags parsers and ripgrep&#39;s Unicode regex improved in the earlier measurements. Memory-bound work and Git&#39;s everyday commands move little. The <a href="native-apple-silicon-builds.html">measurements page</a> has the numbers; this page is only about how to do it.</p>
+      </section>
+
+      <section id="why-homebrew-fights-you">
+        <h2>Why Homebrew fights you</h2>
+        <p>The obvious command does not work:</p>
+        <pre><code class="language-sh">CFLAGS="-O3 -mcpu=apple-m4" brew reinstall --build-from-source vim   # generic build</code></pre>
+        <p>Homebrew builds inside <em>superenv</em>, an environment that replaces <code>clang</code> with a shim at <code>/opt/homebrew/Library/Homebrew/shims/mac/super/cc</code>. Reading that shim explains the failure:</p>
+        <ul>
+          <li>it deletes <code>CFLAGS</code>, <code>LDFLAGS</code> and friends from the environment before the build starts;</li>
+          <li>it strips <code>-O*</code>, <code>-mcpu=*</code> and <code>-mtune=*</code> from every compiler invocation, even ones the formula itself passes;</li>
+          <li>it then appends its own <code>-Os</code> plus an architecture flag from <code>HOMEBREW_OPTFLAGS</code>, which on Apple Silicon is an empty string. The Homebrew source carries the comment <code># TODO: -mcpu=apple-m1 when we&#39;ve patched all our GCCs to support it</code>;</li>
+          <li>the old escape hatch <code>brew install --env=std</code> now aborts with <em>Calling brew install --env is disabled! Use env :std in specific formula files instead.</em></li>
+        </ul>
+        <p>The last line is the way in. A formula can declare <code>env :std</code>, and Homebrew then builds it with <em>stdenv</em>: the real <code>/usr/bin/clang</code>, no shim, and a <code>CFLAGS</code> variable the formula can append to. So the recipe is: copy the official formula, add <code>env :std</code> and the flags, put it in a tap of your own, and let <code>brew install --build-from-source</code> do the rest.</p>
+        <div class="callout">
+          <strong>Why not just edit the core formula?</strong>
+          <code>brew edit vim</code> modifies <code>homebrew-core</code>, and the next <code>brew update</code> either reverts it or leaves the tap dirty. A local tap keeps your changes separate, versionable, and visible in <code>brew info</code>.
+        </div>
+      </section>
+
+      <section id="which-cpu-name-to-use">
+        <h2>Which CPU name to use, M1 to M6</h2>
+        <p>Clang identifies Apple CPUs by generation. Pro, Max, and Ultra variants of a generation share the same cores as the base chip, so they use the same name. Apple clang 21 (Xcode 26.2 Command Line Tools) knows all of these:</p>
+        <table class="shortcut-table">
+          <thead>
+            <tr><th>Chip family</th><th>Variants covered</th><th><code>-mcpu</code> / <code>target-cpu</code> value</th><th>Brand string starts with</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>M1</td><td>M1, M1 Pro, M1 Max, M1 Ultra</td><td><code>apple-m1</code></td><td><code>Apple M1</code></td></tr>
+            <tr><td>M2</td><td>M2, M2 Pro, M2 Max, M2 Ultra</td><td><code>apple-m2</code></td><td><code>Apple M2</code></td></tr>
+            <tr><td>M3</td><td>M3, M3 Pro, M3 Max, M3 Ultra</td><td><code>apple-m3</code></td><td><code>Apple M3</code></td></tr>
+            <tr><td>M4</td><td>M4, M4 Pro, M4 Max</td><td><code>apple-m4</code></td><td><code>Apple M4</code></td></tr>
+            <tr><td>M5</td><td>M5, M5 Pro, M5 Max</td><td><code>apple-m5</code></td><td><code>Apple M5</code></td></tr>
+            <tr><td>M6</td><td>M6 and variants</td><td><code>apple-m6</code></td><td><code>Apple M6</code></td></tr>
+          </tbody>
+        </table>
+        <p>You do not need to look it up by hand. Ask the compiler what <code>native</code> resolves to on this machine:</p>
+        <pre><code class="language-sh">sysctl -n machdep.cpu.brand_string
+# Apple M4
+
+clang -mcpu=native -### -x c /dev/null 2>&amp;1 | grep -oE '"-target-cpu" "[^"]+"'
+# "-target-cpu" "apple-m4"
+
+clang --print-supported-cpus 2>&amp;1 | grep -oE 'apple-m[0-9]+' | sort -V | tr '\n' ' '
+# apple-m1 apple-m2 apple-m3 apple-m4 apple-m5 apple-m6</code></pre>
+        <p>Use the concrete name (<code>apple-m4</code>) rather than <code>native</code> in the saved formula. It makes the build reproducible on a different machine, it shows up verbatim in <code>vim --version</code>, and you can spot immediately when a formula was generated on an older Mac.</p>
+        <div class="callout warning">
+          <strong>If your clang is older than your chip</strong>
+          A new Mac with old Command Line Tools may not know its own CPU: <code>-mcpu=native</code> then resolves to the newest generation that clang supports. Update Xcode or the Command Line Tools first (<code>softwareupdate --list</code>), or set <code>NATIVE_CPU=apple-m5</code> explicitly and accept that the compiler tunes for the closest generation it knows.
+        </div>
+        <p>Do not use <code>-march=armv9.2-a</code> as a substitute. Generic ARMv9 profiles enable SVE, which Apple cores do not implement, and auto-vectorized code can then crash with an illegal instruction. <code>-mcpu=apple-mN</code> enables exactly the features the chip has.</p>
+      </section>
+
+      <section id="prerequisites">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>An Apple Silicon Mac (<code>uname -m</code> prints <code>arm64</code>) with Homebrew in <code>/opt/homebrew</code>.</li>
+          <li>Xcode Command Line Tools recent enough to know your CPU (see above). <code>xcode-select --install</code> if <code>clang</code> is missing.</li>
+          <li>For ripgrep: Homebrew&#39;s <code>rust</code> formula is installed automatically as a build dependency. The build uses that <code>cargo</code>, not rustup.</li>
+          <li>Python 3, which macOS ships, for the formula-patching step in the script.</li>
+          <li>The <a href="https://github.com/marianposaceanu/dot-files">dot-files</a> repository checked out, for the script and the saved formulas.</li>
+        </ul>
+        <p>Build times on an M4 with 10 cores: Vim about 30 s, Git about 15 s, ripgrep about 40 s (fat LTO), Ctags about 20 s. Nothing needs to be uninstalled ahead of time; the script handles that.</p>
+      </section>
+
+      <section id="the-one-command-path">
+        <h2>The one-command path</h2>
+        <p><code>bootstrap/native/brew_native.sh</code> performs every step below for all four tools:</p>
+        <pre><code class="language-sh">cd ~/dot-files
+./bootstrap/native/brew_native.sh                  # vim git ripgrep universal-ctags
+./bootstrap/native/brew_native.sh vim ripgrep      # a subset
+./bootstrap/native/brew_native.sh --formulas-only  # refresh formulas/*.rb without building
+NATIVE_CPU=apple-m3 ./bootstrap/native/brew_native.sh   # override CPU detection</code></pre>
+        <p>It resolves the CPU name, creates the <code>marian/local</code> tap if needed, regenerates each formula from the <em>current</em> homebrew-core version, saves it to <code>bootstrap/native/formulas/</code>, syncs it into the tap, uninstalls the existing keg, installs from source, pins, and prints a verification summary. Rerunning it after a Homebrew update is how you pick up a new upstream version.</p>
+        <p>Change <code>TAP=you/local</code> if you fork the repository; the tap name only has to be unique on your machine.</p>
+      </section>
+
+      <section id="the-manual-path">
+        <h2>The manual path, step by step</h2>
+        <p>Vim is used as the worked example. The same steps apply to the other three; their formula edits are in the next section.</p>
+
+        <h3>1. Find your CPU name</h3>
+        <pre><code class="language-sh">CPU=$(clang -mcpu=native -### -x c /dev/null 2>&amp;1 | grep -oE '"-target-cpu" "[^"]+"' | cut -d'"' -f4)
+echo "$CPU"   # apple-m4</code></pre>
+
+        <h3>2. Create a local tap once</h3>
+        <pre><code class="language-sh">brew tap-new --no-git marian/local
+brew --repo marian/local        # /opt/homebrew/Library/Taps/marian/homebrew-local</code></pre>
+        <p><code>--no-git</code> skips initialising a git repository inside the tap; the formulas are versioned in dot-files instead.</p>
+
+        <h3>3. Copy the official formula into the tap</h3>
+        <pre><code class="language-sh">cp "$(brew formula homebrew/core/vim)" "$(brew --repo marian/local)/Formula/vim.rb"</code></pre>
+        <p><code>brew formula</code> prints the path of the formula file Homebrew is currently using, whether it came from the JSON API cache or a full <code>homebrew-core</code> checkout.</p>
+
+        <h3>4. Edit the formula</h3>
+        <p>Three edits, in order:</p>
+        <ol>
+          <li><strong>Delete the <code>bottle do ... end</code> block.</strong> Without it Homebrew never considers pouring a bottle, so plain <code>brew install</code> and <code>brew upgrade</code> build from source automatically.</li>
+          <li><strong>Add <code>env :std</code></strong> on its own line above <code>def install</code>. This is the switch from superenv to stdenv.</li>
+          <li><strong>Add the flags</strong> as the first line inside <code>def install</code>: <code>ENV.append_to_cflags "-O3 -mcpu=apple-m4"</code>. stdenv pre-populates <code>CFLAGS</code> with <code>-Os -w -pipe</code>; appending puts <code>-O3</code> last, and the last <code>-O</code> flag wins.</li>
+        </ol>
+        <p>For Vim, two more lines make the flags visible on the intro screen and in <code>:version</code>. Replace <code>"--with-compiledby=Homebrew",</code> in the configure arguments with:</p>
+        <pre><code class="language-ruby">"--with-compiledby=native-apple-m4",
+"--with-modified-by=[ apple-m4 :: -O3 -mcpu=apple-m4 ]",</code></pre>
+        <p>The result, abbreviated:</p>
+        <pre><code class="language-ruby">class Vim &lt; Formula
+  desc "Vi 'workalike' with many additional features"
+  homepage "https://www.vim.org/"
+  url "https://github.com/vim/vim/archive/refs/tags/v9.2.1100.tar.gz"
+  sha256 "..."
+  license "Vim"
+  # (bottle block removed)
+
+  depends_on "gettext"
+  depends_on "libsodium"
+  # ...
+
+  env :std
+
+  def install
+    ENV.append_to_cflags "-O3 -mcpu=apple-m4"
+    # ... unchanged core install body ...
+    system "./configure", "--prefix=#{HOMEBREW_PREFIX}",
+                          # ...
+                          "--with-compiledby=native-apple-m4",
+                          "--with-modified-by=[ apple-m4 :: -O3 -mcpu=apple-m4 ]",
+                          # ...
+  end
+end</code></pre>
+
+        <h3>5. Save a copy you can commit</h3>
+        <pre><code class="language-sh">cp "$(brew --repo marian/local)/Formula/vim.rb" ~/dot-files/bootstrap/native/formulas/vim.rb</code></pre>
+
+        <h3>6. Uninstall the core keg, then install from the tap</h3>
+        <pre><code class="language-sh">brew unpin vim 2&gt;/dev/null
+brew uninstall --ignore-dependencies vim
+brew install --build-from-source marian/local/vim</code></pre>
+        <div class="callout warning">
+          <strong>Do not use <code>brew reinstall marian/local/vim</code> here</strong>
+          When the installed keg came from homebrew-core, <code>brew reinstall</code> resolves the formula from the keg&#39;s receipt and rebuilds the <em>core</em> formula under superenv, even though its output says &quot;Reinstalling marian/local/vim&quot;. You get a fresh generic binary and a receipt that still says <code>homebrew/core</code>. Uninstalling first forces <code>install</code> to resolve the tap formula. Once the keg is from the tap, <code>reinstall</code> and <code>upgrade</code> behave.
+        </div>
+        <p><code>--ignore-dependencies</code> stops Homebrew from also removing packages that only vim depends on (it took libsodium along the first time). They come back with the install either way.</p>
+
+        <h3>7. Pin it</h3>
+        <pre><code class="language-sh">brew pin vim</code></pre>
+        <p>Pinning is belt-and-braces. Since the tap formula has no bottle, an upgrade would rebuild from source with your flags anyway, but the pin makes the intent explicit and stops <code>brew upgrade</code> from touching it until you decide to.</p>
+      </section>
+
+      <section id="per-tool-details">
+        <h2>Per-tool details</h2>
+
+        <h3>Vim</h3>
+        <p>Autotools; <code>configure</code> reads <code>CFLAGS</code> from the environment. Besides the cflags line, set <code>--with-compiledby</code> and <code>--with-modified-by</code> as shown above. All optional interpreters (Python 3, Lua, Ruby, Perl) and <code>+sodium</code>, <code>+clipboard</code>, <code>+terminal</code> survive unchanged because the rest of the install body is the core formula&#39;s.</p>
+
+        <h3>Git</h3>
+        <p>Git&#39;s Makefile takes <code>CFLAGS=#{ENV.cflags}</code> as an argument, and the core formula already passes it, so <code>ENV.append_to_cflags</code> is the only edit. The build also compiles <code>git-credential-osxkeychain</code>, <code>git-subtree</code>, and <code>diff-highlight</code> with the same flags. Git does not embed its compile flags anywhere; verification relies on the install receipt.</p>
+
+        <h3>ripgrep</h3>
+        <p>Rust ignores <code>CFLAGS</code>. Two edits inside <code>def install</code>:</p>
+        <pre><code class="language-ruby">env :std
+
+def install
+  ENV["RUSTFLAGS"] = "-C target-cpu=apple-m4"
+  ENV.append_to_cflags "-O3 -mcpu=apple-m4"   # for the bundled pcre2 C build
+  system "cargo", "install", "--profile", "release-lto", *std_cargo_args(features: "pcre2")
+  # ...
+end</code></pre>
+        <p><code>release-lto</code> is a profile ripgrep&#39;s own <code>Cargo.toml</code> defines for its release binaries: fat LTO, one codegen unit, <code>panic = "abort"</code>, stripped symbols. Homebrew&#39;s default uses the plain <code>release</code> profile. The PCRE2 feature stays on, so <code>rg -P</code> keeps working.</p>
+
+        <h3>Universal Ctags</h3>
+        <p>Autotools with <code>std_configure_args</code>; the cflags line is the only edit. The build links against Homebrew&#39;s <code>jansson</code>, <code>libyaml</code>, and <code>pcre2</code> bottles, which stay generic; only the ctags parsers themselves are tuned.</p>
+
+        <p>Dependencies that are pulled in during the build (<code>rust</code>, <code>asciidoctor</code>, <code>jansson</code>, and so on) are installed as normal bottles. Only the four formulas in the tap are compiled.</p>
+      </section>
+
+      <section id="verifying-the-build">
+        <h2>Verifying the build</h2>
+        <p>Vim tells you directly:</p>
+        <pre><code class="language-sh">vim --version | head -5
+# VIM - Vi IMproved 9.2 (2026 Feb 14, compiled Sep 14 2026 17:58:36)
+# macOS version - arm64
+# Included patches: 1-1100
+# Modified by [ apple-m4 :: -O3 -mcpu=apple-m4 ]
+# Compiled by native-apple-m4
+
+vim --version | grep -o 'Compilation:.*' | grep -oE -- '-O[0-9s]|-mcpu=[a-z0-9-]+'
+# -Os
+# -O3
+# -mcpu=apple-m4</code></pre>
+        <p>For all four, the install receipt is the authoritative record. A tuned build shows your tap, no bottle, and a formula path inside the tap:</p>
+        <pre><code class="language-sh">for f in vim git ripgrep universal-ctags; do
+  printf '%-16s' "$f"
+  python3 -c '
+import json, glob, sys
+r = json.load(open(glob.glob(f"/opt/homebrew/Cellar/{sys.argv[1]}/*/INSTALL_RECEIPT.json")[0]))
+print(r["source"]["tap"], "bottle=%s" % r["poured_from_bottle"], r["source"]["path"])' "$f"
+done
+# vim             marian/local bottle=False /opt/homebrew/Library/Taps/marian/homebrew-local/Formula/vim.rb
+# git             marian/local bottle=False /opt/homebrew/Library/Taps/marian/homebrew-local/Formula/git.rb
+# ripgrep         marian/local bottle=False /opt/homebrew/Library/Taps/marian/homebrew-local/Formula/ripgrep.rb
+# universal-ctags marian/local bottle=False /opt/homebrew/Library/Taps/marian/homebrew-local/Formula/universal-ctags.rb</code></pre>
+        <p>If a line says <code>homebrew/core bottle=True</code> after you built it, you hit the <code>reinstall</code> pitfall above: uninstall and install again.</p>
+        <p>A quick smoke test after each build is worth the ten seconds:</p>
+        <pre><code class="language-sh">vim -Es +'echo "ok"' +q &amp;&amp; echo vim ok
+git -C ~/dot-files status --short &gt;/dev/null &amp;&amp; echo git ok
+rg -P '(?&lt;=brew )pin' ~/dot-files/README.md &gt;/dev/null &amp;&amp; echo rg pcre2 ok
+ctags --list-languages | wc -l</code></pre>
+        <p>The <a href="https://github.com/marianposaceanu/dot-files/tree/main/benchmarks"><code>benchmarks/</code></a> directory has the harnesses from the measurements page if you want numbers rather than a smoke test.</p>
+      </section>
+
+      <section id="upgrading-later">
+        <h2>Upgrading later</h2>
+        <p>Because the tap formula is a snapshot of homebrew-core at the time you generated it, <code>brew outdated</code> will not report a newer upstream Vim until the tap formula changes. The upgrade procedure is: refresh Homebrew, regenerate, rebuild.</p>
+        <pre><code class="language-sh">brew update
+./bootstrap/native/brew_native.sh vim          # copies the new core formula, patches, builds, pins
+git -C ~/dot-files diff bootstrap/native/formulas/vim.rb   # see what upstream changed
+git -C ~/dot-files commit -am "chore(native): vim 9.2.1200"</code></pre>
+        <p>By hand, that is steps 3 to 7 again. Compare the freshly copied core formula with your saved one before rebuilding; if upstream changed the configure arguments or the install body, make sure your three edits still land in the right place. The script asserts that <code>def install</code> exists and that the Vim <code>--with-compiledby</code> replacement matched, and refuses to continue otherwise.</p>
+        <p>The same flow works when you move to a new Mac: run the script once and the formulas are regenerated with the new chip&#39;s name. The committed <code>.rb</code> files record which generation they were built for.</p>
+      </section>
+
+      <section id="restoring-stock-bottles">
+        <h2>Restoring stock bottles</h2>
+        <p>Going back is one line per tool. Naming the core formula explicitly avoids ambiguity with the tap:</p>
+        <pre><code class="language-sh">for f in vim git ripgrep universal-ctags; do
+  brew unpin "$f"
+  brew uninstall --ignore-dependencies "$f"
+  brew install "homebrew/core/$f"
+done
+brew untap marian/local      # optional; removes the tap and its formulas</code></pre>
+      </section>
+
+      <section id="pitfalls">
+        <h2>Pitfalls</h2>
+        <ul>
+          <li><strong><code>brew reinstall</code> from a core keg builds the core formula.</strong> Covered above; it is the one that bit hardest because the build visibly runs and succeeds.</li>
+          <li><strong>The <code>vim --version</code> Compilation line does not prove anything under superenv.</strong> The shim injects its flags invisibly, so a superenv build shows <code>-g -O2</code> from Vim&#39;s own Makefile and nothing about <code>-mcpu</code>. Only under stdenv does the line show what clang actually received.</li>
+          <li><strong><code>brew uninstall</code> autoremoves orphaned dependencies</strong> unless you pass <code>--ignore-dependencies</code>. Harmless, since the install brings them back, but surprising in the output.</li>
+          <li><strong><code>HOMEBREW_NO_INSTALL_FROM_API=1</code> is not needed</strong> for tap formulas; they are always loaded from the tap directory. It only matters if you want <code>brew formula homebrew/core/vim</code> to come from a full core checkout instead of the API cache. Both produce the same file.</li>
+          <li><strong>Only Vim exposes its flags.</strong> Git, ripgrep, and ctags have no equivalent of <code>--with-compiledby</code>. Trust the receipt and the tap path, or disassemble and look for instructions your generation added.</li>
+          <li><strong>The tuned binary is not portable.</strong> A binary built with <code>-mcpu=apple-m4</code> may use instructions an M1 lacks. Do not copy the Cellar to another Mac; regenerate there.</li>
+          <li><strong>Rosetta and Intel Macs are out of scope.</strong> The script exits unless <code>uname -m</code> is <code>arm64</code>.</li>
+        </ul>
+      </section>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <p><a class="home-link" href="/">Back to dot-files</a></p>
+    <p><a href="https://github.com/marianposaceanu/dot-files">Browse the configuration source</a></p>
+  </footer>
+</body>
+</html>

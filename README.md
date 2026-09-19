@@ -126,7 +126,8 @@ tap (`marian/local`) with `-O3 -mcpu=<local Apple CPU>` (plus
 `RUSTFLAGS=-C target-cpu=...` and the `release-lto` profile for ripgrep).
 The generated formulas are versioned in `bootstrap/native/formulas/` and the
 tools are pinned so `brew upgrade` leaves them alone. Results are
-workload-dependent; see
+workload-dependent; see the
+[step-by-step guide](https://dot.marianposaceanu.com/native-builds-guide.html) and
 [Native Apple Silicon builds](https://dot.marianposaceanu.com/native-apple-silicon-builds.html)
 for design, benchmarks, and caveats.
 

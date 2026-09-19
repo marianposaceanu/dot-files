@@ -296,6 +296,10 @@ augroup END</code></pre>
       </section>
       <section id="rebuild-and-restore-commands">
         <h2>Rebuild and restore commands</h2>
+        <div class="callout">
+          <strong>Newer approach</strong>
+          These scripts build outside Homebrew and swap the binary into the keg. The current method makes Homebrew build from a local tap formula with <code>env :std</code>, which keeps the receipt truthful and survives <code>brew upgrade</code>. See <a href="native-builds-guide.html">the step-by-step guide for M1 to M6</a>.
+        </div>
         <p>Each script supports a bottle restoration path because the Homebrew receipt continues to describe the formula installation after a binary-only replacement.</p>
         <pre><code class="language-sh"># Vim
 ./bootstrap/native/compile_vim_native.sh
