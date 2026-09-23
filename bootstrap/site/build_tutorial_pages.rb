@@ -4,6 +4,7 @@
 require "cgi"
 require "digest"
 require "fileutils"
+require "json"
 require "pathname"
 
 ROOT = Pathname.new(__dir__).join("../..").expand_path
@@ -246,6 +247,21 @@ def page_for(path, css_hash, dotfiles_hash, js_hash)
   visible_date = metadata.fetch("visible-date", DEFAULT_VISIBLE_DATE)
   category = metadata.fetch("category", DEFAULT_CATEGORY)
   eyebrow = metadata.fetch("eyebrow", DEFAULT_EYEBROW)
+  canonical = "https://dot.marianposaceanu.com/#{filename}"
+  article_schema = {
+    "@context" => "https://schema.org",
+    "@type" => "TechArticle",
+    "mainEntityOfPage" => { "@type" => "WebPage", "@id" => canonical },
+    "headline" => title,
+    "description" => description,
+    "author" => {
+      "@type" => "Person",
+      "@id" => "https://marianposaceanu.com/#person",
+      "name" => "Marian Posăceanu",
+      "url" => "https://marianposaceanu.com/home/about"
+    },
+    "datePublished" => published_date
+  }
 
   <<~HTML
     <!doctype html>
@@ -255,9 +271,10 @@ def page_for(path, css_hash, dotfiles_hash, js_hash)
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>#{CGI.escapeHTML(title)} | dot-files</title>
       <meta name="description" content="#{CGI.escapeHTML(description)}">
-      <meta name="author" content="Marian Posaceanu">
+      <meta name="author" content="Marian Posăceanu">
       <meta name="robots" content="index, follow">
-      <link rel="canonical" href="https://dot.marianposaceanu.com/#{filename}">
+      <link rel="canonical" href="#{canonical}">
+      <script type="application/ld+json">#{JSON.generate(article_schema)}</script>
       <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
       <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
       <link rel="icon" href="favicon.ico" sizes="any">
@@ -282,6 +299,7 @@ def page_for(path, css_hash, dotfiles_hash, js_hash)
           <ul class="meta" aria-label="Article metadata">
             <li>#{CGI.escapeHTML(category)}</li>
             <li><time class="article-date" datetime="#{CGI.escapeHTML(published_date)}">#{CGI.escapeHTML(visible_date)}</time></li>
+            <li>By <a href="https://marianposaceanu.com/home/about">Marian Posăceanu</a></li>
           </ul>
         </header>
 
