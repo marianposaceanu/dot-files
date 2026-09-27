@@ -35,6 +35,10 @@ and installations are retained, while conflicts are moved to timestamped
 On a new Mac, the first `git` command may prompt for Apple Command Line Tools.
 Finish that installation, then rerun the command.
 
+The commands below require Homebrew to be installed and `brew` available in
+your shell. If you already have a standalone Babashka (`bb`), the installer can
+install Homebrew itself.
+
 Clone the repository, install Babashka, and run the installer:
 
 ```sh
@@ -71,6 +75,7 @@ credentials, keyboard preferences, and optional native builds remain manual.
 - Ghostty, bat, Amp, Codex, and Claude Code configuration
 - Homebrew dependencies in `Brewfile`
 - Bootstrap, linking, health-check, and benchmark tools
+- Installer and editor regression tests under `test/`
 
 ## Homebrew dependencies
 
@@ -112,6 +117,9 @@ mext enable EV3285
 
 ### Shell tools
 
+Oh My Zsh uses the `robbyrussell` theme and the `git` plugin. Autosuggestions
+and syntax highlighting load separately from Homebrew; highlighting loads last.
+
 - Zsh Autosuggestions offers history completions; press Right Arrow or `End` to
   accept one.
 - `b` is aliased to `bat`; redirected output stays plain. Man pages and FZF
@@ -119,6 +127,15 @@ mext enable EV3285
 - `z <keywords>` jumps with zoxide and `zi <keywords>` selects through FZF. See
   the [zoxide tutorial](https://dot.marianposaceanu.com/zoxide.html).
 - `ack` is aliased to `rg` in interactive Zsh and Bash sessions.
+- `Ctrl-R` searches shell history; `Ctrl-T` selects files with bat previews;
+  `Alt-C` selects a directory.
+- Inside fzf, `Ctrl-J`/`Ctrl-K` move through results, `Ctrl-D`/`Ctrl-U` move half
+  a page, and `Ctrl-/` toggles the preview where one is configured.
+
+The shell retains 50,000 history entries. File search includes hidden files,
+excludes `.git`, and respects ignore files. `~/.ignore` adds exclusions for
+local caches and database dumps; it affects ripgrep searches beneath your home
+rather than acting as a Git ignore file.
 
 ## Optional native Apple Silicon builds
 
@@ -180,11 +197,9 @@ The older `bootstrap/native/compile_*_native.sh` scripts (which build outside
 brew and swap the binary into the keg, optionally with `--pgo`) are kept for
 reference and benchmarking but are superseded by the tap approach.
 
-Checks and profiles:
+Native-build profiles:
 
 ```sh
-bb bootstrap/checks/check_configs.clj
-bb bootstrap/checks/doctor.clj
 ./benchmarks/profile_vim_plugins.sh
 ./benchmarks/profile_vim_plugins_median.sh
 ./benchmarks/benchmark_ripgrep_native.sh "$(command -v rg)" native
@@ -192,11 +207,34 @@ bb bootstrap/checks/doctor.clj
 ./benchmarks/benchmark_git_native.sh
 ```
 
+## Validation
+
+Run configuration checks and inspect the installed environment separately:
+
+```sh
+bb bootstrap/checks/check_configs.clj
+bb bootstrap/checks/doctor.clj
+```
+
+The configuration checks validate shell and Babashka syntax, application configs,
+installer idempotence, generated pages, Vim behavior, and Ghostty configuration
+when available. Editor regression tests cover Git errors and visual selections,
+file search outside Git, large-file highlighting, recovery files, and plain bat
+output when redirected. The doctor checks managed links and Homebrew dependencies.
+
+Run just the editor regression tests with:
+
+```sh
+env -u GEM_HOME -u GEM_PATH ruby test/editor_config_test.rb
+```
+
 ## Vim
 
 Swap files, temporary write backups, and persistent undo live in private
 subdirectories of `${XDG_STATE_HOME:-~/.local/state}/vim`. Successful writes
 remove the temporary backup; undo history remains available after reopening.
+Use `vim -r path/to/file` to recover a file from its swap file after a crash,
+and `:earlier 5m` to move back through available undo history.
 Files over 1 MB keep syntax and cursor-line highlighting disabled.
 
 File search inherits the shell's fzf configuration, with a ripgrep fallback
@@ -274,10 +312,8 @@ This includes Ghostty and backs up conflicting files or directories with a
 interactive environment and loads RVM after its final PATH changes. `.zlogin`
 provides guarded RVM initialization for non-interactive login shells.
 
-The shell saves 50,000 history entries and loads autosuggestions and syntax
-highlighting. Use `b` for formatted output with bat; `cat` keeps its standard
-behavior. The linked `~/.ignore` excludes large local caches and database dumps
-from ripgrep and fzf file searches.
+Open a new terminal to apply shell changes and restart Vim to apply editor
+changes. `bat` reads its configuration on each invocation.
 
 Optionally make Zsh the default shell:
 
