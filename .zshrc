@@ -45,6 +45,9 @@ export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME=robbyrussell
 plugins=(git)
 
+# Retain more commands for history search across sessions.
+SAVEHIST=50000
+
 if [[ -f "$ZSH/oh-my-zsh.sh" ]]; then
   source "$ZSH/oh-my-zsh.sh"
 else
@@ -54,9 +57,9 @@ fi
 # Open the external display manager with a shorter command.
 alias mext=mextdisplay
 
-# Use bat as the interactive cat replacement and man-page renderer.
+# Use bat explicitly for formatted output and as the man-page renderer.
 if (( $+commands[bat] )); then
-  alias cat=bat
+  alias b=bat
   export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 fi
 
@@ -109,3 +112,15 @@ for _zsh_autosuggestions in \
   fi
 done
 unset _zsh_autosuggestions
+
+# Load syntax highlighting last, after all interactive widgets are registered.
+for _zsh_highlighting in \
+  "${HOMEBREW_PREFIX:-}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+  /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+  if [[ -r "$_zsh_highlighting" ]]; then
+    source "$_zsh_highlighting"
+    break
+  fi
+done
+unset _zsh_highlighting

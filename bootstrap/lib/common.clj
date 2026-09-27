@@ -114,6 +114,7 @@
   [{:source ".vimrc" :target ".vimrc" :label "~/.vimrc"}
    {:source ".vim" :target ".vim" :label "~/.vim"}
    {:source ".gitconfig" :target ".gitconfig" :label "~/.gitconfig"}
+   {:source ".ignore" :target ".ignore" :label "~/.ignore"}
    {:source ".gitignore_global" :target ".gitignore_global" :label "~/.gitignore_global"}
    {:source ".tmux.conf" :target ".tmux.conf" :label "~/.tmux.conf"}
    {:source ".zprofile" :target ".zprofile" :label "~/.zprofile"}

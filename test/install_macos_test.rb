@@ -51,6 +51,7 @@ class InstallMacosTest < Minitest::Test
     refute_includes first_output, "\e"
     assert File.symlink?(File.join(@home, "dot-files"))
     assert_equal REPO_ROOT, File.realpath(File.join(@home, "dot-files"))
+    assert_equal File.join(REPO_ROOT, ".ignore"), File.realpath(File.join(@home, ".ignore"))
     assert_equal File.join(REPO_ROOT, ".zshrc"), File.realpath(File.join(@home, ".zshrc"))
     assert_equal File.join(REPO_ROOT, "codex/config.toml"), File.realpath(File.join(@home, ".codex/config.toml"))
     assert_equal File.join(REPO_ROOT, "claude/settings.json"), File.realpath(File.join(@home, ".claude/settings.json"))
@@ -72,7 +73,7 @@ class InstallMacosTest < Minitest::Test
     assert_includes second_output, "╭─ [07/09] Pinned Vim plugins"
     assert_includes second_output, "✓ Pinned Vim plugins are ready."
     assert_includes second_output, "╭─ [08/09] Configuration links"
-    assert_includes second_output, "✓ Configuration links: 15 unchanged, 0 updated, 0 backups."
+    assert_includes second_output, "✓ Configuration links: 16 unchanged, 0 updated, 0 backups."
     assert_includes second_output, "╭─ [09/09] Validation"
     refute_includes second_output, "Already linked:"
     assert_equal backups, Dir.glob(File.join(@home, ".zshrc.backup.*"))

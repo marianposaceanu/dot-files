@@ -1,0 +1,12 @@
+# ripgrep/agent search exclusions: huge binary/dump trees that blow rg memory (see Jetsam kills Sep 14-17 2026)
+.colima/
+.lima/
+.npm/
+.cache/
+Library/
+work/**/tmp/production-data/
+work/**/tmp/*.tar.gz
+work/**/tmp/*.dump
+work/**/tmp/heroku-*
+work/**/tmp/fws-*
+work/*.dump

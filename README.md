@@ -244,6 +244,7 @@ This includes Ghostty and backs up conflicting files or directories with a
 - `~/.vim`
 - `~/.gitconfig`
 - `~/.gitignore_global`
+- `~/.ignore`
 - `~/.tmux.conf`
 - `~/.zprofile`
 - `~/.zshrc`
@@ -261,6 +262,11 @@ This includes Ghostty and backs up conflicting files or directories with a
 `.zprofile` initializes Homebrew in login shells. `.zshrc` configures the
 interactive environment and loads RVM after its final PATH changes. `.zlogin`
 provides guarded RVM initialization for non-interactive login shells.
+
+The shell saves 50,000 history entries and loads autosuggestions and syntax
+highlighting. Use `b` for formatted output with bat; `cat` keeps its standard
+behavior. The linked `~/.ignore` excludes large local caches and database dumps
+from ripgrep and fzf file searches.
 
 Optionally make Zsh the default shell:
 
