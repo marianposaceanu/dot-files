@@ -67,9 +67,16 @@ set fillchars+=eob:.               " Show end-of-buffer lines as dots.
 set ttimeoutlen=50                " fix for slow after INSERT exit mode
 " set linebreak                     " ^
 
-set nobackup                      " Don't make a backup.
-set nowritebackup                 " And again.
-set noswapfile
+" Keep recovery files outside projects, with private directories.
+let s:state_dir = (empty($XDG_STATE_HOME) ? expand('~/.local/state') : $XDG_STATE_HOME) . '/vim'
+for s:kind in ['swap', 'backup', 'undo']
+  call mkdir(s:state_dir . '/' . s:kind, 'p', 0700)
+endfor
+let &directory = s:state_dir . '/swap//'
+let &backupdir = s:state_dir . '/backup//'
+let &undodir = s:state_dir . '/undo//'
+set swapfile writebackup undofile
+set nobackup                      " Remove the temporary backup after a successful write.
 
 set tabstop=2                     " Global tab width.
 set shiftwidth=2                  " And again, related.
@@ -80,14 +87,14 @@ set softtabstop=2                 " This makes the backspace key treat the two
 " Large file performance guardrails
 augroup large_file_perf
   autocmd!
-  autocmd BufReadPre * if getfsize(expand('%:p')) > 1024 * 1024 | let b:large_file = 1 | endif
-  autocmd BufReadPost * if exists('b:large_file') | setlocal syntax=OFF nocursorline | endif
+  autocmd BufReadPre * let b:large_file = getfsize(expand('%:p')) > 1024 * 1024
+  autocmd BufReadPost * if get(b:, 'large_file', 0) | setlocal syntax=OFF nocursorline | endif
 augroup END
 
 " Cursorline only in active window
 augroup active_cursorline
   autocmd!
-  autocmd WinEnter,BufEnter * setlocal cursorline
+  autocmd WinEnter,BufEnter * let &l:cursorline = !get(b:, 'large_file', 0)
   autocmd WinLeave * setlocal nocursorline
 augroup END
 
@@ -135,8 +142,12 @@ command! -bang -complete=buffer -nargs=? Bclose call <SID>BcloseCommand(<q-args>
 " let g:fzf_layout = { 'window': '-tabnew' }
 " center fzf pop-up IDE-style
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
-let $FZF_DEFAULT_OPTS='--reverse'
-let $FZF_DEFAULT_COMMAND='git ls-files --exclude-standard -co'
+if $FZF_DEFAULT_OPTS !~# '\(^\|\s\)--reverse\(\s\|$\)'
+  let $FZF_DEFAULT_OPTS = trim($FZF_DEFAULT_OPTS . ' --reverse')
+endif
+if empty($FZF_DEFAULT_COMMAND) && executable('rg')
+  let $FZF_DEFAULT_COMMAND = "rg --files --hidden --glob '!.git'"
+endif
 
 if isdirectory('/opt/homebrew/opt/fzf')
   set rtp+=/opt/homebrew/opt/fzf

@@ -114,7 +114,8 @@ mext enable EV3285
 
 - Zsh Autosuggestions offers history completions; press Right Arrow or `End` to
   accept one.
-- `cat` is aliased to `bat`; man pages and FZF previews also use `bat`.
+- `b` is aliased to `bat`; redirected output stays plain. Man pages and FZF
+  previews also use `bat`.
 - `z <keywords>` jumps with zoxide and `zi <keywords>` selects through FZF. See
   the [zoxide tutorial](https://dot.marianposaceanu.com/zoxide.html).
 - `ack` is aliased to `rg` in interactive Zsh and Bash sessions.
@@ -192,6 +193,16 @@ bb bootstrap/checks/doctor.clj
 ```
 
 ## Vim
+
+Swap files, temporary write backups, and persistent undo live in private
+subdirectories of `${XDG_STATE_HOME:-~/.local/state}/vim`. Successful writes
+remove the temporary backup; undo history remains available after reopening.
+Files over 1 MB keep syntax and cursor-line highlighting disabled.
+
+File search inherits the shell's fzf configuration, with a ripgrep fallback
+that also works outside Git repositories. Git helpers resolve the repository
+from the current file and report Git errors without constructing commit links.
+Visual history searches use the selected lines, including their newlines.
 
 ### Shortcuts
 

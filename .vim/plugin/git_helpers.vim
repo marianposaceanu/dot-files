@@ -3,71 +3,86 @@ if exists('g:loaded_git_helpers')
 endif
 let g:loaded_git_helpers = 1
 
+" Resolve Git relative to the current file, even when Vim's cwd is elsewhere.
+function! s:git(args) abort
+  return system('git -C ' . shellescape(expand('%:p:h')) . ' ' . a:args)
+endfunction
+
+function! s:git_failed(output) abort
+  if v:shell_error
+    echohl WarningMsg
+    echo 'Git: ' . trim(a:output)
+    echohl None
+    return 1
+  endif
+  return 0
+endfunction
+
 function! s:github_repo_url() abort
-  let remote_url = system('git config --get remote.origin.url')
-  let remote_url = substitute(remote_url, '\n\+$', '', '')
-  let github_repo_url = substitute(remote_url, '\.git$', '', '')
-  let github_repo_url = substitute(github_repo_url, 'git@github\.com:', 'https://github.com/', '')
-  return github_repo_url
+  let remote = trim(s:git('config --get remote.origin.url'))
+  if v:shell_error
+    return ''
+  endif
+  let remote = substitute(remote, '^git@github\.com:', 'https://github.com/', '')
+  let remote = substitute(remote, '^ssh://git@github\.com/', 'https://github.com/', '')
+  return remote =~# '^https://github\.com/' ? substitute(remote, '\.git$', '', '') : ''
+endfunction
+
+function! s:show_commit(hash, details) abort
+  if a:hash !~# '^\x\{40\}$' && a:hash !~# '^\x\{64\}$'
+    echo 'Git returned an invalid commit hash'
+    return
+  endif
+  let url = s:github_repo_url()
+  echohl Directory
+  echo 'Commit: ' . (empty(url) ? a:hash : url . '/commit/' . a:hash)
+  echohl None
+  echo a:details
 endfunction
 
 function! GitBlameWithCommitMessageAndAuthor() abort
-  let current_line = line('.')
-  let filename = expand('%')
-  let blame_cmd = 'git blame -l -L' . current_line . ',' . current_line . ' -- ' . shellescape(filename)
-  let blame_output = system(blame_cmd)
-  let commit_hash = split(blame_output)[0]
-
-  if commit_hash !~ '^0\+\|^\s*$'
-    let show_cmd = 'git show --no-patch --no-notes --pretty=format:"%h (%an) %s" ' . commit_hash
-    let show_output = system(show_cmd)
-    let commit_url = s:github_repo_url() . '/commit/' . commit_hash
-
-    echohl Directory
-    echo 'Commit: '
-    echohl Underlined
-    echo commit_url
-    echohl None
-    echo ' - ' . show_output
-    echohl None
-  else
+  if empty(expand('%'))
+    echo 'Save the buffer before using Git helpers'
+    return
+  endif
+  let output = s:git('blame --porcelain -L ' . line('.') . ',' . line('.') . ' -- ' . shellescape(expand('%:t')))
+  if s:git_failed(output)
+    return
+  endif
+  let hash = matchstr(output, '^\x\+')
+  if hash =~# '^0\+$'
     echo 'Not committed yet'
+    return
+  endif
+  if hash !~# '^\x\{40\}$' && hash !~# '^\x\{64\}$'
+    echo 'Git returned an invalid commit hash'
+    return
+  endif
+  let details = s:git('show --no-patch --no-notes --format=' . shellescape('%h (%an) %s') . ' ' . hash)
+  if !s:git_failed(details)
+    call s:show_commit(hash, details)
   endif
 endfunction
 
 command! Blame call GitBlameWithCommitMessageAndAuthor()
 
-function! GitLogSearchByLineOrSelection(...) range abort
-  let search_term = ''
-
-  if a:firstline != a:lastline || mode() ==# 'v'
-    let lines = getline(a:firstline, a:lastline)
-    let search_term = join(lines, ' ')
-  else
-    let search_term = getline('.')
+function! GitLogSearchByLineOrSelection() range abort
+  if empty(expand('%'))
+    echo 'Save the buffer before using Git helpers'
+    return
   endif
-
-  let search_term = shellescape(search_term)
-  let filename = expand('%')
-  let log_cmd = 'git log --reverse -S' . search_term . ' -- ' . shellescape(filename)
-  let log_output = system(log_cmd)
-
-  if empty(log_output)
+  let term = join(getline(a:firstline, a:lastline), "\n")
+  let output = s:git('log --reverse --format=' . shellescape('%H %h (%an) %s') . ' -S ' . shellescape(term) . ' -- ' . shellescape(expand('%:t')))
+  if s:git_failed(output)
+    return
+  endif
+  if empty(trim(output))
     echo 'No commits found for the search term'
-  else
-    let commit_hash = split(log_output)[1]
-    let commit_url = s:github_repo_url() . '/commit/' . commit_hash
-
-    echohl Directory
-    echo 'Commit: '
-    echohl Underlined
-    echo commit_url
-    echohl None
-    echo ' - ' . log_output
-    echohl None
+    return
   endif
+  call s:show_commit(matchstr(output, '^\x\+'), output)
 endfunction
 
-command! -range LogSearch <line1>,<line2>call GitLogSearchByLineOrSelection(<line1>, <line2>)
-vnoremap <leader>gs :<C-U>call GitLogSearchByLineOrSelection('<','>')<CR>
-nnoremap <leader>gs :call GitLogSearchByLineOrSelection()<CR>
+command! -range LogSearch <line1>,<line2>call GitLogSearchByLineOrSelection()
+xnoremap <leader>gs :LogSearch<CR>
+nnoremap <leader>gs :LogSearch<CR>

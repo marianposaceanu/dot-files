@@ -4,11 +4,11 @@
 # Theme — TwoDark complements the ayu-dark Vim theme
 --theme="TwoDark"
 
-# Show line numbers, git change indicators, and file header
---style="numbers,changes,header"
+# Decorate terminal output; keep redirected output plain.
+--style="auto"
 
-# Always use colour output (works well with less -R and fzf)
---color="always"
+# FZF previews request colors explicitly.
+--color="auto"
 
 # Use italic text where supported
 --italic-text="always"

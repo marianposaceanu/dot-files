@@ -47,9 +47,9 @@
   (json/parse-string (slurp (repo-path "amp" "settings.json")))
   (json/parse-string (slurp (repo-path "claude" "settings.json")))
   (if-let [bat (common/command-path "bat")]
-    (common/run! {:out :string}
-                 [bat "--config-file" (repo-path "bat" "config")
-                  "--plain" "--color=never" "/dev/null"])
+    (common/run! {:out :string
+                  :extra-env {"BAT_CONFIG_PATH" (repo-path "bat" "config")}}
+                 [bat "/dev/null"])
     (common/info "Skipping bat config validation (bat not found).")))
 
 (defn- run-ruby! [& args]
@@ -67,6 +67,8 @@
   (run-ruby! (repo-path "bootstrap" "site" "validate_site.rb")))
 
 (defn- check-vim! []
+  (common/info "Checking editor behavior and bat output...")
+  (run-ruby! (repo-path "test" "editor_config_test.rb"))
   (common/info "Checking Vim config load...")
   (common/run!
    ["vim" "-Nu" (repo-path ".vimrc") "-i" "NONE" "-n" "-es" "-c" "qall"]))
