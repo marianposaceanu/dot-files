@@ -70,9 +70,9 @@
   (common/info "Checking published site contract...")
   (run-ruby! warnings {} (repo-path "bootstrap" "site" "validate_site.rb")))
 
-(defn- check-vim! []
+(defn- check-vim! [warnings]
   (common/info "Checking editor behavior and bat output...")
-  (run-ruby! (repo-path "test" "editor_config_test.rb"))
+  (run-ruby! warnings {:out :string} (repo-path "test" "editor_config_test.rb"))
   (common/info "Checking Vim config load...")
   (common/run!
    ["vim" "-Nu" (repo-path ".vimrc") "-i" "NONE" "-n" "-es" "-c" "qall"]))
@@ -102,7 +102,7 @@
       (check-application-configs!)
       (check-installer! warnings)
       (check-published-site! warnings)
-      (check-vim!)
+      (check-vim! warnings)
       (check-ghostty!)
 
       (println)
