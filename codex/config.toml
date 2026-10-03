@@ -1,4 +1,4 @@
-model = "gpt-6-astra"
+model = "gpt-6.1-sol"
 model_reasoning_effort = "medium"
 service_tier = "default"
 approval_policy = "never"
@@ -52,6 +52,12 @@ trust_level = "trusted"
 [projects."/Users/marian/Desktop/SSR"]
 trust_level = "trusted"
 
+[projects."/Users/marian"]
+trust_level = "trusted"
+
+[projects."/Users/marian/Downloads"]
+trust_level = "trusted"
+
 [features]
 apps = false
 fast_mode = false
@@ -78,3 +84,4 @@ status_line = [
               ]
 status_line_use_colors = true
 terminal_resize_reflow_max_rows = 2000
+screen_reader_detection_done = true

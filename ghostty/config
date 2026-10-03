@@ -73,7 +73,6 @@ window-step-resize = false
 undo-timeout = 15s
 
 # Merge the tab strip into the macOS titlebar to save vertical space.
-macos-titlebar-style = native
 # macos-titlebar-style = tabs
 
 # Treat both Option keys as terminal Alt keys instead of macOS character composers.
