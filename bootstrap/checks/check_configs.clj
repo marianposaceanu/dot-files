@@ -8,6 +8,8 @@
 
 (classpath/add-classpath repo-root)
 (require '[bootstrap.lib.common :as common]
+         '[bootstrap.lib.progress :as progress]
+         '[bootstrap.lib.rvm :as rvm]
          '[bootstrap.lib.ruby-warnings :as ruby-warnings])
 
 (def ^:private usage "Usage: bb bootstrap/checks/check_configs.clj")
@@ -31,7 +33,8 @@
 (defn- check-babashka-scripts! []
   (common/info "Checking Babashka script syntax...")
   (doseq [script (sort (fs/glob (repo-path "bootstrap") "**.clj"))]
-    (parse-clojure-file! script)))
+    (parse-clojure-file! script))
+  (rvm/read-config (repo-path "rvm" "config.edn")))
 
 (defn- check-shell-configs! []
   (common/info "Checking Bash config syntax...")
@@ -64,16 +67,19 @@
   (common/info "Checking macOS installer idempotence...")
   (run-ruby! warnings {:out :string} (repo-path "test" "install_macos_test.rb")))
 
-(defn- check-published-site! [warnings]
+(defn- check-generated-pages! [warnings]
   (common/info "Checking generated tutorial pages...")
-  (run-ruby! warnings {} (repo-path "bootstrap" "site" "build_tutorial_pages.rb") "--check")
+  (run-ruby! warnings {} (repo-path "bootstrap" "site" "build_tutorial_pages.rb") "--check"))
 
+(defn- check-site-contract! [warnings]
   (common/info "Checking published site contract...")
   (run-ruby! warnings {} (repo-path "bootstrap" "site" "validate_site.rb")))
 
-(defn- check-vim! [warnings]
+(defn- check-editor! [warnings]
   (common/info "Checking editor behavior and bat output...")
-  (run-ruby! warnings {:out :string} (repo-path "test" "editor_config_test.rb"))
+  (run-ruby! warnings {:out :string} (repo-path "test" "editor_config_test.rb")))
+
+(defn- check-vim! []
   (common/info "Checking Vim config load...")
   (common/run!
    ["vim" "-Nu" (repo-path ".vimrc") "-i" "NONE" "-n" "-es" "-c" "qall"]))
@@ -95,16 +101,21 @@
 
   (let [warnings (atom {})]
     (try
-      (common/info "Inspecting Ruby and RVM gem environments...")
-      (ruby-warnings/inspect! warnings)
-      (check-shell-scripts!)
-      (check-babashka-scripts!)
-      (check-shell-configs!)
-      (check-application-configs!)
-      (check-installer! warnings)
-      (check-published-site! warnings)
-      (check-vim! warnings)
-      (check-ghostty!)
+      (let [checks [#(do (common/info "Inspecting Ruby and RVM gem environments...")
+                         (ruby-warnings/inspect! warnings))
+                    check-shell-scripts!
+                    check-babashka-scripts!
+                    check-shell-configs!
+                    check-application-configs!
+                    #(check-installer! warnings)
+                    #(check-generated-pages! warnings)
+                    #(check-site-contract! warnings)
+                    #(check-editor! warnings)
+                    check-vim!
+                    check-ghostty!]]
+        (doseq [[index check!] (map-indexed vector checks)]
+          (check!)
+          (progress/report! (inc index) (count checks))))
 
       (println)
       (common/success-panel

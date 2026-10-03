@@ -79,11 +79,13 @@ class InstallMacosTest < Minitest::Test
     assert_includes second_output, "Repository path is ready"
     assert_includes second_output, "Ghostty is already installed"
     assert_includes second_output, "Oh My Zsh is already installed"
-    assert_includes second_output, "╭─ [07/09] Pinned Vim plugins"
+    assert_includes second_output, "╭─ [05/10] RVM Ruby versions"
+    assert_includes second_output, "RVM Ruby 4.0.7 is already installed."
+    assert_includes second_output, "╭─ [08/10] Pinned Vim plugins"
     assert_includes second_output, "✓ Pinned Vim plugins are ready."
-    assert_includes second_output, "╭─ [08/09] Configuration links"
+    assert_includes second_output, "╭─ [09/10] Configuration links"
     assert_includes second_output, "✓ Configuration links: 17 unchanged, 0 updated, 0 backups."
-    assert_includes second_output, "╭─ [09/09] Validation"
+    assert_includes second_output, "╭─ [10/10] Validation"
     refute_includes second_output, "Already linked:"
     assert_equal backups, Dir.glob(File.join(@home, ".zshrc.backup.*"))
     assert_equal claude_backups, Dir.glob("#{claude_config_path}.backup.*")
@@ -95,6 +97,9 @@ class InstallMacosTest < Minitest::Test
     assert_equal 2, commands.count { |line| line.start_with?("brew bundle --file ") }
     assert_equal 2, commands.count("git submodule --quiet sync --recursive")
     assert_equal 2, commands.count("git submodule --quiet update --init --recursive")
+    assert_equal 1, commands.count("rvm installer")
+    assert_equal 1, commands.count("rvm install ruby-4.0.7")
+    assert_equal 1, commands.count("rvm --default use ruby-4.0.7")
   end
 
   def test_requests_command_line_tools_and_stops_for_their_installer
@@ -107,6 +112,46 @@ class InstallMacosTest < Minitest::Test
     assert_includes stderr, "Command Line Tools installation was requested"
     assert_includes File.readlines(@log, chomp: true), "xcode-select --install"
     refute File.exist?(File.join(@home, "dot-files"))
+  end
+
+  def test_rvm_check_reports_missing_versions_without_installing
+    env = { "HOME" => @home, "PATH" => [@bin, "/usr/bin", "/bin"].join(":") }
+    output, status = Open3.capture2e(env, BB_BIN,
+      File.join(REPO_ROOT, "bootstrap/setup/install_rvm.clj"), "--check")
+
+    refute status.success?
+    assert_includes output, "RVM Ruby 4.0.7 is missing or does not run correctly."
+    refute File.exist?(File.join(@home, ".rvm"))
+    refute File.exist?(@log)
+  end
+
+  def test_repairs_rvm_default_without_reinstalling_or_removing_old_rubies
+    run_installer
+    rvm_root = File.join(@home, ".rvm")
+    old_ruby = File.join(rvm_root, "rubies/ruby-3.4.7/bin/ruby")
+    FileUtils.mkdir_p(File.dirname(old_ruby))
+    File.write(old_ruby, "#!/bin/sh\nprintf 3.4.7\n")
+    FileUtils.chmod(0o755, old_ruby)
+    default = File.join(rvm_root, "rubies/default")
+    FileUtils.rm_f(default)
+    FileUtils.ln_s(File.join(rvm_root, "rubies/ruby-3.4.7"), default)
+
+    run_installer
+
+    assert_equal File.realpath(File.join(rvm_root, "rubies/ruby-4.0.7")), File.realpath(default)
+    assert File.executable?(old_ruby)
+    commands = File.readlines(@log, chomp: true)
+    assert_equal 1, commands.count("rvm install ruby-4.0.7")
+    assert_equal 2, commands.count("rvm --default use ruby-4.0.7")
+  end
+
+  def test_rvm_install_failure_stops_setup
+    stdout, stderr, status = invoke_installer(fail_rvm: true)
+
+    refute status.success?
+    assert_includes stdout + stderr, "simulated RVM install failure"
+    refute_includes stdout, "SETUP COMPLETE"
+    refute File.exist?(File.join(@home, ".rvm/rubies/default"))
   end
 
   def test_repairs_a_ghostty_receipt_without_an_application
@@ -136,8 +181,15 @@ class InstallMacosTest < Minitest::Test
     assert_includes output, "\e[1;29r"
     assert_includes output, "\e[1;17r"
     assert_includes output, "\e[1;18r"
-    assert_match(/\[[# ]+\] +11%/, output)
-    assert_match(/\[[# ]+\] +44%/, output)
+    assert_match(/\[[# ]+\] +10%/, output)
+    assert_match(/\[[# ]+\] +40%/, output)
+    percentages = output.scan(/\[[# ]+\] +(\d+)%/).flatten.map(&:to_i)
+    assert_equal percentages.sort, percentages, "progress should never move backwards"
+    assert_includes percentages, 31 # Homebrew metadata updated, before bundle installation
+    assert_includes percentages, 85 # Configuration links are still being processed
+    assert_includes percentages, 99 # Completion is reserved for successful setup
+    assert_operator percentages.uniq.length, :>, 20
+    assert_operator output.index(" 31%"), :<, output.index("Installing dependencies from Brewfile")
     assert_match(/\[[# ]+\] +100%/, output)
     assert_operator output.index("\e[1;29r"), :<,
       output.index("growth-child-still-running")
@@ -151,6 +203,7 @@ class InstallMacosTest < Minitest::Test
 
     refute status.success?
     assert_includes output, "simulated brew bundle failure"
+    refute_match(/\[[# ]+\] +100%/, output)
     refute_includes output, "SETUP COMPLETE"
     assert_includes output, "╭─ COMMAND FAILED"
   end
@@ -161,6 +214,7 @@ class InstallMacosTest < Minitest::Test
 
     refute status.success?
     assert_includes output, "simulated brew bundle failure"
+    refute_match(/\[[# ]+\] +100%/, output)
     refute_includes output, "SETUP COMPLETE"
     assert_operator output.rindex("\e[1;18r"), :>,
       output.index("simulated brew bundle failure")
@@ -177,7 +231,7 @@ class InstallMacosTest < Minitest::Test
     stdout
   end
 
-  def invoke_installer(interactive: false, fail_brew: false, timings: false)
+  def invoke_installer(interactive: false, fail_brew: false, fail_rvm: false, timings: false)
     path = [@bin, "/usr/bin", "/bin", "/usr/sbin", "/sbin"]
     env = {
       "HOME" => @home,
@@ -188,6 +242,7 @@ class InstallMacosTest < Minitest::Test
       "INSTALLER_TEST_CLT_STATE" => @clt_state,
       "INSTALLER_TEST_RESIZE" => interactive ? "1" : "0",
       "INSTALLER_TEST_FAIL_BREW" => fail_brew ? "1" : "0",
+      "INSTALLER_TEST_FAIL_RVM" => fail_rvm ? "1" : "0",
       "GHOSTTY_APP_PATH" => @ghostty_app,
       "TERM" => "xterm-256color"
     }
@@ -204,6 +259,44 @@ class InstallMacosTest < Minitest::Test
   end
 
   def write_stubs
+    write_executable("gpg", <<~'SH')
+      #!/usr/bin/env bash
+      printf 'gpg %s\n' "$*" >> "${INSTALLER_TEST_LOG:?}"
+    SH
+
+    write_executable("curl", <<~'SH')
+      #!/usr/bin/env bash
+      [ "${!#}" = 'https://get.rvm.io' ] || exit 1
+      cat <<'INSTALLER'
+      printf 'rvm installer\n' >> "${INSTALLER_TEST_LOG:?}"
+      [ "${rvm_ignore_dotfiles:-}" = 'yes' ] || exit 1
+      mkdir -p "${rvm_path:?}/scripts"
+      cat > "$rvm_path/scripts/rvm" <<'RVM'
+      rvm() {
+        printf 'rvm %s\n' "$*" >> "${INSTALLER_TEST_LOG:?}"
+        case "$1" in
+          install)
+            if [ "${INSTALLER_TEST_FAIL_RVM:-0}" = '1' ]; then
+              printf 'simulated RVM install failure\n' >&2
+              return 29
+            fi
+            version="${2#ruby-}"
+            binary="$rvm_path/rubies/ruby-$version/bin/ruby"
+            mkdir -p "$(dirname "$binary")"
+            printf '#!/bin/sh\nprintf %%s "%s"\n' "$version" > "$binary"
+            chmod +x "$binary"
+            ;;
+          --default)
+            [ "$2" = 'use' ] || return 1
+            ln -sfn "$rvm_path/rubies/$3" "$rvm_path/rubies/default"
+            ;;
+          *) return 1 ;;
+        esac
+      }
+      RVM
+      INSTALLER
+    SH
+
     write_executable("uname", <<~'SH')
       #!/usr/bin/env bash
       [ "${1:-}" = '-s' ] && printf 'Darwin\n' || /usr/bin/uname "$@"

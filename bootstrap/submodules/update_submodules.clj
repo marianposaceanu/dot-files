@@ -5,7 +5,8 @@
   (-> *file* fs/parent fs/parent fs/parent fs/canonicalize str))
 
 (classpath/add-classpath repo-root)
-(require '[bootstrap.lib.common :as common])
+(require '[bootstrap.lib.common :as common]
+         '[bootstrap.lib.progress :as progress])
 
 (def ^:private usage
   "Usage: bb bootstrap/submodules/update_submodules.clj [--remote]")
@@ -37,7 +38,9 @@
        "Updating submodules to repository-pinned revisions..."))
     (common/run!
      ["git" "-C" repo-root "submodule" "--quiet" "sync" "--recursive"])
+    (progress/report! 1 2)
     (common/run! (update-command mode))
+    (progress/report! 2 2)
 
     (println)
     (common/success-panel

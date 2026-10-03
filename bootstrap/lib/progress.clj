@@ -1,5 +1,7 @@
 (ns bootstrap.lib.progress
-  (:require [babashka.process :as process])
+  (:require [babashka.fs :as fs]
+            [babashka.process :as process]
+            [clojure.edn :as edn])
   (:import [sun.misc Signal SignalHandler]))
 
 (def ^:private escape "\u001b")
@@ -139,8 +141,8 @@
 
 (defn update! [completed total]
   (locking terminal-lock
-    (let [percent (min 100 (quot (* completed 100) total))]
-      (swap! terminal-state assoc :percent percent)
+    (let [percent (max 0 (min 99 (long (/ (* completed 100) total))))]
+      (swap! terminal-state update :percent max percent)
       (when (:interactive @terminal-state)
         (refresh-terminal!)
         (draw-progress!)))))
@@ -158,3 +160,45 @@
       (restore-terminal!)
       (println text)
       (swap! terminal-state assoc :interactive false))))
+
+(defn report! [completed total]
+  ;; Child scripts publish milestones; only the installer draws the terminal bar.
+  (when-let [path (System/getenv "DOT_FILES_PROGRESS_FILE")]
+    (let [pending (str path ".pending")]
+      (spit pending (pr-str [completed total]))
+      (fs/move pending path {:replace-existing true}))))
+
+(defn- read-report [path]
+  (when (fs/exists? path)
+    (let [report (edn/read-string (slurp path))]
+      (when (and (vector? report) (= 2 (count report))
+                 (every? number? report) (pos? (second report))
+                 (<= 0 (first report) (second report)))
+        report))))
+
+(defn run-reporting! [options command on-progress]
+  (let [directory (fs/create-temp-dir {:prefix "dot-files-progress-"})
+        path (str (fs/path directory "progress.edn"))]
+    (try
+      (let [child (apply process/process
+                         (assoc-in (merge {:in :inherit :out :inherit :err :inherit} options)
+                                   [:extra-env "DOT_FILES_PROGRESS_FILE"] path)
+                         command)]
+        (try
+          (loop [previous nil]
+            (let [report (read-report path)]
+              (when (and report (not= report previous))
+                (apply on-progress report))
+              (if-let [result (deref child 50 nil)]
+                (do
+                  (when-let [final-report (read-report path)]
+                    (when (not= final-report report)
+                      (apply on-progress final-report)))
+                  (process/check result))
+                (recur report))))
+          (finally
+            (when (.isAlive (:proc child))
+              (process/destroy-tree child)
+              @child))))
+      (finally
+        (fs/delete-tree directory)))))

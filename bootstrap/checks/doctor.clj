@@ -6,7 +6,8 @@
   (-> *file* fs/parent fs/parent fs/parent fs/canonicalize str))
 
 (classpath/add-classpath repo-root)
-(require '[bootstrap.lib.common :as common])
+(require '[bootstrap.lib.common :as common]
+         '[bootstrap.lib.rvm :as rvm])
 
 (def ^:private usage "Usage: bb bootstrap/checks/doctor.clj")
 
@@ -187,6 +188,9 @@
   (common/heading "CONFIGURATION LINKS")
   (let [link-warnings (report! (link-results (common/resolved-link-specs repo-root)))]
     (common/heading "HOMEBREW")
-    (finish! (+ link-warnings (report! (brew-results))))))
+    (let [brew-warnings (report! (brew-results))]
+      (common/heading "RVM RUBIES")
+      (finish! (+ link-warnings brew-warnings
+                  (report! (rvm/status (rvm/read-config (fs/path repo-root "rvm/config.edn")))))))))
 
 (common/run-script! -main *command-line-args*)

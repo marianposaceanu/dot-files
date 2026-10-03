@@ -8,7 +8,7 @@
 (require '[bootstrap.lib.common :as common]
          '[bootstrap.lib.progress :as progress])
 
-(def ^:private total-stages 9)
+(def ^:private total-stages 10)
 
 (def ^:private required-formulas
   [{:formula "babashka" :executable "bb"}
@@ -82,20 +82,30 @@
      :child-env {}
      :timings []}))
 
+(defn- advance! [state completed total]
+  ((:on-progress state) completed total))
+
 (defn- run-command!
-  ([state command]
-   (common/run! {:extra-env (:child-env state)} command))
+  ([state command] (run-command! state {} command))
   ([state options command]
-   (let [extra-env (merge (:child-env state) (:extra-env options))]
-     (common/run! (assoc options :extra-env extra-env) command))))
+   (let [opts (assoc (dissoc options :progress-range)
+                     :extra-env (merge (:child-env state) (:extra-env options)))]
+     (if-let [[start end] (:progress-range options)]
+       (progress/run-reporting!
+        opts command
+        (fn [completed total]
+          (advance! state (+ start (* (- end start) (/ completed total))) 1)))
+       (common/run! opts command)))))
 
 (defn- run-stage! [state number title action]
   (common/section number total-stages title)
   (let [started (System/nanoTime)
-        next-state (action state)
+        on-progress (fn [completed total]
+                      (progress/update! (+ (dec number) (/ completed total)) total-stages))
+        next-state (action (assoc state :on-progress on-progress))
         elapsed-seconds (/ (- (System/nanoTime) started) 1000000000.0)]
-    (progress/update! number total-stages)
-    (update next-state :timings conj
+    (on-progress 1 1)
+    (update (dissoc next-state :on-progress) :timings conj
             {:title title :seconds elapsed-seconds})))
 
 (defn- find-ghostty [{:keys [ghostty-app]}]
@@ -193,10 +203,17 @@
   (let [brewfile (fs/path repo-root "Brewfile")]
     (common/info "Updating Homebrew metadata...")
     (run-command! state [brew "update"])
+    (advance! state 1 6)
     (common/info "Installing dependencies from Brewfile...")
     (run-command! state (common/brew-bundle-command brew brewfile))
+    (advance! state 2 6)
     (common/success "Brewfile dependencies are installed.")
-    (let [prefixes (into {} (map #(formula-prefix! brew %) required-formulas))
+    (let [prefixes (into {} (map-indexed
+                             (fn [index formula]
+                               (let [entry (formula-prefix! brew formula)]
+                                 (advance! state (+ 3 index) 6)
+                                 entry))
+                             required-formulas))
           ruby-bin (str (fs/path (get prefixes "ruby") "bin"))
           installed-bb (str (fs/path (get prefixes "babashka") "bin/bb"))
           path (str ruby-bin ":" (get-in state [:child-env "PATH"]))]
@@ -227,6 +244,11 @@
   (common/success "Ghostty is ready.")
   state)
 
+(defn- install-rvm! [{:keys [bb repo-root] :as state}]
+  (run-command! state {:progress-range [0 1]}
+                [bb (str (fs/path repo-root "bootstrap/setup/install_rvm.clj"))])
+  state)
+
 (defn- install-oh-my-zsh! [{:keys [oh-my-zsh-dir] :as state}]
   (let [entrypoint (fs/path oh-my-zsh-dir "oh-my-zsh.sh")]
     (cond
@@ -254,15 +276,16 @@
   state)
 
 (defn- update-submodules! [{:keys [bb repo-root] :as state}]
-  (run-command! state [bb (str (fs/path repo-root
-                                        "bootstrap/submodules/update_submodules.clj"))])
+  (run-command! state {:progress-range [0 1]}
+                [bb (str (fs/path repo-root
+                                  "bootstrap/submodules/update_submodules.clj"))])
   (common/success "Pinned Vim plugins are ready.")
   state)
 
 (defn- link-configs! [{:keys [repo-root] :as state}]
   (common/success
    (str "Configuration links: "
-        (common/summary (common/link-configs! repo-root))))
+        (common/summary (common/link-configs! repo-root (:on-progress state)))))
   state)
 
 (defn- validate! [{:keys [bb options repo-root] :as state}]
@@ -272,9 +295,12 @@
       (println (str "    bb " repo-root "/bootstrap/checks/check_configs.clj"))
       (println (str "    bb " repo-root "/bootstrap/checks/doctor.clj")))
     (let [ghostty (find-ghostty state)]
-      (run-command! state [bb (str (fs/path repo-root
-                                            "bootstrap/checks/check_configs.clj"))])
+      (run-command! state {:progress-range [0 4/5]}
+                    [bb (str (fs/path repo-root
+                                      "bootstrap/checks/check_configs.clj"))])
+      (advance! state 4 5)
       (run-command! state {:out :string} [ghostty "+validate-config"])
+      (advance! state 9 10)
       (run-command! state [bb (str (fs/path repo-root
                                             "bootstrap/checks/doctor.clj"))])
       (common/success "Repository, Ghostty, and environment checks passed.")))
@@ -285,6 +311,7 @@
    ["Repository path" ensure-repository-path!]
    ["Homebrew" ensure-homebrew!]
    ["Command-line dependencies" install-dependencies!]
+   ["RVM Ruby versions" install-rvm!]
    ["Ghostty" install-ghostty!]
    ["Oh My Zsh" install-oh-my-zsh!]
    ["Pinned Vim plugins" update-submodules!]

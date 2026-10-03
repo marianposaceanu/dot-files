@@ -55,7 +55,7 @@ The installer presents a rounded bootstrap UI:
 │  Idempotent setup powered by Babashka
 ╰─ Existing files are backed up before links are changed
 
-╭─ [01/09] Apple Command Line Tools
+╭─ [01/10] Apple Command Line Tools
 ╰─
 ✓ Apple Command Line Tools are available.
 
@@ -64,9 +64,28 @@ The installer presents a rounded bootstrap UI:
 ╰─ Next: restart the terminal or run source ~/.zshrc
 ```
 
+The macOS installer keeps one global progress bar at the bottom of interactive
+terminals. It advances as dependency checks, RVM milestones, plugin setup,
+individual configuration links, and validation checks finish. Progress reflects
+completed work rather than elapsed time; setup reaches 100% only after success.
+
 Use `--timings` to report stage durations. Use `--skip-checks` only when you
-will run the checks manually afterward. Licensed fonts, RVM language runtimes,
+will run the checks manually afterward. Licensed fonts,
 credentials, keyboard preferences, and optional native builds remain manual.
+
+`rvm/config.edn` lists required Ruby versions and the default. Setup installs RVM
+stable when missing, installs required Rubies, and sets the default to Ruby
+4.0.7. Existing Ruby versions and gemsets are retained. RVM's installer leaves
+shell configs alone because the dotfiles already initialize it.
+
+To check or install just the RVM requirements:
+
+```sh
+bb bootstrap/setup/install_rvm.clj --check
+bb bootstrap/setup/install_rvm.clj
+```
+
+The doctor also reports missing Rubies and an incorrect default.
 
 ## Repository contents
 

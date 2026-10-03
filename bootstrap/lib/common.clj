@@ -190,16 +190,25 @@
         (spit target (str (json/generate-string updated {:pretty true}) "\n"))
         {:unchanged 0 :updated 1 :backups (if present? 1 0)}))))
 
-(defn link-configs! [repo-root]
-  (let [timestamp (.format (LocalDateTime/now)
-                           (DateTimeFormatter/ofPattern "yyyyMMddHHmmss"))
-        home (or (System/getenv "HOME") (System/getProperty "user.home"))
-        links (reduce (partial link-config! timestamp)
-                      {:unchanged 0 :updated 0 :backups 0}
-                      (resolved-link-specs repo-root))
-        claude (merge-json-config! (str (fs/path repo-root "claude/config.json"))
-                                  (str (fs/path home ".claude.json")) timestamp)]
-    (merge-with + links claude)))
+(defn link-configs!
+  ([repo-root] (link-configs! repo-root (fn [_ _])))
+  ([repo-root on-progress]
+   (let [timestamp (.format (LocalDateTime/now)
+                            (DateTimeFormatter/ofPattern "yyyyMMddHHmmss"))
+         home (or (System/getenv "HOME") (System/getProperty "user.home"))
+         specs (resolved-link-specs repo-root)
+         total (inc (count specs))
+         links (reduce-kv
+                (fn [counts index spec]
+                  (let [updated (link-config! timestamp counts spec)]
+                    (on-progress (inc index) total)
+                    updated))
+                {:unchanged 0 :updated 0 :backups 0}
+                (vec specs))
+         claude (merge-json-config! (str (fs/path repo-root "claude/config.json"))
+                                   (str (fs/path home ".claude.json")) timestamp)]
+     (on-progress total total)
+     (merge-with + links claude))))
 
 (defn summary [{:keys [unchanged updated backups]}]
   (format "%d unchanged, %d updated, %d %s."
