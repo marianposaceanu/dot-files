@@ -7,7 +7,8 @@
   (-> *file* fs/parent fs/parent fs/parent fs/canonicalize str))
 
 (classpath/add-classpath repo-root)
-(require '[bootstrap.lib.common :as common])
+(require '[bootstrap.lib.common :as common]
+         '[bootstrap.lib.ruby-warnings :as ruby-warnings])
 
 (def ^:private usage "Usage: bb bootstrap/checks/check_configs.clj")
 
@@ -52,19 +53,22 @@
                  [bat "/dev/null"])
     (common/info "Skipping bat config validation (bat not found).")))
 
-(defn- run-ruby! [& args]
-  (common/run! (into ["env" "-u" "GEM_HOME" "-u" "GEM_PATH" "ruby"] args)))
+(defn- run-ruby! [warnings opts & args]
+  (ruby-warnings/run! warnings
+                      {:label "Ruby used by config checks"
+                       :ruby (or (common/command-path "ruby") "ruby")}
+                      opts args))
 
-(defn- check-installer! []
+(defn- check-installer! [warnings]
   (common/info "Checking macOS installer idempotence...")
-  (run-ruby! (repo-path "test" "install_macos_test.rb")))
+  (run-ruby! warnings {:out :string} (repo-path "test" "install_macos_test.rb")))
 
-(defn- check-published-site! []
+(defn- check-published-site! [warnings]
   (common/info "Checking generated tutorial pages...")
-  (run-ruby! (repo-path "bootstrap" "site" "build_tutorial_pages.rb") "--check")
+  (run-ruby! warnings {} (repo-path "bootstrap" "site" "build_tutorial_pages.rb") "--check")
 
   (common/info "Checking published site contract...")
-  (run-ruby! (repo-path "bootstrap" "site" "validate_site.rb")))
+  (run-ruby! warnings {} (repo-path "bootstrap" "site" "validate_site.rb")))
 
 (defn- check-vim! []
   (common/info "Checking editor behavior and bat output...")
@@ -88,18 +92,24 @@
    "DOT-FILES :: CONFIG CHECKS"
    "Validating scripts, generated pages, Vim, and Ghostty")
 
-  (check-shell-scripts!)
-  (check-babashka-scripts!)
-  (check-shell-configs!)
-  (check-application-configs!)
-  (check-installer!)
-  (check-published-site!)
-  (check-vim!)
-  (check-ghostty!)
+  (let [warnings (atom {})]
+    (try
+      (common/info "Inspecting Ruby and RVM gem environments...")
+      (ruby-warnings/inspect! warnings)
+      (check-shell-scripts!)
+      (check-babashka-scripts!)
+      (check-shell-configs!)
+      (check-application-configs!)
+      (check-installer! warnings)
+      (check-published-site! warnings)
+      (check-vim!)
+      (check-ghostty!)
 
-  (println)
-  (common/success-panel
-   "CHECKS COMPLETE"
-   "All configuration checks passed."))
+      (println)
+      (common/success-panel
+       "CHECKS COMPLETE"
+       "All configuration checks passed.")
+      (finally
+        (ruby-warnings/report! warnings)))))
 
 (common/run-script! -main *command-line-args*)

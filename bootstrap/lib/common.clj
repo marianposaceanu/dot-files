@@ -18,6 +18,7 @@
 
 (def ^:private tone-codes
   {:info "1;36"
+   :warning "1;33"
    :success "1;32"
    :failure "1;31"})
 
@@ -38,6 +39,9 @@
 
 (defn failure-panel [title & details]
   (panel :failure title details))
+
+(defn warning-panel [title & details]
+  (panel :warning title details))
 
 (defn success [message]
   (println (styled "1;32" (str "✓ " message))))
