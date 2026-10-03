@@ -58,7 +58,7 @@
         <li><a href="#daily-shortcuts">Daily shortcuts</a></li>
         <li><a href="#save-and-restore">Save and restore</a></li>
         <li><a href="#automatic-backups">Automatic backups</a></li>
-        <li><a href="#inspect-workspace">Inspect the workspace</a></li>
+        <li><a href="#inspect-workspace">Inspect saved workspaces</a></li>
         <li><a href="#macos-choices">macOS choices</a></li>
         <li><a href="#restoration-limits">Restoration limits</a></li>
         <li><a href="#source-files">Source files</a></li>
@@ -197,16 +197,14 @@ rz --watch-stop</code></pre>
       </section>
 
       <section id="inspect-workspace">
-        <h2>Inspect or repair the live workspace</h2>
+        <h2>Inspect saved workspaces</h2>
         <p>
-          The launcher claims existing tabs by working directory and creates only
-          missing ones. It does not inject commands into an existing terminal.
+          Use <code>rz</code> to list saved snapshots, inspect one by its list
+          number, or preview a restore before changing the live workspace.
         </p>
-        <h3>Guaranteed read-only preview</h3>
-        <pre><code>osascript ~/dot-files/ghostty/scripts/workspace-open.applescript --dry-run</code></pre>
-        <h3>Ensure declared tabs and print the inventory</h3>
-        <pre><code>osascript ~/dot-files/ghostty/scripts/workspace-open.applescript
-osascript ~/dot-files/ghostty/scripts/workspace-inventory.applescript</code></pre>
+        <pre><code>rz --list
+rz --list 3
+rz --session work --dry-run</code></pre>
       </section>
 
       <section id="macos-choices">
@@ -246,8 +244,6 @@ osascript ~/dot-files/ghostty/scripts/workspace-inventory.applescript</code></pr
           <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/config">ghostty/config</a> - commented Ghostty configuration</li>
           <li><a href="https://github.com/marianposaceanu/rz/tree/main/src">rz/src</a> - native Rust snapshot, restore, agent, watcher, and UI implementation</li>
           <li><a href="https://github.com/marianposaceanu/rz/blob/main/libexec/snapshot-capture.applescript">rz/libexec/snapshot-capture.applescript</a> - live Ghostty and scrollback capture</li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/workspace-open.applescript">workspace-open.applescript</a> - idempotent workspace repair</li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/ghostty/scripts/workspace-inventory.applescript">workspace-inventory.applescript</a> - read-only TSV inventory</li>
         </ol>
       </section>
     </article>
