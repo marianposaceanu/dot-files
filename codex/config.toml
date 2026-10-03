@@ -65,6 +65,7 @@ hide_rate_limit_model_nudge = true
 
 [tui]
 animations = false
+copy_on_select = "always"
 show_tooltips = false
 status_line = [
                 "model-with-reasoning",

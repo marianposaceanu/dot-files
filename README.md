@@ -306,6 +306,11 @@ This includes Ghostty and backs up conflicting files or directories with a
 - `~/.config/bat`
 - `$HOME/Library/Application Support/com.mitchellh.ghostty/config`
 
+Setup also merges `claude/config.json` into `~/.claude.json`, backing up an
+existing file before changing it and preserving Claude's other preferences and
+state. Codex and Claude copy mouse-selected text to the clipboard on release;
+Ghostty's native selection also copies automatically.
+
 ## Zsh, tmux, and macOS notes
 
 `.zprofile` initializes Homebrew in login shells. `.zshrc` configures the

@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require "fileutils"
+require "json"
 require "minitest/autorun"
 require "open3"
 require "tmpdir"
@@ -33,6 +34,9 @@ class InstallMacosTest < Minitest::Test
   end
 
   def test_two_runs_install_once_and_do_not_create_duplicate_backups
+    claude_config_path = File.join(@home, ".claude.json")
+    claude_config = { "copyOnSelect" => false, "projects" => { "/example" => { "trusted" => true } } }
+    File.write(claude_config_path, JSON.generate(claude_config))
     brewfile = File.readlines(File.join(REPO_ROOT, "Brewfile"))
     assert_includes brewfile, "tap \"marianposaceanu/tap\"\n"
     assert_includes brewfile, "tap \"borkdude/brew\"\n"
@@ -56,6 +60,11 @@ class InstallMacosTest < Minitest::Test
     assert_equal File.join(REPO_ROOT, "codex/config.toml"), File.realpath(File.join(@home, ".codex/config.toml"))
     assert_equal File.join(REPO_ROOT, "claude/settings.json"), File.realpath(File.join(@home, ".claude/settings.json"))
     assert_equal File.join(REPO_ROOT, "claude/output-styles/amp.md"), File.realpath(File.join(@home, ".claude/output-styles/amp.md"))
+    refute File.symlink?(claude_config_path)
+    assert_equal claude_config.merge("copyOnSelect" => true), JSON.parse(File.read(claude_config_path))
+    claude_backups = Dir.glob("#{claude_config_path}.backup.*")
+    assert_equal 1, claude_backups.length
+    assert_equal claude_config, JSON.parse(File.read(claude_backups.first))
     assert_equal File.join(REPO_ROOT, "amp/settings.json"), File.realpath(File.join(@home, ".config/amp/settings.json"))
     assert File.file?(File.join(@home, ".oh-my-zsh/oh-my-zsh.sh"))
     assert File.executable?(File.join(@tmp_dir, "homebrew/opt/mextdisplay/bin/mextdisplay"))
@@ -73,10 +82,11 @@ class InstallMacosTest < Minitest::Test
     assert_includes second_output, "╭─ [07/09] Pinned Vim plugins"
     assert_includes second_output, "✓ Pinned Vim plugins are ready."
     assert_includes second_output, "╭─ [08/09] Configuration links"
-    assert_includes second_output, "✓ Configuration links: 16 unchanged, 0 updated, 0 backups."
+    assert_includes second_output, "✓ Configuration links: 17 unchanged, 0 updated, 0 backups."
     assert_includes second_output, "╭─ [09/09] Validation"
     refute_includes second_output, "Already linked:"
     assert_equal backups, Dir.glob(File.join(@home, ".zshrc.backup.*"))
+    assert_equal claude_backups, Dir.glob("#{claude_config_path}.backup.*")
 
     commands = File.readlines(@log, chomp: true)
     assert_equal 1, commands.count("brew install --cask ghostty")

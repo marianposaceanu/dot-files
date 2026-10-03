@@ -2,6 +2,7 @@
   (:refer-clojure :exclude [run!])
   (:require [babashka.fs :as fs]
             [babashka.process :as process]
+            [cheshire.core :as json]
             [clojure.string :as str])
   (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]))
@@ -170,12 +171,35 @@
       (cond-> (update counts :updated inc)
         backed-up? (update :backups inc)))))
 
+(defn- read-json-object [path]
+  (let [value (json/parse-string (slurp path))]
+    (when-not (map? value)
+      (throw (ex-info (str "Expected a JSON object in " path) {:path path})))
+    value))
+
+(defn- merge-json-config! [source target timestamp]
+  (let [present? (path-present? target)
+        current (if present? (read-json-object target) {})
+        updated (merge current (read-json-object source))]
+    (if (= current updated)
+      {:unchanged 1 :updated 0 :backups 0}
+      (do
+        (fs/create-dirs (fs/parent target))
+        (when present?
+          (fs/copy target (next-backup-path target timestamp) {:copy-attributes true}))
+        (spit target (str (json/generate-string updated {:pretty true}) "\n"))
+        {:unchanged 0 :updated 1 :backups (if present? 1 0)}))))
+
 (defn link-configs! [repo-root]
   (let [timestamp (.format (LocalDateTime/now)
-                           (DateTimeFormatter/ofPattern "yyyyMMddHHmmss"))]
-    (reduce (partial link-config! timestamp)
-            {:unchanged 0 :updated 0 :backups 0}
-            (resolved-link-specs repo-root))))
+                           (DateTimeFormatter/ofPattern "yyyyMMddHHmmss"))
+        home (or (System/getenv "HOME") (System/getProperty "user.home"))
+        links (reduce (partial link-config! timestamp)
+                      {:unchanged 0 :updated 0 :backups 0}
+                      (resolved-link-specs repo-root))
+        claude (merge-json-config! (str (fs/path repo-root "claude/config.json"))
+                                  (str (fs/path home ".claude.json")) timestamp)]
+    (merge-with + links claude)))
 
 (defn summary [{:keys [unchanged updated backups]}]
   (format "%d unchanged, %d updated, %d %s."
