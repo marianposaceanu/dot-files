@@ -19,7 +19,7 @@
         (warnings/run! collected runtime ["check.rb"])
         (warnings/run! collected (assoc runtime :label "Same Ruby") ["check.rb"])))
     (is (= 1 (count @collected)))
-    (is (= #{"bcrypt-3.1.22"} (set (first (vals @collected)))))
+    (is (= #{"bcrypt-3.1.22"} (set (:gems (first (vals @collected))))))
     (is (= "Other diagnostic\nOther diagnostic\n" (str stderr)))
     (let [report (with-out-str (warnings/report! collected))]
       (is (str/includes? report "RUBY ENVIRONMENT WARNINGS"))
@@ -33,7 +33,7 @@
         (is (thrown-with-msg? clojure.lang.ExceptionInfo #"exit 7"
                               (warnings/run! collected runtime ["check.rb"])))))
     (is (= "Fatal error\n" (str stderr)))
-    (is (= #{"bcrypt-3.1.22"} (set (get @collected runtime))))))
+    (is (= #{"bcrypt-3.1.22"} (set (:gems (first (vals @collected))))))))
 
 (deftest isolates-rvm-repair-environments
   (let [rvm (assoc runtime :gem-home "/tmp/RVM gems" :gem-path "/tmp/RVM gems:/tmp/global")
@@ -62,7 +62,7 @@
         (is (= :string (:out @options)))
         (is (= (when (pos? exit) exit) (some-> @failure ex-data :exit)))
         (is (= (if (zero? exit) "" test-output) (str stderr)))
-        (is (= #{"bcrypt-3.1.22"} (set (get @collected runtime))))))))
+        (is (= #{"bcrypt-3.1.22"} (set (:gems (first (vals @collected))))))))))
 
 (deftest discovers-missing-extensions-in-inactive-rubies
   (let [collected (atom {})
@@ -73,8 +73,24 @@
                                    :out (if (some #{"GEM_HOME=/tmp/gems"} command)
                                           "json-2.21.2\n" "")})]
       (warnings/inspect! collected))
-    (is (= #{"json-2.21.2"} (set (get @collected rvm))))
-    (is (not (contains? @collected runtime)))))
+    (is (= #{"json-2.21.2"} (set (:gems (first (vals @collected))))))
+    (is (= [rvm] (mapv :runtime (vals @collected))))))
+
+(deftest indexes-gem-environments-and-probe-failures-separately
+  (let [collected (atom {})
+        other (assoc runtime :gem-home "/tmp/other-gems")]
+    (with-redefs [warnings/runtimes (constantly [runtime other])
+                  common/result (constantly {:exit 0 :out "json-2.21.2\n" :err ""})]
+      (warnings/inspect! collected))
+    (with-redefs [warnings/runtimes (constantly [runtime])
+                  common/result (constantly {:exit 7 :out "" :err "broken runtime"})]
+      (warnings/inspect! collected))
+    (is (= 3 (count @collected)))
+    (is (= #{runtime other (assoc runtime :probe-failed? true)}
+           (set (map :runtime (vals @collected)))))
+    (let [report (with-out-str (warnings/report! collected))]
+      (is (str/includes? report "Could not inspect gems: broken runtime"))
+      (is (str/includes? report "pristine --all --only-missing-extensions")))))
 
 (let [{:keys [fail error]} (test/run-tests 'ruby-warnings-test)]
   (when (pos? (+ fail error))

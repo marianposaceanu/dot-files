@@ -8,16 +8,16 @@
   #"Ignoring (.+) because its extensions are not built\. Try: .+")
 
 (defn- runtime-key [{:keys [ruby gem-home gem-path probe-failed?]}]
-  [(common/canonical ruby) gem-home gem-path probe-failed?])
+  (cond-> {:ruby (common/canonical ruby)}
+    gem-home (assoc :gem-home gem-home)
+    gem-path (assoc :gem-path gem-path)
+    probe-failed? (assoc :probe-failed? true)))
 
 (defn- remember! [warnings runtime gems]
   (when (seq gems)
-    (let [target (runtime-key runtime)]
-      (swap! warnings
-             (fn [found]
-               (let [existing (some #(when (= (runtime-key %) target) %)
-                                    (keys found))]
-                 (update found (or existing runtime) (fnil into (sorted-set)) gems)))))))
+    (swap! warnings update (runtime-key runtime)
+           (fn [entry]
+             (update (or entry {:runtime runtime :gems (sorted-set)}) :gems into gems)))))
 
 (defn- command [{:keys [ruby gem-home gem-path]} & args]
   (into (cond-> ["env" "-u" "GEM_HOME" "-u" "GEM_PATH"]
@@ -104,7 +104,7 @@
     (common/warning-panel
      "RUBY ENVIRONMENT WARNINGS"
      "Configuration results are reported above. Review these environment issues separately.")
-    (doseq [[runtime gems] (sort-by (comp :label key) @warnings)]
+    (doseq [{:keys [runtime gems]} (sort-by (comp :label :runtime) (vals @warnings))]
       (println)
       (common/warning (:label runtime))
       (println (str "  Ruby: " (:ruby runtime)))
