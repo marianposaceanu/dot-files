@@ -1,0 +1,11 @@
+{:paths ["." "test"]
+ :tasks
+ {test {:doc "Run all Clojure tests, or the named test namespaces."
+        :requires ([test.runner :as runner])
+        :task (apply runner/-main *command-line-args*)}
+  test:unit {:doc "Run bootstrap library unit tests."
+             :requires ([test.runner :as runner])
+             :task (apply runner/-main runner/unit-test-namespaces)}
+  test:integration {:doc "Run installer and editor integration tests."
+                    :requires ([test.runner :as runner])
+                    :task (apply runner/-main runner/integration-test-namespaces)}}}

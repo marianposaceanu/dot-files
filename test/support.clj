@@ -1,7 +1,6 @@
 (ns test.support
   (:require [babashka.fs :as fs]
-            [bootstrap.lib.common :as common]
-            [clojure.test :as test]))
+            [bootstrap.lib.common :as common]))
 
 (def repo-root (-> *file* fs/canonicalize fs/parent fs/parent str))
 (def bb (or (System/getenv "BB_BIN") (common/command-path "bb")))
@@ -30,7 +29,3 @@
   ([command] (capture {} command))
   ([opts command]
    (common/run! (merge {:continue true :out :string :err :string} opts) command)))
-
-(defn run-tests! [namespace]
-  (let [{:keys [fail error]} (test/run-tests namespace)]
-    (when (pos? (+ fail error)) (System/exit 1))))

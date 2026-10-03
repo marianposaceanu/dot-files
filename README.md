@@ -243,17 +243,22 @@ bb bootstrap/checks/doctor.clj
 ```
 
 The configuration checks validate shell and Babashka syntax, application configs,
-installer idempotence, Vim behavior, and Ghostty configuration
+bootstrap unit tests, installer idempotence, Vim behavior, and Ghostty configuration
 when available. Editor regression tests cover Git errors and visual selections,
 file search outside Git, large-file highlighting, recovery files, and plain bat
 output when redirected. The doctor checks managed links and Homebrew dependencies.
 
-Run the Babashka regression tests individually with:
+Run all Clojure tests, a suite, or a single namespace with:
 
 ```sh
-bb test/editor_config_test.clj
-bb test/install_macos_test.clj
+bb test
+bb test:unit
+bb test:integration
+bb test integration.editor-config-test
+bb test integration.install-macos-test
 ```
+
+See [test/README.md](test/README.md) for test conventions, fixtures, and REPL use.
 
 For website edits, follow [the site instructions](bootstrap/site/instructions.md)
 and use [the article template](bootstrap/site/tutorial_page.html). Published HTML

@@ -69,11 +69,17 @@
 
 (defn- check-installer! []
   (common/info "Checking macOS installer idempotence...")
-  (run-bb! {:out :string} (repo-path "test" "install_macos_test.clj")))
+  (run-bb! {:out :string} "--config" (repo-path "bb.edn")
+           "test" "integration.install-macos-test"))
 
 (defn- check-editor! []
   (common/info "Checking editor behavior and bat output...")
-  (run-bb! {:out :string} (repo-path "test" "editor_config_test.clj")))
+  (run-bb! {:out :string} "--config" (repo-path "bb.edn")
+           "test" "integration.editor-config-test"))
+
+(defn- check-unit-tests! []
+  (common/info "Checking bootstrap unit tests...")
+  (run-bb! {:out :string} "--config" (repo-path "bb.edn") "test:unit"))
 
 (defn- check-vim! []
   (common/info "Checking Vim config load...")
@@ -103,6 +109,7 @@
                     check-babashka-scripts!
                     check-shell-configs!
                     check-application-configs!
+                    check-unit-tests!
                     check-installer!
                     check-editor!
                     check-vim!
