@@ -32,7 +32,8 @@
 
 (defn- check-babashka-scripts! []
   (common/info "Checking Babashka script syntax...")
-  (doseq [script (sort (fs/glob (repo-path "bootstrap") "**.clj"))]
+  (doseq [script (sort (concat (fs/glob (repo-path "bootstrap") "**.clj")
+                              (fs/glob (repo-path "test") "**.clj")))]
     (parse-clojure-file! script))
   (rvm/read-config (repo-path "rvm" "config.edn")))
 
@@ -57,27 +58,34 @@
                  [bat "/dev/null"])
     (common/info "Skipping bat config validation (bat not found).")))
 
-(defn- run-ruby! [warnings opts & args]
-  (ruby-warnings/run! warnings
-                      {:label "Ruby used by config checks"
-                       :ruby (or (common/command-path "ruby") "ruby")}
-                      opts args))
+(defn- run-bb! [opts & args]
+  (let [command (into [(or (common/command-path "bb") "bb")] args)
+        {:keys [exit out]} (common/run! (assoc opts :continue true) command)]
+    (when-not (zero? exit)
+      (when (= :string (:out opts))
+        (binding [*out* *err*] (print out) (flush)))
+      (throw (ex-info (str "Babashka check failed (exit " exit "): " (first args))
+                      {:exit exit :command command})))))
 
-(defn- check-installer! [warnings]
+(defn- check-installer! []
   (common/info "Checking macOS installer idempotence...")
-  (run-ruby! warnings {:out :string} (repo-path "test" "install_macos_test.rb")))
+  (run-bb! {:out :string} (repo-path "test" "install_macos_test.clj")))
 
-(defn- check-generated-pages! [warnings]
+(defn- check-site-tools! []
+  (common/info "Checking tutorial generator and site validator behavior...")
+  (run-bb! {:out :string} (repo-path "test" "site_test.clj")))
+
+(defn- check-generated-pages! []
   (common/info "Checking generated tutorial pages...")
-  (run-ruby! warnings {} (repo-path "bootstrap" "site" "build_tutorial_pages.rb") "--check"))
+  (run-bb! {} (repo-path "bootstrap" "site" "build_tutorial_pages.clj") "--check"))
 
-(defn- check-site-contract! [warnings]
+(defn- check-site-contract! []
   (common/info "Checking published site contract...")
-  (run-ruby! warnings {} (repo-path "bootstrap" "site" "validate_site.rb")))
+  (run-bb! {} (repo-path "bootstrap" "site" "validate_site.clj")))
 
-(defn- check-editor! [warnings]
+(defn- check-editor! []
   (common/info "Checking editor behavior and bat output...")
-  (run-ruby! warnings {:out :string} (repo-path "test" "editor_config_test.rb")))
+  (run-bb! {:out :string} (repo-path "test" "editor_config_test.clj")))
 
 (defn- check-vim! []
   (common/info "Checking Vim config load...")
@@ -107,10 +115,11 @@
                     check-babashka-scripts!
                     check-shell-configs!
                     check-application-configs!
-                    #(check-installer! warnings)
-                    #(check-generated-pages! warnings)
-                    #(check-site-contract! warnings)
-                    #(check-editor! warnings)
+                    check-installer!
+                    check-site-tools!
+                    check-generated-pages!
+                    check-site-contract!
+                    check-editor!
                     check-vim!
                     check-ghostty!]]
         (doseq [[index check!] (map-indexed vector checks)]

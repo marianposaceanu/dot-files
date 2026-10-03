@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+log="${INSTALLER_TEST_LOG:?}"
+state="${INSTALLER_TEST_BREW_STATE:?}"
+case "${1:-}" in
+  shellenv)
+    printf 'export HOMEBREW_PREFIX=%q\n' "$(dirname "$(dirname "$0")")"
+    ;;
+  --prefix)
+    if [ -z "${2:-}" ]; then
+      printf '%s/homebrew\n' "$(dirname "$state")"
+      exit 0
+    fi
+    case "$2" in babashka|mextdisplay|ruby|vim) ;; *) exit 1 ;; esac
+    prefix="$(dirname "$state")/homebrew/opt/$2"
+    mkdir -p "$prefix/bin"
+    executable="$2"
+    if [ "$2" = 'babashka' ]; then
+      executable='bb'
+      ln -sf "${INSTALLER_TEST_BB_BIN:?}" "$prefix/bin/$executable"
+    else
+      touch "$prefix/bin/$executable"
+      chmod +x "$prefix/bin/$executable"
+    fi
+    printf '%s\n' "$prefix"
+    ;;
+  update)
+    printf 'brew update\n' >> "$log"
+    if [ "${INSTALLER_TEST_RESIZE:-0}" = '1' ]; then
+      stty rows 30 cols 100
+      installer_pid="$(ps -o ppid= -p "$PPID" | tr -d ' ')"
+      kill -WINCH "$installer_pid"
+      sleep 0.2
+      printf 'growth-child-still-running\n'
+      stty rows 18 cols 48
+      kill -WINCH "$installer_pid"
+      sleep 0.2
+      printf 'shrink-child-still-running\n'
+    fi
+    ;;
+  bundle)
+    if [ "${2:-}" = '--help' ]; then
+      printf '%s\n' '--no-lock'
+    elif [ "${INSTALLER_TEST_FAIL_BREW:-0}" = '1' ]; then
+      printf 'simulated brew bundle failure\n' >&2
+      exit 23
+    else
+      printf 'brew %s\n' "$*" >> "$log"
+    fi
+    ;;
+  list)
+    [ "${2:-}" = '--cask' ] && [ "${3:-}" = 'ghostty' ] && [ -f "$state" ]
+    ;;
+  install)
+    printf 'brew %s\n' "$*" >> "$log"
+    if [ "${2:-}" = 'borkdude/brew/babashka' ]; then
+      ln -s "${INSTALLER_TEST_BB_BIN:?}" "$(dirname "$0")/bb"
+      exit 0
+    fi
+    if [ "${2:-}" = '--cask' ] && [ "${3:-}" = 'ghostty' ]; then
+      touch "$state"
+      executable="${GHOSTTY_APP_PATH:?}/Contents/MacOS/ghostty"
+      mkdir -p "$(dirname "$executable")"
+      touch "$executable"
+      chmod +x "$executable"
+    fi
+    ;;
+  reinstall)
+    printf 'brew %s\n' "$*" >> "$log"
+    if [ "${2:-}" = '--cask' ] && [ "${3:-}" = 'ghostty' ]; then
+      executable="${GHOSTTY_APP_PATH:?}/Contents/MacOS/ghostty"
+      mkdir -p "$(dirname "$executable")"
+      touch "$executable"
+      chmod +x "$executable"
+    fi
+    ;;
+  *)
+    printf 'unexpected brew command: %s\n' "$*" >&2
+    exit 1
+    ;;
+esac

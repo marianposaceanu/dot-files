@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+log="${INSTALLER_TEST_LOG:?}"
+if [ "${1:-}" = 'clone' ]; then
+  printf 'git %s\n' "$*" >> "$log"
+  destination="${!#}"
+  mkdir -p "$destination"
+  touch "$destination/oh-my-zsh.sh"
+  exit 0
+fi
+if [ "${1:-}" = '-C' ]; then
+  shift 2
+fi
+printf 'git %s\n' "$*" >> "$log"

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+[ "${1:-}" = '-s' ] && printf 'Darwin\n' || /usr/bin/uname "$@"

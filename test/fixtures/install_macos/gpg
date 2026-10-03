@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+printf 'gpg %s\n' "$*" >> "${INSTALLER_TEST_LOG:?}"

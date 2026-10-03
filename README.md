@@ -241,10 +241,20 @@ when available. Editor regression tests cover Git errors and visual selections,
 file search outside Git, large-file highlighting, recovery files, and plain bat
 output when redirected. The doctor checks managed links and Homebrew dependencies.
 
-Run just the editor regression tests with:
+Run the Babashka regression tests individually with:
 
 ```sh
-env -u GEM_HOME -u GEM_PATH ruby test/editor_config_test.rb
+bb test/editor_config_test.clj
+bb test/install_macos_test.clj
+bb test/site_test.clj
+```
+
+Generate or validate tutorial pages with:
+
+```sh
+bb bootstrap/site/build_tutorial_pages.clj
+bb bootstrap/site/build_tutorial_pages.clj --check
+bb bootstrap/site/validate_site.clj
 ```
 
 ## Vim
