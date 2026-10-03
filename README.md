@@ -107,15 +107,16 @@ bb bootstrap/setup/install_brew_deps.clj
 
 ## Custom tools
 
-Tools maintained alongside these dotfiles are available through
-[Marian’s Homebrew tap](https://github.com/marianposaceanu/homebrew-tap):
+Tools maintained alongside these dotfiles:
 
 | Tool | Purpose | Installation or command |
 | --- | --- | --- |
 | [mextdisplay](https://github.com/marianposaceanu/mextdisplay) | Enable and disable external displays on Apple Silicon Macs from a terminal UI or CLI. | `brew install marianposaceanu/tap/mextdisplay` |
 | [rz](https://github.com/marianposaceanu/rz) | Save and restore Ghostty workspaces, including terminal history and supported coding sessions. | `brew install marianposaceanu/tap/rz` |
+| [Safari Tab Weight](https://github.com/marianposaceanu/safari-tab-weight) | Inspect the current Safari tab’s observable resource weight, requests, and page structure. | [Build and enable in Safari](https://github.com/marianposaceanu/safari-tab-weight#run-in-safari) |
 | [brew native](https://github.com/marianposaceanu/homebrew-tap#native-apple-silicon-builds) | Build Vim, Git, ripgrep, and Universal Ctags for the local Apple CPU. | `brew tap marianposaceanu/tap`, then `brew native` |
 
+Homebrew packages are provided by [Marian’s tap](https://github.com/marianposaceanu/homebrew-tap).
 The main `Brewfile` installs `mextdisplay` and `rz`. Native source builds are
 optional; see [the native build instructions](#optional-native-apple-silicon-builds).
 
