@@ -8,6 +8,13 @@ The previous scripts, documentation, results, and regression harness are preserv
 in [archive/benchmarks-shell-20261004.tar.gz](archive/benchmarks-shell-20261004.tar.gz),
 with a checksum and [extraction instructions](archive/README.md).
 
+Six historical startup `.txt` captures remain as inputs to the startup chart.
+Five other captures (`after_core_tweaks`, `after_perf_tweaks`, `before_perf_tweaks`,
+`latest`, and `lightline_trial`) had no active references and were removed after
+verifying their bytes against the archive. Their source data remains in the
+archive. The archive also retains the legacy benchmark implementations needed
+to reproduce historical measurements.
+
 ## Entry points
 
 | Entry point | Purpose | Requirements and output |
@@ -53,6 +60,12 @@ Its bytes differ from the earlier awk-generated corpus. Reuse the same corpus
 for both candidates and rerun both baselines; historical Vim workload timings are
 not directly comparable. Reports record corpus SHA-256 hashes and binary metadata.
 Historical measurements and raw JSON remain unchanged.
+
+The [4 October 2026 Apple M1 Pro run](results/m1-pro-20261004/README.md) records
+all ten entry-point attempts, exact commands, workload results, and four fresh
+same-version Vim bottle/native baselines. Eight entry points completed; the two
+battery benchmarks required disconnecting AC power. The report also records an
+unexplained delay between Speedometer page completion and process exit.
 
 ## Vim and native binaries
 

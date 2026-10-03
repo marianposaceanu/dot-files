@@ -1,0 +1,41 @@
+{
+  "archive_sha256": "e3ce157a1b3ff2d6edf080dbe89baedae58acb90d9df84b3bde061b55da9aedc",
+  "removed_files": [
+    {
+      "removed": "benchmarks/vim_startup_profile_after_core_tweaks.txt",
+      "sha256": "467ab5f0d770aa58a99a9fe671b7d3077e996436239013c2230597212689bc24",
+      "retained_copy": "benchmarks/archive/benchmarks-shell-20261004.tar.gz",
+      "member": "benchmarks/vim_startup_profile_after_core_tweaks.txt",
+      "reason": "No active references; byte-identical archived source remains"
+    },
+    {
+      "removed": "benchmarks/vim_startup_profile_after_perf_tweaks.txt",
+      "sha256": "15819fc4a48ebe3c74162cedbc91ada2669f6c9dcbb752ec0f26b07f942792fa",
+      "retained_copy": "benchmarks/archive/benchmarks-shell-20261004.tar.gz",
+      "member": "benchmarks/vim_startup_profile_after_perf_tweaks.txt",
+      "reason": "No active references; byte-identical archived source remains"
+    },
+    {
+      "removed": "benchmarks/vim_startup_profile_before_perf_tweaks.txt",
+      "sha256": "22031a6b0c8aecedfc5ac77fcdd0375ab65ca7ae0bfe222c0975f3d68222cdff",
+      "retained_copy": "benchmarks/archive/benchmarks-shell-20261004.tar.gz",
+      "member": "benchmarks/vim_startup_profile_before_perf_tweaks.txt",
+      "reason": "No active references; byte-identical archived source remains"
+    },
+    {
+      "removed": "benchmarks/vim_startup_profile_latest.txt",
+      "sha256": "26ec57a3e0beb9fc4ab19050ce3bb2153a28649663f7b89e4c726ebbc54f2868",
+      "retained_copy": "benchmarks/archive/benchmarks-shell-20261004.tar.gz",
+      "member": "benchmarks/vim_startup_profile_latest.txt",
+      "reason": "No active references; byte-identical archived source remains"
+    },
+    {
+      "removed": "benchmarks/vim_startup_profile_lightline_trial.txt",
+      "sha256": "6e474bfa0035f9998a7365c46e8d4ea934537e45ac22db80fd8802a33298d742",
+      "retained_copy": "benchmarks/archive/benchmarks-shell-20261004.tar.gz",
+      "member": "benchmarks/vim_startup_profile_lightline_trial.txt",
+      "reason": "No active references; byte-identical archived source remains"
+    }
+  ],
+  "retained": "Six chart inputs, legacy source archive with checksum, historical reports and telemetry JSON, and docs/robots.txt"
+}

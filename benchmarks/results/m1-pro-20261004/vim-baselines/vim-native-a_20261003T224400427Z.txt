@@ -1,0 +1,15 @@
+cflags: /
+compiled_by: native-apple-m1
+corpus_format: vim-v2 (check hashes for reused/custom files)
+ruby_sha256: 5fd769865968ee3b210ece6c885f1ab1fea3122b5b6d7b9d8614609458e5dac3
+runs: 30
+timestamp: 2026-10-03T22:43:28.334176Z
+vim_binary: /opt/homebrew/bin/vim
+vim_version: VIM - Vi IMproved 9.2 (2026 Feb 14, compiled Sep 29 2026 18:20:06)
+words_sha256: 75cc8a937b5eb149a6b084fddf91b136ed8f6ba5938c8740fe20a7da1088030f
+---
+regex_scan: 0.0328110000
+regex_replace: 0.0821865000
+sort: 0.312346000
+vimscript_loop: 0.597704000
+regex_ruby: 0.0192770000

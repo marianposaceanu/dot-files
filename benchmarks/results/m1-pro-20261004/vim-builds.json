@@ -1,0 +1,45 @@
+{
+  "formula": "homebrew/core/vim",
+  "version": "9.2.1150",
+  "bottle_tag": "arm64_golden_gate",
+  "archive": "/Users/marian/Library/Caches/Homebrew/downloads/5ed5d65a8914c3b17e821aaf3387f93b44f62c08ccfcc4a5d3ae4c67707020ac--vim--9.2.1150.arm64_golden_gate.bottle.tar.gz",
+  "archive_sha256": "1714ffe420e510f8e9ed57d848c8ad5220286dd6966dacab6d0aefa2f6d9397c",
+  "url": "https://ghcr.io/v2/homebrew/core/vim/blobs/sha256:1714ffe420e510f8e9ed57d848c8ad5220286dd6966dacab6d0aefa2f6d9397c",
+  "extracted_root": "/var/folders/ns/q3nvc5y96f36dv4sl8vh5cv80000gn/T/dotfiles-vim-bottle-m1-pro-e4vme4ju",
+  "binary": "/var/folders/ns/q3nvc5y96f36dv4sl8vh5cv80000gn/T/dotfiles-vim-bottle-m1-pro-e4vme4ju/vim/9.2.1150/bin/vim",
+  "binary_sha256": "b1f5c812698e3bae5a690e82e9b0683b6709276aad122aa59bc32004ba49b8a2",
+  "native_binary": "/opt/homebrew/bin/vim",
+  "native_binary_sha256": "ac9702fff0777046185805e289399347a0f7921a031c1ec874ec5f1a4274e7aa",
+  "relocation_commands": [
+    [
+      "install_name_tool",
+      "-change",
+      "@@HOMEBREW_PREFIX@@/opt/ncurses/lib/libncursesw.6.dylib",
+      "/opt/homebrew/opt/ncurses/lib/libncursesw.6.dylib",
+      "/var/folders/ns/q3nvc5y96f36dv4sl8vh5cv80000gn/T/dotfiles-vim-bottle-m1-pro-e4vme4ju/vim/9.2.1150/bin/vim"
+    ],
+    [
+      "install_name_tool",
+      "-change",
+      "@@HOMEBREW_PREFIX@@/opt/libsodium/lib/libsodium.26.dylib",
+      "/opt/homebrew/opt/libsodium/lib/libsodium.26.dylib",
+      "/var/folders/ns/q3nvc5y96f36dv4sl8vh5cv80000gn/T/dotfiles-vim-bottle-m1-pro-e4vme4ju/vim/9.2.1150/bin/vim"
+    ],
+    [
+      "install_name_tool",
+      "-change",
+      "@@HOMEBREW_PREFIX@@/opt/gettext/lib/libintl.8.dylib",
+      "/opt/homebrew/opt/gettext/lib/libintl.8.dylib",
+      "/var/folders/ns/q3nvc5y96f36dv4sl8vh5cv80000gn/T/dotfiles-vim-bottle-m1-pro-e4vme4ju/vim/9.2.1150/bin/vim"
+    ],
+    [
+      "codesign",
+      "--force",
+      "--sign",
+      "-",
+      "/var/folders/ns/q3nvc5y96f36dv4sl8vh5cv80000gn/T/dotfiles-vim-bottle-m1-pro-e4vme4ju/vim/9.2.1150/bin/vim"
+    ]
+  ],
+  "relocated_binary_sha256": "b27dd0cd3e2d32e96639f601f6599fe6b4081e55d0d9140cfac0332166b98968",
+  "preflight_exit": 0
+}
