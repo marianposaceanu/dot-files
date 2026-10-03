@@ -10,8 +10,8 @@ From the repository root:
 
 ```sh
 bb test                                      # all Clojure tests
-bb test:unit                                 # bootstrap library tests
-bb test:integration                          # installer and editor integration tests
+bb test:unit                                 # bootstrap and benchmark unit tests
+bb test:integration                          # installer, editor, and benchmark integration tests
 bb test bootstrap.lib.ruby-warnings-test      # one namespace
 bb test integration.install-macos-test integration.editor-config-test
 ```
@@ -25,18 +25,19 @@ exit the process.
 `bb bootstrap/checks/check_configs.clj` runs both suites alongside configuration
 checks. Successful test output is captured; failure output is shown.
 
-The benchmark checks remain a separate Bash entry point:
+Benchmark tests are part of the same suite and can also run independently:
 
 ```sh
-bash test/benchmarks_test.sh
+bb test integration.benchmarks-test
 ```
 
 ## Organization and conventions
 
 - Library tests mirror the source path, such as
   `bootstrap/lib/ruby_warnings.clj` → `test/bootstrap/lib/ruby_warnings_test.clj`.
+  Benchmark library tests follow the same convention under `test/benchmarks/`.
   The namespace adds `-test` to the source namespace.
-- Installer and editor integration tests live in `test/integration/`. They
+- Installer, editor, and benchmark integration tests live in `test/integration/`. They
   exercise commands and real configuration behavior instead of pretending these
   checks are isolated function tests.
 - Start files with `ns`. Refer only the `clojure.test` macros needed, and require
@@ -55,8 +56,10 @@ bash test/benchmarks_test.sh
 
 The installer fixtures simulate Homebrew, RVM, and other setup commands in a
 throwaway home directory. They do not install packages or modify the real home.
-Editor tests require Vim, Git, ripgrep, bat, and initialized Vim plugins. Library
-tests need Babashka; progress reporting also launches a short Babashka child.
+Editor tests require Vim, Git, ripgrep, bat, and initialized Vim plugins. Benchmark
+integration tests use short real Vim and ripgrep workloads and simulated Chrome,
+plus isolated corpora; they never reinstall packages or change power settings.
+Library tests need Babashka; progress reporting also launches a short Babashka child.
 
 ## REPL workflow
 

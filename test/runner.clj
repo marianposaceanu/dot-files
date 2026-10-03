@@ -3,11 +3,16 @@
 
 (def unit-test-namespaces
   '[bootstrap.lib.progress-test
-    bootstrap.lib.ruby-warnings-test])
+    bootstrap.lib.ruby-warnings-test
+    benchmarks.lib.core-test
+    benchmarks.lib.startup-test
+    benchmarks.lib.power-test
+    benchmarks.vim-bench-test])
 
 (def integration-test-namespaces
   '[integration.install-macos-test
-    integration.editor-config-test])
+    integration.editor-config-test
+    integration.benchmarks-test])
 
 (def test-namespaces
   (into unit-test-namespaces integration-test-namespaces))

@@ -33,6 +33,7 @@
 (defn- check-babashka-scripts! []
   (common/info "Checking Babashka script syntax...")
   (doseq [script (sort (concat (fs/glob (repo-path "bootstrap") "**.clj")
+                              (fs/glob (repo-path "benchmarks") "**.clj")
                               (fs/glob (repo-path "test") "**.clj")))]
     (parse-clojure-file! script))
   (rvm/read-config (repo-path "rvm" "config.edn")))
@@ -77,8 +78,13 @@
   (run-bb! {:out :string} "--config" (repo-path "bb.edn")
            "test" "integration.editor-config-test"))
 
+(defn- check-benchmarks! []
+  (common/info "Checking benchmark behavior...")
+  (run-bb! {:out :string} "--config" (repo-path "bb.edn")
+           "test" "integration.benchmarks-test"))
+
 (defn- check-unit-tests! []
-  (common/info "Checking bootstrap unit tests...")
+  (common/info "Checking bootstrap and benchmark unit tests...")
   (run-bb! {:out :string} "--config" (repo-path "bb.edn") "test:unit"))
 
 (defn- check-vim! []
@@ -112,6 +118,7 @@
                     check-unit-tests!
                     check-installer!
                     check-editor!
+                    check-benchmarks!
                     check-vim!
                     check-ghostty!]]
         (doseq [[index check!] (map-indexed vector checks)]

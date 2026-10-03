@@ -223,11 +223,11 @@ for compiler evidence and commands to repeat the checks.
 Native-build profiles:
 
 ```sh
-./benchmarks/profile_vim_plugins.sh
-./benchmarks/profile_vim_plugins_median.sh
-./benchmarks/benchmark_ripgrep_native.sh "$(command -v rg)" native
-./benchmarks/benchmark_ctags_native.sh
-./benchmarks/benchmark_git_native.sh "$(command -v git)"
+bb benchmarks/profile_vim_plugins.clj
+bb benchmarks/profile_vim_plugins_median.clj
+bb benchmarks/benchmark_ripgrep_native.clj "$(command -v rg)" native
+bb benchmarks/benchmark_ctags_native.clj
+bb benchmarks/benchmark_git_native.clj "$(command -v git)"
 ```
 
 See [benchmarks/README.md](benchmarks/README.md) for dependencies, comparison
@@ -243,7 +243,8 @@ bb bootstrap/checks/doctor.clj
 ```
 
 The configuration checks validate shell and Babashka syntax, application configs,
-bootstrap unit tests, installer idempotence, Vim behavior, and Ghostty configuration
+bootstrap and benchmark unit tests, installer idempotence, Vim and benchmark behavior,
+and Ghostty configuration
 when available. Editor regression tests cover Git errors and visual selections,
 file search outside Git, large-file highlighting, recovery files, and plain bat
 output when redirected. The doctor checks managed links and Homebrew dependencies.

@@ -1,131 +1,149 @@
 # Benchmarks
 
-Run these Bash entry points from the repository root. They measure local
-workloads; results depend on the hardware, software version, temperature,
-power source, and other running processes. Close competing workloads, keep the
-conditions consistent, and compare repeated runs of the same software version.
-A faster median on one workload does not imply a faster application overall.
+All benchmark logic runs in Babashka/Clojure. Run the `.clj` entry points from the
+repository root. Babashka includes the filesystem, process, XML, JSON, HTTP, and
+WebSocket support used here; Python and Node.js are no longer required.
 
-## Scripts and dependencies
+The previous scripts, documentation, results, and regression harness are preserved
+in [archive/benchmarks-shell-20261004.tar.gz](archive/benchmarks-shell-20261004.tar.gz),
+with a checksum and [extraction instructions](archive/README.md).
 
-| Script | Purpose | Dependencies and output |
+## Entry points
+
+| Entry point | Purpose | Requirements and output |
 | --- | --- | --- |
-| `profile_vim_plugins.sh` | One startup profile with per-file and plugin self times | Vim or Neovim; repository `.vimrc` and initialized plugins; prints a retained temporary log path |
-| `profile_vim_plugins_median.sh` | Repeated startup profiles and medians | Same; `RUNS=7` by default; temporary logs removed after each successful run |
-| `generate_vim_startup_chart.sh` | Text comparison of archived startup profiles | awk; reads checked-in `vim_startup_profile_*.txt`, without running Vim |
-| `vim_bench.sh` | Regex, replacement, sort, and Vimscript workloads | Vim, Python 3; corpus and timestamped results below this directory; default seven runs |
-| `benchmark_ripgrep_native.sh` | Search, Unicode, PCRE2, thread scaling, and traversal | ripgrep with PCRE2, Python 3; persistent deterministic corpus in `${TMPDIR:-/tmp}`; Markdown on stdout |
-| `benchmark_ctags_native.sh` | C, Ruby, JSON, YAML, and mixed parsing | Universal Ctags, Python 3; disposable corpus; Markdown on stdout |
-| `benchmark_git_native.sh` | Git CPU workloads and optional PGO training | Git with PCRE2, `/usr/bin/time`; disposable repository; Markdown on stdout |
-| `m4_low_power_benchmark.sh` | SHA-256 throughput and Speedometer 3.1 | macOS, OpenSSL, Node.js 22+, Chrome; timestamped text in `results/` |
-| `m4_power_benchmark.sh` | Idle, warmup, and loaded battery telemetry | macOS AppleSmartBattery telemetry, OpenSSL, Python 3; timestamped JSON in `results/` |
-| `speedometer_runner.sh` | Standalone Speedometer 3.1 through Chrome DevTools | Node.js 22+, Chrome, internet access; JSON on stdout; isolated Chrome profile removed on exit |
+| `profile_vim_plugins.clj` | Single startup profile, file and plugin self times | Vim or Neovim, selected `.vimrc`, initialized plugins; retained temporary log |
+| `profile_vim_plugins_median.clj` | Repeated startup profiles and medians | Same; `RUNS=7`; temporary logs cleaned up |
+| `generate_vim_startup_chart.clj` | Text chart of historical startup captures | Checked-in profile text; does not run Vim |
+| `vim_bench.clj` | Regex, replacement, sorting, and Vimscript workloads | Vim, `strings`; corpus and timestamped reports below this directory |
+| `benchmark_ripgrep_native.clj` | Search, Unicode, PCRE2, threads, and traversal | ripgrep with PCRE2; reusable temporary corpus; Markdown on stdout |
+| `benchmark_ctags_native.clj` | C, Ruby, JSON, YAML, and mixed parsing | Universal Ctags with JSON output; disposable corpus; Markdown on stdout |
+| `benchmark_git_native.clj` | Git CPU workloads and PGO training | Git with PCRE2, `/usr/bin/time`, Bash for the timed Git payload; disposable repo |
+| `m4_low_power_benchmark.clj` | SHA-256 throughput and Speedometer 3.1 | macOS, OpenSSL, Chrome, internet; completed timestamped text report |
+| `m4_power_benchmark.clj` | Whole-system battery draw during idle, warmup, and load | macOS AppleSmartBattery telemetry and OpenSSL; timestamped JSON |
+| `speedometer_runner.clj` | Speedometer through Chrome DevTools | Chrome and internet; JSON on stdout; isolated profile cleaned up |
 
-All entry points use `.sh`. Structured data and subprocess orchestration still
-use embedded Python 3 where appropriate, and browser automation uses embedded
-Node.js. Renaming the entry points does not remove those runtime dependencies.
+The three `benchmark_*_native.sh` files are compatibility launchers for existing
+Homebrew tap build/PGO callers. They forward arguments and environment to the
+Clojure implementations and contain no benchmark logic.
 
-## Vim startup
+## Measurement boundaries
+
+Use the same hardware, software versions, temperature, power settings, corpus,
+and background-work conditions for a comparison. Repeat measurements and compare
+medians; one faster workload does not establish general application performance.
+
+Babashka starts once, outside measured work. ripgrep and Ctags measure external
+process wall time, including process creation. Corpus generation, semantic checks,
+and reporting stay outside those windows. Candidate order alternates each sample,
+and identical executable paths still receive independent samples.
+
+Git retains the legacy aggregate `user + sys` CPU measurement: `/usr/bin/time`
+wraps one Bash payload containing eight Git commands. Babashka startup and corpus
+setup are excluded. macOS timing resolution is coarser than the printed decimals.
+Git configuration and hooks are isolated, and commits have fixed timestamps.
+
+Vim uses its own `reltime()` measurements. Corpus reload and startup are excluded;
+user configuration is disabled. Zero, nonfinite, corrupt, and incomplete samples
+fail instead of producing a completed report. Even medians average the middle two
+samples. Reports are published atomically only after every workload succeeds.
+
+The new Vim corpus uses a seeded Clojure generator and structured Ruby source.
+Its bytes differ from the earlier awk-generated corpus. Reuse the same corpus
+for both candidates and rerun both baselines; historical Vim workload timings are
+not directly comparable. Reports record corpus SHA-256 hashes and binary metadata.
+Historical measurements and raw JSON remain unchanged.
+
+## Vim and native binaries
 
 ```sh
-./benchmarks/profile_vim_plugins.sh
-RUNS=9 ./benchmarks/profile_vim_plugins_median.sh
-VIM_BIN=/opt/homebrew/bin/vim VIMRC_PATH="$PWD/.vimrc" \
-  ./benchmarks/profile_vim_plugins.sh
-./benchmarks/generate_vim_startup_chart.sh
+bb benchmarks/profile_vim_plugins.clj
+RUNS=9 bb benchmarks/profile_vim_plugins_median.clj
+VIM_BIN=/opt/homebrew/bin/vim VIMRC_PATH="$PWD/.vimrc" bb benchmarks/profile_vim_plugins.clj
+bb benchmarks/generate_vim_startup_chart.clj
+
+bb benchmarks/benchmark_ripgrep_native.clj /opt/homebrew/bin/rg native /path/to/baseline/rg baseline
+bb benchmarks/benchmark_ctags_native.clj /opt/homebrew/bin/ctags native /path/to/baseline/ctags baseline
+bb benchmarks/benchmark_git_native.clj /opt/homebrew/bin/git /path/to/baseline/git
+VIM_BIN=/opt/homebrew/bin/vim bb benchmarks/vim_bench.clj --bench-only --label native --runs 7
+bb benchmarks/vim_bench.clj --compare benchmarks/results/bottle_TIMESTAMP.txt benchmarks/results/native_TIMESTAMP.txt
 ```
 
-Startup profiling loads the selected config and its plugins. Plugin totals sum
-Vim's **self** time (third startup-log column), excluding time spent sourcing
-nested files. `plugin_start_total_ms` reports this sum; `total_startup_ms` is the
-last elapsed timestamp, including the rest of startup.
+Startup plugin totals sum self time, excluding nested sourced work.
+`plugin_start_total_ms` is this sum; `total_startup_ms` is the last elapsed startup
+log timestamp. Archived text profiles and their chart use earlier inclusive
+sourcing totals: nested work overlaps, so these totals are not additive plugin cost.
 
-Archived text profiles and the chart contain earlier **inclusive** sourcing
-measurements. Nested times overlap, so those totals are not additive measures
-of plugin cost. The chart labels this limitation. Historical measurements stay
-unchanged; rerun the profilers for current self-time measurements.
+ripgrep validates file lists and matching-line counts independently before timing.
+Ctags requires tag output and equivalent sorted JSON between candidates.
+Git requires successful and equivalent workload output. Failed commands abort.
 
-## Binary comparisons
+Defaults and overrides:
 
-Specify absolute executable paths to avoid accidentally comparing the same
-binary through PATH. Use matching versions, and save stdout if you want a report.
-Comparison samplers keep separate measurements even when paths are identical.
+- ripgrep: `RG_BENCH_REPETITIONS=9`, `RG_BENCH_WARMUPS=2`, `RG_BENCH_CORPUS` for a
+  reusable corpus. Existing incomplete corpora are never overwritten.
+- Ctags: `CTAGS_BENCH_REPETITIONS=9`, `CTAGS_BENCH_WARMUPS=2`.
+- Git: `GIT_BENCH_REPETITIONS=7`, `GIT_BENCH_WARMUPS=2`, or `--repetitions` and
+  `--warmups`. Use `pgo-training` after the executable for training workloads.
+- Vim: `VIM_BIN`, `VIM_BENCH_CORPUS`, `VIM_BENCH_RESULTS`, `--runs`, and `--label`.
 
-```sh
-./benchmarks/benchmark_ripgrep_native.sh /opt/homebrew/bin/rg native /path/to/baseline/rg baseline
-./benchmarks/benchmark_ctags_native.sh /opt/homebrew/bin/ctags native /path/to/baseline/ctags baseline
-./benchmarks/benchmark_git_native.sh /opt/homebrew/bin/git /path/to/baseline/git
-VIM_BIN=/opt/homebrew/bin/vim ./benchmarks/vim_bench.sh --bench-only --label native --runs 7
-./benchmarks/vim_bench.sh --compare benchmarks/results/bottle_TIMESTAMP.txt benchmarks/results/native_TIMESTAMP.txt
-```
-
-ripgrep checks file lists and matching-line counts against the corpus before
-measuring. Empty, incorrect, or failing search output aborts the benchmark;
-configuration and ignore files are disabled. `RG_BENCH_CORPUS` selects a reusable
-corpus; an existing incomplete tree is never overwritten. Defaults:
-`RG_BENCH_REPETITIONS=9`, with two warmups.
-
-Ctags defaults to `CTAGS_BENCH_REPETITIONS=9` and `CTAGS_BENCH_WARMUPS=2`.
-Git defaults to `GIT_BENCH_REPETITIONS=7` and `GIT_BENCH_WARMUPS=2`, also available
-as `--repetitions` and `--warmups`. Git isolates configuration and compares
-workload output and exit status. Its CPU time uses macOS `/usr/bin/time`
-resolution; extra printed decimals do not improve the measurement precision.
-
-Vim disables user configuration for its workload runs. Failed workloads or
-invalid timing samples abort without publishing a completed result file.
-Even-sized samples use the average of the middle two sorted values.
-
-**Running `vim_bench.sh` without `--bench-only` or `--compare` reinstalls Homebrew
-Vim and invokes the legacy native compiler through `bootstrap/native/`.** This
-changes the installed Vim. Use `--bench-only` to measure an already installed
-binary. Current native builds are maintained in
+**Running `vim_bench.clj` without `--bench-only` or `--compare` reinstalls Homebrew
+Vim and invokes the legacy compiler through `bootstrap/native/`.** Use
+`--bench-only` for an already installed binary. Current native builds live in
 [homebrew-tap](https://github.com/marianposaceanu/homebrew-tap).
 
 ## Battery and browser measurements
 
-The `m4_` names describe the original M4 MacBook Air experiment; the scripts can
-run on other compatible Macs. These are whole-system measurements, not direct
-CPU-only energy measurements. Compare modes on the same hardware and keep
-brightness, battery level, peripherals, thermals, and background work consistent.
+The `m4_` names identify the original M4 MacBook Air experiment. Compatible Macs
+can run these scripts, but comparisons must stay on the same device. Battery
+telemetry measures the whole system, rather than CPU-only energy use.
 
-Select the requested Low Power Mode under **System Settings → Battery**, then
-disconnect AC power. The scripts verify the battery mode and power state;
-they never change settings. Throughput checks surround workloads; telemetry
-checks every sample and rejects a stopped or failed OpenSSL workload.
+Select the desired Low Power Mode in **System Settings → Battery**, disconnect
+AC power, and keep brightness, battery level, thermals, peripherals, and background
+work consistent. The scripts verify settings and never change them. Throughput
+checks surround each workload; telemetry checks every sample and rejects an early
+or failed OpenSSL exit. Results are saved only after the entire run succeeds.
 
 ```sh
-./benchmarks/m4_low_power_benchmark.sh normal 5
-./benchmarks/m4_low_power_benchmark.sh low 5
-./benchmarks/m4_power_benchmark.sh normal
-./benchmarks/m4_power_benchmark.sh low
-./benchmarks/speedometer_runner.sh 5
+bb benchmarks/m4_low_power_benchmark.clj normal 5
+bb benchmarks/m4_low_power_benchmark.clj low 5
+bb benchmarks/m4_power_benchmark.clj normal
+bb benchmarks/m4_power_benchmark.clj low
+bb benchmarks/speedometer_runner.clj 5
 ```
 
 Telemetry defaults: 90 seconds idle, 60 seconds warmup, 180 seconds load, samples
-every 5 seconds. See `m4_power_benchmark.sh --help` for duration overrides.
-`CHROME_BIN` overrides the Chrome executable. The browser runner bounds each
-DevTools request to 30 seconds and the entire run to 15 minutes; override with
-`SPEEDOMETER_REQUEST_TIMEOUT_MS` and `SPEEDOMETER_TIMEOUT_MS`. Disconnects reject
-pending requests, and cleanup terminates Chrome and removes its temporary profile.
-Only valid positive Speedometer results are accepted.
+every 5 seconds. Use `--help` for duration options. XML plist parsing handles
+battery data directly. Macs exposing capacity in `BatteryData` use those fields
+when `AppleRaw*` fields are absent; samples record the capacity source. Missing
+optional temperature telemetry is recorded as null.
 
-The throughput script streams its text log to `results/`; a failed run can leave
-a partial log. A final `finished=` line and a successful exit are required for a
-complete run. Standalone Speedometer has no battery-mode requirement.
+Chrome defaults to `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`;
+`CHROME_BIN` overrides it. The browser runner sets the viewport before navigation,
+uses a fresh profile and OS-assigned DevTools port, and bounds requests to 30 seconds
+and the full run to 15 minutes. Override with `SPEEDOMETER_REQUEST_TIMEOUT_MS` and
+`SPEEDOMETER_TIMEOUT_MS`. Disconnects fail pending requests; cleanup terminates
+Chrome and removes the profile. Only valid positive scores are accepted.
+Standalone Speedometer has no battery-mode requirement.
 
-## Results and verification
+SHA-256 throughput explicitly uses 8192-byte blocks; OpenSSL's displayed `k`
+suffix denotes kB/s. This avoids treating the last column of a version-dependent
+default block-size table as the 8192-byte measurement.
 
-Checked-in `results/` reports and raw JSON record historical experiments; they
-are not current baselines or promises of performance. Historical numbers are
-preserved. Generated Vim corpora and new text result logs are ignored by Git.
-New telemetry JSON is not ignored; review it before committing.
+## Verification and saved results
 
 ```sh
-bash test/benchmarks_test.sh
+bb test:unit
+bb test integration.benchmarks-test
 bb bootstrap/checks/check_configs.clj
 ```
 
-Regression checks require Python 3 and Node.js 22+; installed Vim and ripgrep
-are used for optional smoke runs. The checks use disposable fixtures and short runs.
-They do not reinstall packages, change power settings, or run the full browser
-benchmark. Configuration checks also validate shell syntax.
+Tests use `clojure.test`, disposable fixtures, short real Vim/ripgrep workloads,
+and a Clojure Chrome/DevTools simulator. They cover failure status, sample validation,
+self-time accounting, alternating comparisons, battery state, fragmented WebSocket
+messages, disconnects, and deadlines. They do not reinstall packages, change power
+settings, or run a full browser benchmark. Configuration checks include them.
+
+Generated corpora and text reports are ignored by Git. New telemetry JSON is not
+ignored: review its environment and measurements before committing it. For an
+absolute entry-point path outside this repository, pass `--config /path/to/dot-files/bb.edn`.
