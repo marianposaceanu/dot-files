@@ -126,12 +126,12 @@
    {:source ".zshrc" :target ".zshrc" :label "~/.zshrc"}
    {:source ".zlogin" :target ".zlogin" :label "~/.zlogin"}
    {:source ".bashrc" :target ".bashrc" :label "~/.bashrc"}
-   {:source "codex/config.toml" :target ".codex/config.toml" :label "Codex config"}
-   {:source "claude/settings.json" :target ".claude/settings.json" :label "Claude Code settings"}
-   {:source "claude/output-styles/amp.md"
+   {:source "llm-harnesses/codex/config.toml" :target ".codex/config.toml" :label "Codex config"}
+   {:source "llm-harnesses/claude/settings.json" :target ".claude/settings.json" :label "Claude Code settings"}
+   {:source "llm-harnesses/claude/output-styles/amp.md"
     :target ".claude/output-styles/amp.md"
     :label "Claude Code Amp output style"}
-   {:source "amp/settings.json" :target ".config/amp/settings.json" :label "Amp settings"}
+   {:source "llm-harnesses/amp/settings.json" :target ".config/amp/settings.json" :label "Amp settings"}
    {:source "bat" :target ".config/bat" :label "bat config"}
    {:source "ghostty/config"
     :target "Library/Application Support/com.mitchellh.ghostty/config"
@@ -205,7 +205,7 @@
                     updated))
                 {:unchanged 0 :updated 0 :backups 0}
                 (vec specs))
-         claude (merge-json-config! (str (fs/path repo-root "claude/config.json"))
+         claude (merge-json-config! (str (fs/path repo-root "llm-harnesses/claude/config.json"))
                                    (str (fs/path home ".claude.json")) timestamp)]
      (on-progress total total)
      (merge-with + links claude))))

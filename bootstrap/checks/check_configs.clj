@@ -49,9 +49,9 @@
   (common/info "Checking Git, Amp, Claude Code, and bat configs...")
   (common/run! {:out :string}
                ["git" "config" "-f" (repo-path ".gitconfig") "--list"])
-  (json/parse-string (slurp (repo-path "amp" "settings.json")))
-  (json/parse-string (slurp (repo-path "claude" "settings.json")))
-  (json/parse-string (slurp (repo-path "claude" "config.json")))
+  (json/parse-string (slurp (repo-path "llm-harnesses" "amp" "settings.json")))
+  (json/parse-string (slurp (repo-path "llm-harnesses" "claude" "settings.json")))
+  (json/parse-string (slurp (repo-path "llm-harnesses" "claude" "config.json")))
   (if-let [bat (common/command-path "bat")]
     (common/run! {:out :string
                   :extra-env {"BAT_CONFIG_PATH" (repo-path "bat" "config")}}

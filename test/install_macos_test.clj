@@ -73,10 +73,10 @@
       (is (not (str/includes? first-output "\u001b")))
       (is (fs/sym-link? (home-path "dot-files")))
       (doseq [[target source] [["dot-files" ""] [".ignore" ".ignore"] [".zshrc" ".zshrc"]
-                               [".codex/config.toml" "codex/config.toml"]
-                               [".claude/settings.json" "claude/settings.json"]
-                               [".claude/output-styles/amp.md" "claude/output-styles/amp.md"]
-                               [".config/amp/settings.json" "amp/settings.json"]]]
+                               [".codex/config.toml" "llm-harnesses/codex/config.toml"]
+                               [".claude/settings.json" "llm-harnesses/claude/settings.json"]
+                               [".claude/output-styles/amp.md" "llm-harnesses/claude/output-styles/amp.md"]
+                               [".config/amp/settings.json" "llm-harnesses/amp/settings.json"]]]
         (is (= (str (fs/canonicalize (fs/path support/repo-root source)))
                (str (fs/canonicalize (home-path target))))))
       (is (not (fs/sym-link? claude-path)))

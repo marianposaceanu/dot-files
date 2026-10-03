@@ -91,7 +91,8 @@ The doctor also reports missing Rubies and an incorrect default.
 
 - Vim configuration, local customizations, and pinned plugin submodules
 - Zsh, Bash, tmux, Git, and global gitignore configuration
-- Ghostty, bat, Amp, Codex, and Claude Code configuration
+- Ghostty and bat configuration
+- Amp, Codex, and Claude Code configuration in [`llm-harnesses/`](llm-harnesses/)
 - Homebrew dependencies in `Brewfile`
 - Bootstrap, linking, health-check, and benchmark tools
 - Installer and editor regression tests under `test/`
@@ -335,7 +336,7 @@ This includes Ghostty and backs up conflicting files or directories with a
 - `~/.config/bat`
 - `$HOME/Library/Application Support/com.mitchellh.ghostty/config`
 
-Setup also merges `claude/config.json` into `~/.claude.json`, backing up an
+Setup also merges `llm-harnesses/claude/config.json` into `~/.claude.json`, backing up an
 existing file before changing it and preserving Claude's other preferences and
 state. Codex and Claude copy mouse-selected text to the clipboard on release;
 Ghostty's native selection also copies automatically.
