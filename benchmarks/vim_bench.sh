@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # benchmarks/vim_bench.sh
 #
-# A/B benchmark: Homebrew bottle vim vs native Apple-M4 optimised build.
+# A/B benchmark: Homebrew bottle vim vs native Apple Silicon optimised build.
 #
 # The Homebrew bottle is compiled with -Os -march=armv8-a (generic ARM).
-# The native build uses -O3 -mcpu=apple-m4 -ffp-contract=fast -flto.
+# The native build uses -O3 -mcpu=<local Apple CPU> -ffp-contract=fast -flto.
 # This script installs each in turn, runs the same workloads, and compares.
 #
 # NFA (Non-deterministic Finite Automaton): the state-machine algorithm that
@@ -338,12 +338,13 @@ run_all_benchmarks() {
 install_bottle() {
   info "Installing Homebrew bottle vim …"
   brew unpin vim 2>/dev/null || true
-  brew reinstall vim
+  brew uninstall --ignore-dependencies vim
+  brew install homebrew/core/vim
   hash -r 2>/dev/null || true
 }
 
 install_native() {
-  info "Building native-apple-m4 optimised vim …"
+  info "Building Vim for the local Apple CPU …"
   brew unpin vim 2>/dev/null || true
   bash "$ROOT_DIR/bootstrap/native/compile_vim_native.sh"
   hash -r 2>/dev/null || true

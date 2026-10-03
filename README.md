@@ -158,63 +158,51 @@ rather than acting as a Git ignore file.
 
 ## Optional native Apple Silicon builds
 
-Vim, Git, ripgrep and Universal Ctags are built by Homebrew itself from a local
-tap (`marian/local`) with `-O3 -mcpu=<local Apple CPU>` (plus
-`RUSTFLAGS=-C target-cpu=...` and the `release-lto` profile for ripgrep).
-The generated formulas are versioned in `bootstrap/native/formulas/` and the
-tools are pinned so `brew upgrade` leaves them alone. Results are
+Native formulas and build implementations live in
+[marianposaceanu/homebrew-tap](https://github.com/marianposaceanu/homebrew-tap).
+The tap's `Formula/` directory contains Vim, Git, ripgrep, and Universal Ctags;
+`native/` contains their build helpers. Dotfiles keeps small forwarding scripts
+in `bootstrap/native/` so existing commands and benchmarks keep working.
+
+```sh
+brew tap marianposaceanu/tap
+brew update                              # refresh upstream formula versions
+brew native                               # regenerate, build, and pin all four
+brew native vim ripgrep                   # a subset
+brew native --formulas-only               # refresh portable Formula/*.rb
+```
+
+The existing dotfiles entry points delegate to the tap:
+
+```sh
+./bootstrap/native/brew_native.sh vim ripgrep
+```
+
+For a local tap checkout, select it explicitly:
+
+```sh
+NATIVE_TAP_ROOT=~/work/playground/homebrew-tap ./bootstrap/native/brew_native.sh --help
+```
+
+Committed formulas use `-O3 -mcpu=native`, plus Rust's native CPU flag and
+`release-lto` profile for ripgrep. The build helper regenerates formulas from
+current homebrew-core for the detected Apple CPU, installs through the fully
+qualified tap name, and pins the resulting packages. `--formulas-only` defaults
+to portable native flags; `NATIVE_CPU=apple-m1` selects an explicit CPU. These
+operations modify the local tap's formula files. See the tap README for formula
+maintenance and restoring stock bottles.
+
+The older `compile_*_native.sh` implementations also live in the tap. Their
+dotfiles forwarding commands still accept `--pgo`; they receive `DOT_FILES_REPO`
+so training and verification use this repository's benchmarks. Results are
 workload-dependent; see the
 [step-by-step guide](https://dot.marianposaceanu.com/native-builds-guide.html) and
-[Native Apple Silicon builds](https://dot.marianposaceanu.com/native-apple-silicon-builds.html)
-for design, benchmarks, and caveats.
+[Native Apple Silicon builds](https://dot.marianposaceanu.com/native-apple-silicon-builds.html).
 
-One command does everything (regenerate formulas, build, pin):
-
-```sh
-./bootstrap/native/brew_native.sh                  # all four
-./bootstrap/native/brew_native.sh vim ripgrep      # subset
-./bootstrap/native/brew_native.sh --formulas-only  # only refresh formulas/*.rb
-```
-
-Why a tap: Homebrew's superenv compiler shim strips any `-O`/`-mcpu` flag and
-injects nothing for Apple CPUs, so plain `brew reinstall --build-from-source`
-yields a generic arm64 binary, and `--env=std` is no longer accepted on the
-command line. A formula can still opt into stdenv with `env :std`, where the
-real clang honours CFLAGS. The script copies the current homebrew-core formula,
-removes its bottle block, adds `env :std` and the flags, and lets brew build it.
-
-### Manual steps (what the script does)
-
-1. Resolve the CPU name: `clang -mcpu=native -### -x c /dev/null 2>&1 | grep target-cpu`
-   (e.g. `apple-m4`).
-2. Create the tap once: `brew tap-new --no-git marian/local`.
-3. Copy the core formula: `cp "$(brew formula homebrew/core/vim)" "$(brew --repo marian/local)/Formula/vim.rb"`.
-4. Edit it: delete the `bottle do ... end` block, add `env :std` above
-   `def install`, and as the first line of `install` add
-   `ENV.append_to_cflags "-O3 -mcpu=apple-m4"`. For vim also replace
-   `--with-compiledby=Homebrew` with `--with-compiledby=native-apple-m4` and add
-   `--with-modified-by=[ apple-m4 :: -O3 -mcpu=apple-m4 ]` so `:version` shows
-   the flags. For ripgrep set `ENV["RUSTFLAGS"] = "-C target-cpu=apple-m4"` and
-   pass `"--profile", "release-lto"` to `cargo install`.
-5. Save a copy to `bootstrap/native/formulas/<name>.rb` and commit it.
-6. Install: `brew uninstall --ignore-dependencies vim` then
-   `brew install --build-from-source marian/local/vim`. Uninstall first:
-   `brew reinstall marian/local/vim` on a keg that came from core silently
-   reuses the core formula.
-7. Pin: `brew pin vim`.
-
-To pick up a new upstream version, run the script again (it re-copies the
-current core formula). Restore stock Homebrew bottles with:
-
-```sh
-for f in vim ripgrep universal-ctags git; do
-  brew unpin "$f" && brew uninstall --ignore-dependencies "$f" && brew install "homebrew/core/$f"
-done
-```
-
-The older `bootstrap/native/compile_*_native.sh` scripts (which build outside
-brew and swap the binary into the keg, optionally with `--pgo`) are kept for
-reference and benchmarking but are superseded by the tap approach.
+The latest source installs were verified on an M1 Pro: Vim 9.2.1150, Git 2.56.0,
+ripgrep 15.2.0, and Universal Ctags 6.2.1. All four formula tests and functional
+checks passed. See the tap’s [installation record](https://github.com/marianposaceanu/homebrew-tap/blob/main/native/INSTALLATION.md)
+for compiler evidence and commands to repeat the checks.
 
 Native-build profiles:
 
@@ -236,7 +224,7 @@ bb bootstrap/checks/doctor.clj
 ```
 
 The configuration checks validate shell and Babashka syntax, application configs,
-installer idempotence, generated pages, Vim behavior, and Ghostty configuration
+installer idempotence, Vim behavior, and Ghostty configuration
 when available. Editor regression tests cover Git errors and visual selections,
 file search outside Git, large-file highlighting, recovery files, and plain bat
 output when redirected. The doctor checks managed links and Homebrew dependencies.
@@ -246,16 +234,13 @@ Run the Babashka regression tests individually with:
 ```sh
 bb test/editor_config_test.clj
 bb test/install_macos_test.clj
-bb test/site_test.clj
 ```
 
-Generate or validate tutorial pages with:
-
-```sh
-bb bootstrap/site/build_tutorial_pages.clj
-bb bootstrap/site/build_tutorial_pages.clj --check
-bb bootstrap/site/validate_site.clj
-```
+For website edits, follow [the site instructions](bootstrap/site/instructions.md)
+and use [the article template](bootstrap/site/tutorial_page.html). Keep tutorial
+Markdown and its published HTML in sync, then review the rendered pages and
+metadata. Site generation and validation are handled directly during editing;
+they are not part of the configuration checker.
 
 ## Vim
 

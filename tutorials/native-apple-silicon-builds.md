@@ -160,29 +160,28 @@ PGO's weakness is also its purpose: it specializes for observed behavior. Ctags'
 
 ## Rebuild and restore commands
 
-Each script supports a bottle restoration path because the Homebrew receipt continues to describe the formula installation after a binary-only replacement.
+The build implementations and formulas now live in [marianposaceanu/homebrew-tap](https://github.com/marianposaceanu/homebrew-tap). The measurements above describe the earlier binary-replacement experiments, including their LTO and PGO flags. The current default installs complete Homebrew source-built kegs with `-O3 -mcpu=<detected CPU>`; ripgrep additionally uses `release-lto`. It does not run PGO training.
 
 ```sh
-# Vim
-./bootstrap/native/compile_vim_native.sh
-brew unpin vim && brew reinstall vim
-
-# ripgrep
-./bootstrap/native/compile_ripgrep_native.sh --pgo
-brew unpin ripgrep && brew reinstall ripgrep
-
-# Universal Ctags
-brew install docutils llvm
-./bootstrap/native/compile_ctags_native.sh --pgo
-brew unpin universal-ctags && brew reinstall universal-ctags
-
-# Git
-brew install llvm pkgconf
-./bootstrap/native/compile_git_native.sh --pgo
-brew unpin git && brew reinstall git
+brew tap marianposaceanu/tap
+brew update
+brew native
+brew native vim ripgrep  # selected tools
 ```
 
-After a formula upgrade, unpin and upgrade first, inspect the changed formula contract, then rerun the corresponding script. The Git workflow follows the active version automatically but intentionally stops when the formula's build contract changes.
+The helper refreshes formulas from current homebrew-core, replaces the existing kegs with builds from the tap, and pins them. Rerun `brew update` followed by `brew native` to update pinned native packages. Local formula generation modifies the installed tap; use `--formulas-only` in a development checkout to prepare portable snapshots for review.
+
+The `bootstrap/native/` scripts in dot-files forward to the tap. The legacy `compile_*_native.sh` commands still support the measured workflows; Git, ripgrep, and Ctags accept `--pgo` and use the dot-files benchmarks through `DOT_FILES_REPO`. Select a development tap with `NATIVE_TAP_ROOT=~/work/playground/homebrew-tap` when using those launchers.
+
+Restore core bottles explicitly so the tap cannot be selected accidentally:
+
+```sh
+for tool in vim git ripgrep universal-ctags; do
+  brew unpin "$tool"
+  brew uninstall --ignore-dependencies "$tool"
+  brew install "homebrew/core/$tool"
+done
+```
 
 ## Where the evidence lands
 
@@ -195,4 +194,4 @@ The experiment produced four different answers:
 
 The general lesson is not to rebuild every Homebrew formula. It is to make optimization falsifiable: preserve the package contract, compare the same version, train PGO on representative work, publish regressions beside gains, and keep a one-command route back to the bottle.
 
-The implementation lives in [`bootstrap/`](https://github.com/marianposaceanu/dot-files/tree/main/bootstrap), [`benchmarks/`](https://github.com/marianposaceanu/dot-files/tree/main/benchmarks), and the concise command summary in the [dot-files README](https://github.com/marianposaceanu/dot-files#optional-native-apple-silicon-builds).
+The build implementation lives in the [Homebrew tap](https://github.com/marianposaceanu/homebrew-tap), with compatibility launchers in [`bootstrap/native/`](https://github.com/marianposaceanu/dot-files/tree/main/bootstrap/native), [`benchmarks/`](https://github.com/marianposaceanu/dot-files/tree/main/benchmarks), and the concise command summary in the [dot-files README](https://github.com/marianposaceanu/dot-files#optional-native-apple-silicon-builds).

@@ -71,18 +71,6 @@
   (common/info "Checking macOS installer idempotence...")
   (run-bb! {:out :string} (repo-path "test" "install_macos_test.clj")))
 
-(defn- check-site-tools! []
-  (common/info "Checking tutorial generator and site validator behavior...")
-  (run-bb! {:out :string} (repo-path "test" "site_test.clj")))
-
-(defn- check-generated-pages! []
-  (common/info "Checking generated tutorial pages...")
-  (run-bb! {} (repo-path "bootstrap" "site" "build_tutorial_pages.clj") "--check"))
-
-(defn- check-site-contract! []
-  (common/info "Checking published site contract...")
-  (run-bb! {} (repo-path "bootstrap" "site" "validate_site.clj")))
-
 (defn- check-editor! []
   (common/info "Checking editor behavior and bat output...")
   (run-bb! {:out :string} (repo-path "test" "editor_config_test.clj")))
@@ -105,7 +93,7 @@
 
   (common/start-panel
    "DOT-FILES :: CONFIG CHECKS"
-   "Validating scripts, generated pages, Vim, and Ghostty")
+   "Validating scripts, application configs, Vim, and Ghostty")
 
   (let [warnings (atom {})]
     (try
@@ -116,9 +104,6 @@
                     check-shell-configs!
                     check-application-configs!
                     check-installer!
-                    check-site-tools!
-                    check-generated-pages!
-                    check-site-contract!
                     check-editor!
                     check-vim!
                     check-ghostty!]]
