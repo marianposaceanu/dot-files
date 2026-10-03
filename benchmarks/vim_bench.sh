@@ -20,10 +20,8 @@
 #   regex_replace   NFA scan + substitution over 100k lines
 #   sort            Buffer sort of 100k lines
 #   vimscript_loop  500k-iteration while loop (LTO inlines hot interpreter paths)
-#   syntax_ruby     Force full syntax re-parse of a 4k-line Ruby file
-#                   Ruby syntax chosen for complexity: heredocs, interpolation,
-#                   regex literals, symbols, blocks, method chains — many more
-#                   NFA states than C, puts more pressure on syntax.c.
+#   regex_ruby      Scan Ruby-like source with a complex regex; this does not
+#                   measure syntax highlighting or rendering.
 #
 # Usage:
 #   ./benchmarks/vim_bench.sh
@@ -55,12 +53,15 @@ COMPARE_NATIVE=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --bench-only)  BENCH_ONLY=1; shift ;;
-    --label)       LABEL="$2"; shift 2 ;;
-    --runs)        RUNS="$2"; shift 2 ;;
-    --compare)     COMPARE_MODE=1; COMPARE_BOTTLE="$2"; COMPARE_NATIVE="$3"; shift 3 ;;
+    --label)       [ $# -ge 2 ] || { echo "--label needs a value" >&2; exit 2; }; LABEL="$2"; shift 2 ;;
+    --runs)        [ $# -ge 2 ] || { echo "--runs needs a value" >&2; exit 2; }; RUNS="$2"; shift 2 ;;
+    --compare)     [ $# -ge 3 ] || { echo "--compare needs two files" >&2; exit 2; }; COMPARE_MODE=1; COMPARE_BOTTLE="$2"; COMPARE_NATIVE="$3"; shift 3 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; exit 1 ;;
   esac
 done
+
+[[ "$RUNS" =~ ^[1-9][0-9]*$ ]] || { echo "--runs must be a positive integer" >&2; exit 2; }
+[[ "$LABEL" =~ ^[a-zA-Z0-9_-]+$ ]] || { echo "--label must contain only letters, digits, underscores or hyphens" >&2; exit 2; }
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 
@@ -225,20 +226,20 @@ run_bench() {
     printf 'let g:_times = []\n'
     printf 'let g:_i = 0\n'
     printf 'while g:_i < %d\n' "$RUNS"
-    printf '  silent! e!\n'
+    printf '  silent e!\n'
     printf '  let g:_t = reltime()\n'
 
     case "$bench_name" in
       regex_scan)
         # Count all word matches — no substitution, pure NFA traversal
-        printf '  silent! %%substitute/\w\+//gn\n'
+        printf '  silent %%substitute/\w\+//gn\n'
         ;;
       regex_replace)
         # Wrap every 3–8 char word in brackets — NFA + substitution engine
-        printf '  silent! %%substitute/\<\w\{3,8\}\>/[&]/g\n'
+        printf '  silent %%substitute/\<\w\{3,8\}\>/[&]/g\n'
         ;;
       sort)
-        printf '  silent! %%sort\n'
+        printf '  silent %%sort\n'
         ;;
       vimscript_loop)
         # Tight while loop: tests Vimscript interpreter dispatch + LTO inlining
@@ -258,27 +259,34 @@ run_bench() {
         # mode syntax state is computed lazily (only on redraw) so
         # 'syntax sync fromstart' is a no-op.  This regex covers the same
         # pattern space that syntax rules match.
-        printf '  silent! %%substitute/\<\(def\|class\|module\|do\|end\|if\|unless\|rescue\)\>\|:\w\+\|"[^"]*"\|'"'"'[^'"'"']*'"'"'\|#.*$\|[0-9]\+//gn\n'
+        printf '  silent %%substitute/\<\(def\|class\|module\|do\|end\|if\|unless\|rescue\)\>\|:\w\+\|"[^"]*"\|'"'"'[^'"'"']*'"'"'\|#.*$\|[0-9]\+//gn\n'
         ;;
     esac
 
     printf '  call add(g:_times, reltimefloat(reltime(g:_t)))\n'
     printf '  let g:_i += 1\n'
     printf 'endwhile\n'
-    printf "call writefile(map(copy(g:_times), 'string(v:val)'), '%s')\n" "$timings_file"
+    printf "call writefile(map(copy(g:_times), 'string(v:val)'), \$VIM_BENCH_TIMINGS)\n"
     printf 'qa!\n'
   } > "$script_file"
 
-  "$vim_bin" -Es "$corpus" -S "$script_file" </dev/null 2>/dev/null || true
-
-  if [ ! -s "$timings_file" ]; then
-    printf 'ERR'
-    return
+  if ! VIM_BENCH_TIMINGS="$timings_file" "$vim_bin" -Nu NONE -i NONE -n -Es "$corpus" -S "$script_file" </dev/null >"$BENCH_TMP/vim.log" 2>&1; then
+    cat "$BENCH_TMP/vim.log" >&2
+    printf 'Vim workload failed: %s\n' "$bench_name" >&2
+    return 1
   fi
+  if [ ! -s "$timings_file" ] || ! awk -v expected="$RUNS" '
+    $0 !~ /^[0-9]+([.][0-9]+)?([eE][-+]?[0-9]+)?$/ || $0 + 0 <= 0 { bad=1 }
+    END { exit bad || NR != expected }
+  ' "$timings_file"; then
+    printf 'Invalid or incomplete timings: %s\n' "$bench_name" >&2
+    return 1
+  fi
+  sort -g "$timings_file" | awk '
+    { values[NR]=$1 }
+    END { if (NR % 2) value=values[(NR+1)/2]; else value=(values[NR/2]+values[NR/2+1])/2; printf "%.4f", value }
+  '
 
-  # Sort numerically, return the median element
-  sort -g "$timings_file" \
-    | awk "NR==$(( (RUNS + 1) / 2 )){printf \"%.4f\", \$1}"
 }
 
 # ── Benchmark labels ───────────────────────────────────────────────────────────
@@ -307,7 +315,9 @@ BENCH_KEYS="regex_scan regex_replace sort vimscript_loop regex_ruby"
 
 run_all_benchmarks() {
   local vim_bin="$1"
-  local result_file="$2"
+  local final_result="$2"
+  local result_file
+  result_file="$(mktemp "$BENCH_TMP/result.XXXXXX")"
 
   local compiled_by cflags
   compiled_by="$("$vim_bin" --version 2>/dev/null \
@@ -317,6 +327,7 @@ run_all_benchmarks() {
 
   {
     printf 'vim_binary:   %s\n' "$vim_bin"
+    printf 'vim_version:  %s\n' "$("$vim_bin" --version | head -1)"
     printf 'compiled_by:  %s\n' "$compiled_by"
     printf 'cflags:       %s\n' "$cflags"
     printf 'runs:         %d\n' "$RUNS"
@@ -327,10 +338,13 @@ run_all_benchmarks() {
   for bench in $BENCH_KEYS; do
     printf '  %-48s ' "$(bench_desc "$bench") …"
     local t
-    t="$(run_bench "$vim_bin" "$bench" "$(bench_corpus "$bench")")"
+    if ! t="$(run_bench "$vim_bin" "$bench" "$(bench_corpus "$bench")")"; then
+      return 1
+    fi
     printf '%s s\n' "$t"
     printf '%s: %s\n' "$bench" "$t" >> "$result_file"
   done
+  mv "$result_file" "$final_result"
 }
 
 # ── Install helpers ────────────────────────────────────────────────────────────
@@ -375,8 +389,8 @@ print_comparison() {
   if [ "$n_cflags" != "unknown" ]; then
     printf '%s        cflags:      %s%s\n' "$DIM" "$n_cflags" "$RESET"
   fi
-  printf '\n%sMedian of %d runs. Green = native faster by >5%%. Yellow = native slower.%s\n\n' \
-    "$DIM" "$RUNS" "$RESET"
+  printf '\n%sMedian results. Green = native faster by >5%%. Yellow = native slower.%s\n\n' \
+    "$DIM" "$RESET"
 
   printf '%s%-48s  %10s  %10s  %8s%s\n' \
     "$BOLD" "Benchmark" "Bottle (s)" "Native (s)" "Speedup" "$RESET"
@@ -389,8 +403,10 @@ print_comparison() {
     b_t="$(grep "^${bench}:" "$bottle_file" | awk '{print $2}' || printf 'ERR')"
     n_t="$(grep "^${bench}:" "$native_file" | awk '{print $2}' || printf 'ERR')"
 
-    if [ -z "$b_t" ] || [ -z "$n_t" ] || \
-       [ "$b_t" = "ERR" ] || [ "$n_t" = "ERR" ]; then
+    if ! printf '%s\n' "$b_t" "$n_t" | awk '
+      $0 !~ /^[0-9]+([.][0-9]+)?([eE][-+]?[0-9]+)?$/ || $0 + 0 <= 0 { bad=1 }
+      END { exit bad || NR != 2 }
+    '; then
       printf '%-48s  %10s  %10s  %8s\n' \
         "$(bench_desc "$bench")" "${b_t:-ERR}" "${n_t:-ERR}" "n/a"
       any_error=1
@@ -416,7 +432,8 @@ print_comparison() {
   printf '%sResults: %s%s\n' "$DIM" "$RESULTS_DIR" "$RESET"
 
   if [ "$any_error" -eq 1 ]; then
-    warn "Some benchmarks errored. Check that -Es mode supports those commands."
+    warn "Some benchmark results are invalid."
+    return 1
   fi
 }
 
@@ -433,8 +450,8 @@ generate_corpus
 
 if [ "$BENCH_ONLY" -eq 1 ]; then
   RESULT="$RESULTS_DIR/${LABEL}_${TS}.txt"
-  VIM_BIN="$(command -v vim)"
-  info "Benchmarking $(vim --version 2>/dev/null | head -1) …"
+  VIM_BIN="${VIM_BIN:-$(command -v vim)}"
+  info "Benchmarking $("$VIM_BIN" --version 2>/dev/null | head -1) …"
   run_all_benchmarks "$VIM_BIN" "$RESULT"
   success "Results: $RESULT"
   exit 0
@@ -449,14 +466,14 @@ info "Step 1/4: Install Homebrew bottle"
 install_bottle
 
 info "Step 2/4: Benchmark bottle"
-run_all_benchmarks "$(command -v vim)" "$BOTTLE_RESULT"
+run_all_benchmarks "$(brew --prefix vim)/bin/vim" "$BOTTLE_RESULT"
 success "Bottle results: $(basename "$BOTTLE_RESULT")"
 
-info "Step 3/4: Build native-apple-m4 vim (~90s)"
+info "Step 3/4: Build Vim for the local Apple CPU"
 install_native
 
 info "Step 4/4: Benchmark native"
-run_all_benchmarks "$(command -v vim)" "$NATIVE_RESULT"
+run_all_benchmarks "$(brew --prefix vim)/bin/vim" "$NATIVE_RESULT"
 success "Native results: $(basename "$NATIVE_RESULT")"
 
 print_comparison "$BOTTLE_RESULT" "$NATIVE_RESULT"

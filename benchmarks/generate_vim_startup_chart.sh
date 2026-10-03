@@ -97,7 +97,7 @@ center_row "_'.__'--=' '-.//'"
 center_row ".-'               /"
 center_row "'---..____...---''"
 row ""
-row "VIM STARTUP IMPROVEMENT MAP (plugin_start_total ms; lower is better)"
+row "HISTORICAL SOURCING MAP (inclusive ms; nested times overlap)"
 line
 
 for i in "${!labels[@]}"; do
@@ -113,5 +113,5 @@ for i in "${!labels[@]}"; do
 done
 
 row ""
-row "$(printf "Overall improvement: %.3f ms -> %.3f ms  (~%sx lower plugin startup load)" "${totals[0]}" "${totals[5]}" "$(ratio "${totals[0]}" "${totals[5]}")")"
+row "$(printf "Recorded inclusive totals: %.3f ms -> %.3f ms  (~%sx lower inclusive sourcing total)" "${totals[0]}" "${totals[5]}" "$(ratio "${totals[0]}" "${totals[5]}")")"
 line

@@ -36,7 +36,7 @@ for i in $(seq 1 "$RUNS"); do
 
   plugin_ms="$(awk '
     /sourcing / {
-      t = $2
+      t = $3
       gsub(":", "", t)
       if (t !~ /^[0-9.]+$/) next
 

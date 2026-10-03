@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env bash
+# Battery telemetry and SHA-256 workload; Python 3 handles plist and JSON data.
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+command -v python3 >/dev/null || { echo "Python 3 is required" >&2; exit 1; }
+exec python3 - "$SCRIPT_DIR" "$@" <<'PYTHON'
 """Measure whole-system battery draw during an idle and SHA-256 workload phase."""
 
 import argparse
@@ -9,6 +14,10 @@ import statistics
 import subprocess
 import time
 from pathlib import Path
+import sys
+import tempfile
+
+SCRIPT_DIR = Path(sys.argv.pop(1))
 
 
 def battery_state():
@@ -66,34 +75,21 @@ def summarize(samples, elapsed_seconds):
     }
 
 
-def sample_phase(duration, interval, command=None):
+def sample_phase(duration, interval, expected_mode, process=None):
     started = time.monotonic()
-    process = (
-        subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
-        if command
-        else None
-    )
     samples = []
     while True:
-        samples.append(battery_state())
+        state = battery_state()
+        if state["current_mA"] >= 0 or battery_low_power_mode() != expected_mode:
+            raise SystemExit("Battery discharge or Low Power Mode changed during measurement")
+        samples.append(state)
         elapsed = time.monotonic() - started
-        if process:
-            if process.poll() is not None:
-                break
-        elif elapsed >= duration:
+        if elapsed >= duration:
             break
-        time.sleep(min(interval, max(0, duration - elapsed)))
-
-    output = ""
-    if process:
-        output = process.communicate()[0]
-    elapsed = time.monotonic() - started
-    return summarize(samples, elapsed), output
+        if process is not None and process.poll() is not None:
+            raise SystemExit("OpenSSL exited before the measurement phase completed")
+        time.sleep(min(interval, duration - elapsed))
+    return summarize(samples, time.monotonic() - started)
 
 
 def main():
@@ -104,6 +100,9 @@ def main():
     parser.add_argument("--load-seconds", type=int, default=180)
     parser.add_argument("--sample-seconds", type=int, default=5)
     args = parser.parse_args()
+
+    if min(args.idle_seconds, args.warmup_seconds, args.load_seconds, args.sample_seconds) <= 0:
+        parser.error("All durations and sampling intervals must be positive")
 
     expected_mode = 0 if args.mode == "normal" else 1
     actual_mode = battery_low_power_mode()
@@ -116,23 +115,30 @@ def main():
     if battery_state()["current_mA"] >= 0:
         raise SystemExit("The Mac must be discharging on battery power")
 
-    idle, _ = sample_phase(args.idle_seconds, args.sample_seconds)
+    idle = sample_phase(args.idle_seconds, args.sample_seconds, expected_mode)
     workload = [
         "openssl", "speed", "-elapsed",
         "-seconds", str(args.warmup_seconds + args.load_seconds),
         "-bytes", "8192", "-evp", "sha256",
     ]
-    process = subprocess.Popen(
-        workload,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    )
-    warmup, _ = sample_phase(args.warmup_seconds, args.sample_seconds)
-    if process.poll() is not None:
-        raise SystemExit("OpenSSL exited during the telemetry warmup")
-    load, _ = sample_phase(args.load_seconds, args.sample_seconds)
-    openssl_output = process.communicate()[0]
+    # Keep the process pipe drained without relying on a small output buffer.
+    with tempfile.TemporaryFile(mode="w+t") as log:
+        process = subprocess.Popen(workload, stdout=log, stderr=subprocess.STDOUT, text=True)
+        try:
+            warmup = sample_phase(args.warmup_seconds, args.sample_seconds, expected_mode, process)
+            load = sample_phase(args.load_seconds, args.sample_seconds, expected_mode, process)
+            if process.wait(timeout=30) != 0:
+                raise SystemExit("OpenSSL workload failed")
+            log.seek(0)
+            openssl_output = log.read()
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
 
     result = {
         "mode": args.mode,
@@ -146,9 +152,10 @@ def main():
         "load_warmup": warmup,
         "load": load,
     }
-    output = Path(__file__).parent / "results" / (
+    output = SCRIPT_DIR / "results" / (
         f"m4-power-{args.mode}-{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%SZ}.json"
     )
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({
         "result": str(output),
@@ -156,9 +163,11 @@ def main():
         "load_average_W": load["average_power_W"],
         "load_energy_Wh": load["estimated_energy_Wh_from_samples"],
         "capacity_energy_Wh": load["estimated_energy_Wh_from_capacity"],
-        "openssl_result": openssl_output.strip().splitlines()[-1],
+        "openssl_result": openssl_output.strip().splitlines()[-1] if openssl_output.strip() else "",
     }, indent=2))
 
 
 if __name__ == "__main__":
     main()
+
+PYTHON

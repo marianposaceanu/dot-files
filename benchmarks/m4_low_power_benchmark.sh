@@ -20,6 +20,7 @@ case "${1:-}" in
 esac
 
 iterations="${2:-5}"
+[[ "$iterations" =~ ^[1-9][0-9]*$ ]] || { echo "Iterations must be a positive integer" >&2; exit 2; }
 chrome="${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
 timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
@@ -37,19 +38,26 @@ done
   exit 1
 }
 
-mode="$({ pmset -g custom || true; } |
-  awk '/Battery Power:/{battery=1;next}/AC Power:/{battery=0} battery&&/lowpowermode/{print $2}')"
-[[ "$mode" == "$expected_mode" ]] || {
-  printf 'Error: expected battery lowpowermode=%s, found %s.\n' "$expected_mode" "${mode:-unknown}" >&2
-  printf 'Change it in System Settings; this script deliberately does not use sudo.\n' >&2
-  exit 1
+verify_power_state() {
+  local mode
+  pmset -g batt | head -1 | grep -q "Now drawing from 'Battery Power'" || {
+    echo "Error: disconnect AC power before benchmarking battery modes." >&2
+    return 1
+  }
+  mode="$(pmset -g custom |
+    awk '/Battery Power:/{battery=1;next}/AC Power:/{battery=0} battery&&/lowpowermode/{print $2}')"
+  [[ "$mode" == "$expected_mode" ]] || {
+    printf 'Error: expected battery lowpowermode=%s, found %s.\n' "$expected_mode" "${mode:-unknown}" >&2
+    return 1
+  }
 }
+verify_power_state
 
 mkdir -p "$(dirname "$result")"
 
 {
   printf 'mode=%s\n' "$1"
-  printf 'battery_lowpowermode=%s\n' "$mode"
+  printf 'battery_lowpowermode=%s\n' "$expected_mode"
   printf 'started=%s\n' "$(date -u '+%FT%TZ')"
   printf 'macos=%s build=%s\n' "$(sw_vers -productVersion)" "$(sw_vers -buildVersion)"
   system_profiler SPHardwareDataType |
@@ -61,11 +69,14 @@ mkdir -p "$(dirname "$result")"
   pmset -g therm
 
   for run in 1 2 3; do
+    verify_power_state
     openssl speed -seconds 5 -evp sha256 2>&1 |
       awk -v run="$run" '/^sha256/{print "sha256_run=" run " sha256_8192_kBps=" $NF}'
   done
 
-  node "$root/benchmarks/speedometer_runner.mjs" "$iterations"
+  verify_power_state
+  bash "$root/benchmarks/speedometer_runner.sh" "$iterations"
+  verify_power_state
   printf 'finished=%s\n' "$(date -u '+%FT%TZ')"
 } | tee "$result"
 

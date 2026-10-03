@@ -71,6 +71,8 @@ echo "Repetitions: $REPETITIONS after 2 warmups" >&2
 python3 - "$RG_BINARY" "$LABEL" "$CORPUS" "$REPETITIONS" \
   "$COMPARE_BINARY" "$COMPARE_LABEL" <<'PY'
 import statistics
+import re
+from pathlib import Path
 import subprocess
 import sys
 import time
@@ -94,16 +96,40 @@ cases = [
 def run(executable, arguments):
     started = time.perf_counter_ns()
     result = subprocess.run(
-        [executable, "--no-config", "--no-messages", *arguments],
+        [executable, "--no-config", "--no-ignore", "--no-messages", *arguments],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
         check=False,
     )
     elapsed_ms = (time.perf_counter_ns() - started) / 1_000_000
-    if result.returncode not in (0, 1):
+    if result.returncode != 0:
         sys.stderr.write(result.stderr.decode(errors="replace"))
         raise SystemExit(f"benchmark command failed with exit status {result.returncode}")
     return elapsed_ms
+
+def validate(executable, arguments):
+    files = sorted(path for path in Path(arguments[-1]).rglob("*") if path.is_file())
+    if "--files" in arguments:
+        expected = [str(path) for path in files]
+    else:
+        expression = arguments[-2].replace("[[:alnum:]_-]", "[A-Za-z0-9_-]")
+        pattern = re.compile(expression)
+        expected = []
+        for path in files:
+            count = sum(bool(pattern.search(line)) for line in path.read_text().splitlines())
+            if count:
+                expected.append(f"{path}:{count}")
+    if not expected:
+        raise SystemExit("Benchmark corpus has no expected output for this workload")
+    result = subprocess.run([executable, "--no-config", "--no-ignore", "--no-messages", *arguments],
+                            capture_output=True, text=True)
+    if result.returncode != 0 or sorted(result.stdout.splitlines()) != sorted(expected):
+        raise SystemExit(f"Incorrect benchmark output: {executable}: {arguments[-2:]}")
+
+for _, arguments in cases:
+    validate(binary, arguments)
+    if comparison:
+        validate(comparison, arguments)
 
 print(f"# ripgrep benchmark: {label}")
 print()
@@ -128,10 +154,11 @@ else:
         samples = []
         comparison_samples = []
         for repetition in range(repetitions):
-            order = (binary, comparison) if repetition % 2 == 0 else (comparison, binary)
-            measured = {executable: run(executable, arguments) for executable in order}
-            samples.append(measured[binary])
-            comparison_samples.append(measured[comparison])
+            order = [(binary, samples), (comparison, comparison_samples)]
+            if repetition % 2:
+                order.reverse()
+            for executable, destination in order:
+                destination.append(run(executable, arguments))
         median = statistics.median(samples)
         comparison_median = statistics.median(comparison_samples)
         change = ((median / comparison_median) - 1) * 100

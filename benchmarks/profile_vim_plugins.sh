@@ -26,10 +26,10 @@ LOG_FILE="$(mktemp -t vim-startuptime.XXXXXX.log)"
 
 echo "Vim startup profile log: $LOG_FILE"
 echo
-echo "Top sourced files by self+sourced time (ms):"
+echo "Top sourced files by self time (ms):"
 awk '
   /sourcing / {
-    t = $2
+    t = $3
     gsub(":", "", t)
     if (t ~ /^[0-9.]+$/) {
       path = ""
@@ -42,10 +42,10 @@ awk '
 ' "$LOG_FILE" | sort -nr | head -20
 
 echo
-echo "Plugin totals under .vim/pack/bundles/start (ms):"
+echo "Plugin self-time totals under .vim/pack/bundles/start (ms):"
 awk '
   /sourcing / {
-    t = $2
+    t = $3
     gsub(":", "", t)
     if (t !~ /^[0-9.]+$/) next
 

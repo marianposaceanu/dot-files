@@ -88,14 +88,14 @@ System Settings and run each half separately:
 ./benchmarks/m4_low_power_benchmark.sh low
 ```
 
-See `benchmarks/speedometer_runner.mjs` for the exact browser flags and DevTools
+See `benchmarks/speedometer_runner.sh` for the exact browser flags and DevTools
 automation.
 
 ## Whole-system power follow-up
 
 A second batch measured battery draw after Chrome had been removed. It exercises
 the same native single-thread SHA-256 workload; it does not measure browser power.
-The checked-in `m4_power_benchmark.py` refuses to run unless the requested mode
+The checked-in `m4_power_benchmark.sh` refuses to run unless the requested mode
 matches the effective battery setting.
 
 ### Method
@@ -156,8 +156,8 @@ Select each mode in System Settings before its command. The script verifies the
 setting but never changes it:
 
 ```sh
-python3 benchmarks/m4_power_benchmark.py normal
-python3 benchmarks/m4_power_benchmark.py low
+./benchmarks/m4_power_benchmark.sh normal
+./benchmarks/m4_power_benchmark.sh low
 ```
 
 The defaults are `--idle-seconds 90`, `--warmup-seconds 60`,

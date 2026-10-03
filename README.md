@@ -227,8 +227,11 @@ Native-build profiles:
 ./benchmarks/profile_vim_plugins_median.sh
 ./benchmarks/benchmark_ripgrep_native.sh "$(command -v rg)" native
 ./benchmarks/benchmark_ctags_native.sh
-./benchmarks/benchmark_git_native.sh
+./benchmarks/benchmark_git_native.sh "$(command -v git)"
 ```
+
+See [benchmarks/README.md](benchmarks/README.md) for dependencies, comparison
+commands, power measurements, and how to interpret historical results.
 
 ## Validation
 

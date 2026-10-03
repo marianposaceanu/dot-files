@@ -84,10 +84,9 @@ for name, args in cases:
         if other: run(other,args)
     a=[]; b=[]
     for i in range(reps):
-        order=[binary,other] if i%2 == 0 else [other,binary]
-        measured={x:run(x,args) for x in order if x}
-        a.append(measured[binary])
-        if other: b.append(measured[other])
+        order=[(binary,a),(other,b)] if i%2 == 0 else [(other,b),(binary,a)]
+        for executable, samples in order:
+            if executable: samples.append(run(executable,args))
     ma=statistics.median(a)
     if other:
         mb=statistics.median(b)
