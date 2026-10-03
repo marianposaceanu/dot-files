@@ -13,7 +13,7 @@
   <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="stylesheet" href="assets/site.css?v=45a06c8dc8d3">
-  <link rel="stylesheet" href="assets/dotfiles.css?v=cf2c3c5fd5fe">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=1190b124cc34">
   <script src="assets/site.js?v=1ed66fe08520" defer></script>
 </head>
 <body class="site-article" id="top">
@@ -57,12 +57,13 @@
           <table>
             <thead><tr><th>Command / Key</th><th>Action</th></tr></thead>
             <tbody>
-              <tr><td><code>&lt;C-p&gt;</code> / <code>:Files</code></td><td>Fuzzy-find all files in the repo</td></tr>
+              <tr><td><code>&lt;C-p&gt;</code> / <code>:Files</code></td><td>Fuzzy-find files below Vim’s working directory</td></tr>
               <tr><td><code>:GFiles</code></td><td>Files tracked by git (<code>git ls-files</code>)</td></tr>
               <tr><td><code>:GFiles?</code></td><td>Files with uncommitted changes (<code>git status</code>)</td></tr>
             </tbody>
           </table>
         </div>
+        <p><code>:Files</code> works in Git repositories and ordinary directories. This configuration uses <code>rg --files --hidden --glob '!.git'</code>: hidden files are included, Git internals are excluded, and ripgrep’s ignore rules still apply. <a href="vim-rooter.html">vim-rooter</a> can set the working directory to the project root. <code>:GFiles</code> and <code>:GFiles?</code> require a Git repository.</p>
       </section>
       <section id="search-inside-files">
         <h2>Search inside files</h2>

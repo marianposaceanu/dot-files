@@ -25,7 +25,7 @@
   <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="stylesheet" href="assets/site.css?v=45a06c8dc8d3">
-  <link rel="stylesheet" href="assets/dotfiles.css?v=cf2c3c5fd5fe">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=1190b124cc34">
   <script src="assets/site.js?v=1ed66fe08520" defer></script>
 </head>
 <body class="site-home" id="top">
@@ -57,6 +57,7 @@
       <h2>Contents</h2>
       <ol>
         <li><a href="#installation-configuration">Set up the dotfiles</a></li>
+        <li><a href="#custom-tools">Custom tools</a></li>
         <li><a href="#macos-performance">macOS and measured performance</a></li>
         <li><a href="#ghostty-recovery">Ghostty sessions and recovery</a></li>
         <li><a href="#vim-field-guide">Vim field guide</a></li>
@@ -67,6 +68,7 @@
       <section id="installation-configuration">
         <h2>Set up the dotfiles</h2>
         <p>On a Mac, clone the repository and run the setup script. It installs the command-line tools, Ghostty, Oh My Zsh, and pinned Vim plugins, links the configuration files, and checks that everything loads correctly.</p>
+        <p>These commands require Homebrew and <code>brew</code> in your shell. On a new Mac, finish the Apple Command Line Tools installation if the first <code>git</code> command prompts for it, then retry. The installer also configures the required RVM Ruby versions.</p>
         <pre><code>git clone https://github.com/marianposaceanu/dot-files.git ~/dot-files
 cd ~/dot-files
 brew install borkdude/brew/babashka
@@ -95,7 +97,19 @@ bb bootstrap/install_macos.clj</code></pre>
           <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/.vim"><code>.vim/</code></a><span>Vim plugins and local extensions</span></li>
           <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.zshrc"><code>.zshrc</code></a><span>Shell navigation and command-line tools</span></li>
           <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/.tmux.conf"><code>.tmux.conf</code></a><span>Remote and persistent terminal sessions</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/llm-harnesses"><code>llm-harnesses/</code></a><span>Amp, Codex, and Claude Code configuration</span></li>
           <li><a href="https://github.com/marianposaceanu/dot-files/tree/main/bootstrap"><code>bootstrap/</code></a><span>Installation, validation, backups, and environment checks</span></li>
+        </ul>
+      </section>
+
+      <section id="custom-tools">
+        <h2>Custom tools</h2>
+        <p>These projects are maintained alongside the dotfiles. <a href="https://github.com/marianposaceanu/homebrew-tap">Marian’s Homebrew tap</a> provides the command-line tools and optional native builds.</p>
+        <ul class="source-list compact-list">
+          <li><a href="https://github.com/marianposaceanu/mextdisplay">mextdisplay</a><span>Enable and disable external displays on Apple Silicon Macs. Install with <code>brew install marianposaceanu/tap/mextdisplay</code>.</span></li>
+          <li><a href="https://github.com/marianposaceanu/rz">rz</a><span>Save and restore Ghostty workspaces. Install with <code>brew install marianposaceanu/tap/rz</code>; see the <a href="ghostty.html">Ghostty quick start</a>.</span></li>
+          <li><a href="https://github.com/marianposaceanu/safari-tab-weight">Safari Tab Weight</a><span>Inspect the current Safari tab’s observable resource weight and page structure. Build and enable it using the standalone project’s Xcode instructions.</span></li>
+          <li><a href="native-builds-guide.html">brew native</a><span>Compile Vim, Git, ripgrep, and Universal Ctags for the local Apple CPU through the Homebrew tap.</span></li>
         </ul>
       </section>
 
@@ -118,7 +132,7 @@ bb bootstrap/install_macos.clj</code></pre>
             </div>
             <span>
               Step-by-step guide to compiling with <code>-O3 -mcpu=apple-mN</code> for the detected Apple Silicon CPU
-              via a local Homebrew tap, with the one-command script, every manual step,
+              via the dedicated Homebrew tap, with the one-command script, every manual step,
               verification, upgrades, and the pitfalls.
               <time class="thread-date" datetime="2026-09-19">19th September 2026</time>
             </span>

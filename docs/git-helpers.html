@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>git_helpers (custom) | dot-files</title>
-  <meta name="description" content="A small custom plugin (`plugin/git_helpers.vim`) that adds two git commands not covered by fugitive or fzf.vim.">
+  <meta name="description" content="A small custom plugin (`.vim/plugin/git_helpers.vim`) that adds two git commands not covered by fugitive or fzf.vim.">
   <meta name="author" content="Marian Posăceanu">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://dot.marianposaceanu.com/git-helpers.html">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","mainEntityOfPage":{"@type":"WebPage","@id":"https://dot.marianposaceanu.com/git-helpers.html"},"headline":"git_helpers (custom)","description":"A small custom plugin (`plugin/git_helpers.vim`) that adds two git commands not covered by fugitive or fzf.vim.","author":{"@type":"Person","@id":"https://marianposaceanu.com/#person","name":"Marian Posăceanu","url":"https://marianposaceanu.com/home/about"},"datePublished":"2026-07-20"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","mainEntityOfPage":{"@type":"WebPage","@id":"https://dot.marianposaceanu.com/git-helpers.html"},"headline":"git_helpers (custom)","description":"A small custom plugin (`.vim/plugin/git_helpers.vim`) that adds two git commands not covered by fugitive or fzf.vim.","author":{"@type":"Person","@id":"https://marianposaceanu.com/#person","name":"Marian Posăceanu","url":"https://marianposaceanu.com/home/about"},"datePublished":"2026-07-20"}</script>
   <link rel="preload" href="fonts/lora-v24-latin-ext_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/Fira_Sans_500.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="stylesheet" href="assets/site.css?v=45a06c8dc8d3">
-  <link rel="stylesheet" href="assets/dotfiles.css?v=cf2c3c5fd5fe">
+  <link rel="stylesheet" href="assets/dotfiles.css?v=1190b124cc34">
   <script src="assets/site.js?v=1ed66fe08520" defer></script>
 </head>
 <body class="site-article" id="top">
@@ -29,7 +29,7 @@
     <header class="hero" aria-labelledby="page-title">
       <p class="eyebrow">Vim field guide · dot-files</p>
       <h1 id="page-title">git_helpers (custom)</h1>
-      <p class="subtitle">A small custom plugin (`plugin/git_helpers.vim`) that adds two git commands not covered by fugitive or fzf.vim.</p>
+      <p class="subtitle">A small custom plugin (`.vim/plugin/git_helpers.vim`) that adds two git commands not covered by fugitive or fzf.vim.</p>
       <ul class="meta" aria-label="Article metadata">
         <li>Vim tutorial</li>
         <li><time class="article-date" datetime="2026-07-20">20th July 2026</time></li>
@@ -47,6 +47,7 @@
     </nav>
 
     <article class="article article-flow">
+        <p>The helpers run Git relative to the current file’s directory, so Vim’s working directory can be elsewhere. Save the buffer first. Git errors are shown in the message area; uncommitted lines report <code>Not committed yet</code>, and a log search with no matches reports <code>No commits found for the search term</code>. A GitHub <code>origin</code> produces a commit URL; other remotes show the commit hash.</p>
       <section id="blame-inline-blame-for-the-current-line">
         <h2>:Blame — inline blame for the current line</h2>
         <pre><code>:Blame</code></pre>
@@ -70,7 +71,7 @@ https://github.com/you/repo/commit/3b753cf8
       </section>
       <section id="logsearch-leader-gs-find-which-commit-introduced-a-line">
         <h2>:LogSearch / <code>&lt;leader&gt;gs</code> — find which commit introduced a line</h2>
-        <p>Searches <code>git log -S</code> (the &quot;pickaxe&quot;) for the exact text of the current line or visual selection, then prints the first matching commit URL.</p>
+        <p>Searches <code>git log -S</code> (the &quot;pickaxe&quot;) for the exact text of the current line or visual selection, within the current file’s history. It shows the earliest matching commit URL or hash, followed by matching commit details.</p>
         <div class="table-scroll">
           <table>
             <thead><tr><th>Key / Command</th><th>Action</th></tr></thead>

@@ -253,10 +253,10 @@ bb test/install_macos_test.clj
 ```
 
 For website edits, follow [the site instructions](bootstrap/site/instructions.md)
-and use [the article template](bootstrap/site/tutorial_page.html). Keep tutorial
-Markdown and its published HTML in sync, then review the rendered pages and
-metadata. Site generation and validation are handled directly during editing;
-they are not part of the configuration checker.
+and use [the article template](bootstrap/site/tutorial_page.html). Published HTML
+in `docs/` is the single source of truth; edit it directly, then review the
+rendered pages, examples, links, and metadata. Site review happens during editing
+and is separate from the configuration checker.
 
 ## Vim
 
