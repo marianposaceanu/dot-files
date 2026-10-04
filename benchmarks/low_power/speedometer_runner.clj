@@ -1,4 +1,4 @@
-(ns benchmarks.speedometer-runner
+(ns benchmarks.low-power.speedometer-runner
   (:refer-clojure :exclude [run!])
   (:require [babashka.fs :as fs]
             [babashka.http-client :as http]
@@ -84,7 +84,7 @@
 
 (defn -main [& args]
   (if (= ["--help"] (vec args))
-    (println "Usage: bb benchmarks/speedometer_runner.clj [iterations]")
+    (println "Usage: bb benchmarks/low_power/speedometer_runner.clj [iterations]")
     (do
       (when (> (count args) 1) (b/fail! "Expected at most one iteration count" {:args args}))
       (println (json/generate-string (run! (options (first args))))))))

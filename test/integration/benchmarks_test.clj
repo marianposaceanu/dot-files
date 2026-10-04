@@ -130,7 +130,7 @@
                               ["startup-stall" "Speedometer timed out"] ["http-stall" nil] ["connect-stall" nil]]]
         (testing mode
           (let [started (b/elapsed-ms)
-                result (invoke! "speedometer_runner.clj" ["1"] {"CHROME_BIN" chrome "FAKE_CDP" mode
+                result (invoke! "low_power/speedometer_runner.clj" ["1"] {"CHROME_BIN" chrome "FAKE_CDP" mode
                                                                "SPEEDOMETER_TIMEOUT_MS" (if (= mode "startup-stall") "500" "3000")
                                                                "SPEEDOMETER_REQUEST_TIMEOUT_MS" "500"})]
             (if (contains? #{"success" "fragmented"} mode)

@@ -372,18 +372,18 @@
           run stops. The benchmark never asks for administrator access and never
           changes the power policy itself.
         </p>
-        <pre><code>git clone git@github.com:marianposaceanu/dot-files.git ~/dot-files
+        <pre style="white-space: pre-wrap; overflow-wrap: anywhere"><code>git clone git@github.com:marianposaceanu/dot-files.git ~/dot-files
 cd ~/dot-files
 
 # System Settings → Battery → Low Power Mode → Never
-bb benchmarks/m4_low_power_benchmark.clj normal
+bb benchmarks/low_power/m4_low_power_benchmark.clj normal
 
 # System Settings → Battery → Low Power Mode → Only on Battery
-bb benchmarks/m4_low_power_benchmark.clj low
+bb benchmarks/low_power/m4_low_power_benchmark.clj low
 
 # Power batch: run once in each already-selected mode
-bb benchmarks/m4_power_benchmark.clj normal
-bb benchmarks/m4_power_benchmark.clj low</code></pre>
+bb benchmarks/low_power/m4_power_benchmark.clj normal
+bb benchmarks/low_power/m4_power_benchmark.clj low</code></pre>
         <p>
           The current harness runs in Babashka/Clojure and requires no Python or Node.js.
           The measurements above used the earlier harness; its sources are preserved in
@@ -391,9 +391,9 @@ bb benchmarks/m4_power_benchmark.clj low</code></pre>
           Compare fresh runs under the same harness and conditions.
         </p>
         <ul class="source-list compact-list">
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/m4_low_power_benchmark.clj"><code>m4_low_power_benchmark.clj</code></a><span>mode verification, environment capture, OpenSSL samples, and result logging</span></li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/speedometer_runner.clj"><code>speedometer_runner.clj</code></a><span>fresh Chrome profile, exact flags, DevTools automation, version capture, and cleanup</span></li>
-          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/m4_power_benchmark.clj"><code>m4_power_benchmark.clj</code></a><span>mode verification, idle and loaded sampling, battery telemetry, warmup, and timestamped JSON output</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/low_power/m4_low_power_benchmark.clj"><code>m4_low_power_benchmark.clj</code></a><span>mode verification, environment capture, OpenSSL samples, and result logging</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/low_power/speedometer_runner.clj"><code>speedometer_runner.clj</code></a><span>fresh Chrome profile, exact flags, DevTools automation, version capture, and cleanup</span></li>
+          <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/low_power/m4_power_benchmark.clj"><code>m4_power_benchmark.clj</code></a><span>mode verification, idle and loaded sampling, battery telemetry, warmup, and timestamped JSON output</span></li>
           <li><a href="https://github.com/marianposaceanu/dot-files/blob/main/benchmarks/results/m4-low-power-mode-20260731.md"><code>m4-low-power-mode-20260731.md</code></a><span>raw measurements and derived ratios</span></li>
         </ul>
       </section>

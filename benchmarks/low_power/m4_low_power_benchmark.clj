@@ -1,8 +1,8 @@
-(ns benchmarks.m4-low-power-benchmark
+(ns benchmarks.low-power.m4-low-power-benchmark
   (:refer-clojure :exclude [run!])
   (:require [benchmarks.lib.core :as b]
             [benchmarks.lib.power :as power]
-            [benchmarks.speedometer-runner :as speedometer]
+            [benchmarks.low-power.speedometer-runner :as speedometer]
             [cheshire.core :as json]
             [clojure.string :as str]))
 
@@ -40,7 +40,7 @@
 
 (defn -main [& args]
   (if (= ["--help"] (vec args))
-    (println "Usage: bb benchmarks/m4_low_power_benchmark.clj normal|low [iterations]")
+    (println "Usage: bb benchmarks/low_power/m4_low_power_benchmark.clj normal|low [iterations]")
     (let [[mode iterations] args]
       (when-not (<= 1 (count args) 2) (b/fail! "Expected mode and optional iterations" {:args args}))
       (power/mode-value mode)

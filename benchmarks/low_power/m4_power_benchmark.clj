@@ -1,4 +1,4 @@
-(ns benchmarks.m4-power-benchmark
+(ns benchmarks.low-power.m4-power-benchmark
   (:refer-clojure :exclude [run!])
   (:require [babashka.process :as process]
             [benchmarks.lib.core :as b]
@@ -39,7 +39,7 @@
 
 (defn -main [& args]
   (if (= ["--help"] (vec args))
-    (println "Usage: bb benchmarks/m4_power_benchmark.clj normal|low [--idle-seconds N] [--warmup-seconds N] [--load-seconds N] [--sample-seconds N]")
+    (println "Usage: bb benchmarks/low_power/m4_power_benchmark.clj normal|low [--idle-seconds N] [--warmup-seconds N] [--load-seconds N] [--sample-seconds N]")
     (let [options (parse-options args) result (run! options)
           target (b/path b/bench-root "results" (str "m4-power-" (:mode options) "-" (b/timestamp) ".json"))]
       (b/atomic-write! target (b/json-string result))

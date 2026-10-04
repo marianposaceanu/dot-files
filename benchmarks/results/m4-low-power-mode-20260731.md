@@ -88,11 +88,11 @@ The checked-in harness refuses to change power settings. Select the mode in
 System Settings and run each half separately:
 
 ```sh
-bb benchmarks/m4_low_power_benchmark.clj normal
-bb benchmarks/m4_low_power_benchmark.clj low
+bb benchmarks/low_power/m4_low_power_benchmark.clj normal
+bb benchmarks/low_power/m4_low_power_benchmark.clj low
 ```
 
-See `benchmarks/speedometer_runner.clj` for the exact browser flags and DevTools
+See `benchmarks/low_power/speedometer_runner.clj` for the exact browser flags and DevTools
 automation.
 
 ## Whole-system power follow-up
@@ -131,10 +131,10 @@ verified before each run and restored to **Only on Battery** afterward.
 | Capacity-counter cross-check | 0.5016 Wh | 0.1975 Wh |
 | SHA-256 throughput | 3,305,470.67 kB/s | 1,568,375.53 kB/s |
 
-The corrected raw captures are:
+The corrected raw captures are gzip-compressed JSON (read with `gzip -cd`):
 
-- `m4-power-normal-20260731T100310Z.json`
-- `m4-power-low-20260731T095511Z.json`
+- [Normal mode](m4-power-normal-20260731T100310Z.json.gz)
+- [Low Power Mode](m4-power-low-20260731T095511Z.json.gz)
 
 An exploratory pair without loaded warmup exposed delayed, stepwise battery-gauge
 updates and was excluded. The 60-second warmup was added before collecting the
@@ -160,8 +160,8 @@ Select each mode in System Settings before its command. The script verifies the
 setting but never changes it:
 
 ```sh
-bb benchmarks/m4_power_benchmark.clj normal
-bb benchmarks/m4_power_benchmark.clj low
+bb benchmarks/low_power/m4_power_benchmark.clj normal
+bb benchmarks/low_power/m4_power_benchmark.clj low
 ```
 
 The defaults are `--idle-seconds 90`, `--warmup-seconds 60`,

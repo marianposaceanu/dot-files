@@ -2,7 +2,7 @@
   (:require [babashka.process :as process]
             [benchmarks.lib.core :as b]
             [benchmarks.lib.power :as power]
-            [benchmarks.m4-low-power-benchmark :as low-power]
+            [benchmarks.low-power.m4-low-power-benchmark :as low-power]
             [clojure.test :refer [are deftest is testing]]))
 
 (deftest hardware-summary-test

@@ -26,9 +26,9 @@ to reproduce historical measurements.
 | `benchmark_ripgrep_native.clj` | Search, Unicode, PCRE2, threads, and traversal | ripgrep with PCRE2; reusable temporary corpus; Markdown on stdout |
 | `benchmark_ctags_native.clj` | C, Ruby, JSON, YAML, and mixed parsing | Universal Ctags with JSON output; disposable corpus; Markdown on stdout |
 | `benchmark_git_native.clj` | Git CPU workloads and PGO training | Git with PCRE2, `/usr/bin/time`, Bash for the timed Git payload; disposable repo |
-| `m4_low_power_benchmark.clj` | SHA-256 throughput and Speedometer 3.1 | macOS, OpenSSL, Chrome, internet; completed timestamped text report |
-| `m4_power_benchmark.clj` | Whole-system battery draw during idle, warmup, and load | macOS AppleSmartBattery telemetry and OpenSSL; timestamped JSON |
-| `speedometer_runner.clj` | Speedometer through Chrome DevTools | Chrome and internet; JSON on stdout; isolated profile cleaned up |
+| `low_power/m4_low_power_benchmark.clj` | SHA-256 throughput and Speedometer 3.1 | macOS, OpenSSL, Chrome, internet; completed timestamped text report |
+| `low_power/m4_power_benchmark.clj` | Whole-system battery draw during idle, warmup, and load | macOS AppleSmartBattery telemetry and OpenSSL; timestamped JSON |
+| `low_power/speedometer_runner.clj` | Speedometer through Chrome DevTools | Chrome and internet; JSON on stdout; isolated profile cleaned up |
 
 The three `benchmark_*_native.sh` files are compatibility launchers for existing
 Homebrew tap build/PGO callers. They forward arguments and environment to the
@@ -118,11 +118,11 @@ checks surround each workload; telemetry checks every sample and rejects an earl
 or failed OpenSSL exit. Results are saved only after the entire run succeeds.
 
 ```sh
-bb benchmarks/m4_low_power_benchmark.clj normal 5
-bb benchmarks/m4_low_power_benchmark.clj low 5
-bb benchmarks/m4_power_benchmark.clj normal
-bb benchmarks/m4_power_benchmark.clj low
-bb benchmarks/speedometer_runner.clj 5
+bb benchmarks/low_power/m4_low_power_benchmark.clj normal 5
+bb benchmarks/low_power/m4_low_power_benchmark.clj low 5
+bb benchmarks/low_power/m4_power_benchmark.clj normal
+bb benchmarks/low_power/m4_power_benchmark.clj low
+bb benchmarks/low_power/speedometer_runner.clj 5
 ```
 
 Telemetry defaults: 90 seconds idle, 60 seconds warmup, 180 seconds load, samples
