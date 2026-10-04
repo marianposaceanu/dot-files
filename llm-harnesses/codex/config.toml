@@ -58,6 +58,12 @@ trust_level = "trusted"
 [projects."/Users/marian/Downloads"]
 trust_level = "trusted"
 
+[projects."/Users/marian/work/fws-search"]
+trust_level = "trusted"
+
+[projects."/Users/marian/work/playground/macos-swapwho"]
+trust_level = "trusted"
+
 [features]
 apps = false
 fast_mode = false
@@ -72,6 +78,8 @@ hide_rate_limit_model_nudge = true
 [tui]
 animations = false
 copy_on_select = "always"
+# keep project name in the tab title but drop the spinner: each title change triggers a Spotlight donation macOS 27 rejects (2026-09-19)
+terminal_title = ["project"]
 show_tooltips = false
 status_line = [
                 "model-with-reasoning",

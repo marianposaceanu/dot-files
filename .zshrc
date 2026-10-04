@@ -113,6 +113,9 @@ for _zsh_autosuggestions in \
 done
 unset _zsh_autosuggestions
 
+# Stop Claude Code rewriting the terminal title (spinner) — each change triggers a Spotlight donation macOS 27 rejects (2026-09-19)
+export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
+
 # Load syntax highlighting last, after all interactive widgets are registered.
 for _zsh_highlighting in \
   "${HOMEBREW_PREFIX:-}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
@@ -124,3 +127,4 @@ for _zsh_highlighting in \
   fi
 done
 unset _zsh_highlighting
+export PATH="$HOME/.local/bin:$PATH"

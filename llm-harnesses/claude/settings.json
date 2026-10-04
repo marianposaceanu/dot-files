@@ -7,7 +7,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5-1[1m]",
+  "model": "opus",
   "outputStyle": "Amp",
   "feedbackSurveyRate": 0,
   "feedbackDrafts": "off",
@@ -15,14 +15,19 @@
   "effortLevel": "high",
   "modelSettings": {
     "claude-opus-5": {
-      "effortLevel": "high"
+      "effortLevel": "xhigh"
     },
     "claude-fable-5-1": {
-      "effortLevel": "medium"
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "xhigh"
     }
   },
+  "advisorModel": "fable",
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
+  "autoUpdatesChannel": "latest",
   "prefersReducedMotion": true,
   "skipDangerousModePermissionPrompt": true,
   "theme": "auto",

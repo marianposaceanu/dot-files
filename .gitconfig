@@ -62,3 +62,5 @@
 	defaultBranch = main
 [credential "https://git.heroku.com"]
 	helper = !heroku git:credentials
+[credential "https://ampcode.com"]
+	helper = !amp git-credential-helper
