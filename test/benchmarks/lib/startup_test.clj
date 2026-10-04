@@ -11,7 +11,3 @@
       (is (= [{:name "example" :self 5.0 :files 2}] (vec (startup/plugin-totals (:files profile)))))))
   (testing "Malformed logs do not silently become zero-time measurements"
     (is (thrown? clojure.lang.ExceptionInfo (startup/parse-log "missing timestamps")))))
-
-(deftest archived-total-test
-  (testing "Only recorded inclusive plugin rows contribute to historical totals"
-    (is (= 3.0 (startup/archived-total "Plugin totals under .vim/pack/bundles/start (ms):\n 1.000 2 files alpha\n 2.000 3 files beta\nTip: rerun\n 99.0 1 files unrelated\n")))))

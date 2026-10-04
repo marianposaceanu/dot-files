@@ -8,12 +8,10 @@ The previous scripts, documentation, results, and regression harness are preserv
 in [archive/benchmarks-shell-20261004.tar.gz](archive/benchmarks-shell-20261004.tar.gz),
 with a checksum and [extraction instructions](archive/README.md).
 
-Six historical startup `.txt` captures remain as inputs to the startup chart.
-Five other captures (`after_core_tweaks`, `after_perf_tweaks`, `before_perf_tweaks`,
-`latest`, and `lightline_trial`) had no active references and were removed after
-verifying their bytes against the archive. Their source data remains in the
-archive. The archive also retains the legacy benchmark implementations needed
-to reproduce historical measurements.
+Historical startup captures and the shell chart generator are preserved in the
+archive; no loose historical profile captures remain. The published chart values
+are retained in [the article](../docs/native-apple-silicon-builds.html) and the
+[M1 Pro run report](results/m1-pro-20261004/README.md).
 
 ## Entry points
 
@@ -21,7 +19,6 @@ to reproduce historical measurements.
 | --- | --- | --- |
 | `profile_vim_plugins.clj` | Single startup profile, file and plugin self times | Vim or Neovim, selected `.vimrc`, initialized plugins; retained temporary log |
 | `profile_vim_plugins_median.clj` | Repeated startup profiles and medians | Same; `RUNS=7`; temporary logs cleaned up |
-| `generate_vim_startup_chart.clj` | Text chart of historical startup captures | Checked-in profile text; does not run Vim |
 | `vim_bench.clj` | Regex, replacement, sorting, and Vimscript workloads | Vim, `strings`; corpus and timestamped reports below this directory |
 | `benchmark_ripgrep_native.clj` | Search, Unicode, PCRE2, threads, and traversal | ripgrep with PCRE2; reusable temporary corpus; Markdown on stdout |
 | `benchmark_ctags_native.clj` | C, Ruby, JSON, YAML, and mixed parsing | Universal Ctags with JSON output; disposable corpus; Markdown on stdout |
@@ -73,7 +70,6 @@ unexplained delay between Speedometer page completion and process exit.
 bb benchmarks/profile_vim_plugins.clj
 RUNS=9 bb benchmarks/profile_vim_plugins_median.clj
 VIM_BIN=/opt/homebrew/bin/vim VIMRC_PATH="$PWD/.vimrc" bb benchmarks/profile_vim_plugins.clj
-bb benchmarks/generate_vim_startup_chart.clj
 
 bb benchmarks/benchmark_ripgrep_native.clj /opt/homebrew/bin/rg native /path/to/baseline/rg baseline
 bb benchmarks/benchmark_ctags_native.clj /opt/homebrew/bin/ctags native /path/to/baseline/ctags baseline
@@ -84,8 +80,8 @@ bb benchmarks/vim_bench.clj --compare benchmarks/results/bottle_TIMESTAMP.txt be
 
 Startup plugin totals sum self time, excluding nested sourced work.
 `plugin_start_total_ms` is this sum; `total_startup_ms` is the last elapsed startup
-log timestamp. Archived text profiles and their chart use earlier inclusive
-sourcing totals: nested work overlaps, so these totals are not additive plugin cost.
+log timestamp. The archived historical chart used inclusive sourcing totals;
+nested work overlaps, so those totals are not additive plugin cost.
 
 ripgrep validates file lists and matching-line counts independently before timing.
 Ctags requires tag output and equivalent sorted JSON between candidates.

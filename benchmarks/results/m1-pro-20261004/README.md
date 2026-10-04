@@ -2,7 +2,7 @@
 
 All ten Clojure entry points were attempted on the local Mac: eight completed and two were blocked by the battery-power requirement. Benchmarks ran sequentially; no installed package or power setting was changed. The benchmark implementations were at commit `fe66aa7`.
 
-The commands recorded below are the original commands used for this run. The current battery and Speedometer entry points live under `benchmarks/low_power/`; see [the benchmark guide](../../README.md) for runnable commands.
+The commands recorded below are the original commands used for this run. The current battery and Speedometer entry points live under `benchmarks/low_power/`; see [the benchmark guide](../../README.md) for runnable commands. The historical chart command is no longer a live entry point; its output is preserved here, and its original shell generator and inputs are in the archive.
 
 ## Artifact review and cleanup
 
@@ -14,7 +14,7 @@ Only five unused loose startup captures were removed, after confirming that each
 - `benchmarks/vim_startup_profile_latest.txt`
 - `benchmarks/vim_startup_profile_lightline_trial.txt`
 
-The six `.txt` inputs used by `generate_vim_startup_chart.clj` remain. The `.tar.gz` archive and checksum remain because they preserve the legacy implementations, original regression harness, historical captures, and results used by existing documentation. All 28 members were byte-verified against commit `b8aad75`, and the archive checksum was verified. Historical M4 reports and telemetry JSON were retained (the JSON captures are now gzip-compressed). `docs/robots.txt` is an active website file and was retained.
+At the time of this run, the six `.txt` chart inputs still remained; they have since been removed after verification against the archive. The `.tar.gz` archive and checksum remain because they preserve the legacy implementations, original regression harness, historical captures, and results used by existing documentation. All 28 members were byte-verified against commit `b8aad75`, and the archive checksum was verified. Historical M4 reports and telemetry JSON were retained (the JSON captures are now gzip-compressed). `docs/robots.txt` is an active website file and was retained.
 
 Proof of preserved bytes and hashes: [cleanup-audit.json](cleanup-audit.json). The fresh Vim reports below are needed baselines and were retained. Generated corpora and raw process logs remain local; they are not included in the commit.
 

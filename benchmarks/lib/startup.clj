@@ -32,9 +32,3 @@
   (when-not (fs/regular-file? vimrc) (b/fail! "Vim config not found" {:vimrc vimrc}))
   (b/capture! [binary "-Nu" vimrc "-i" "NONE" "-n" "-es" "--startuptime" log "-c" "qall"])
   (parse-log (slurp log)))
-
-(defn archived-total [text]
-  (let [rows (-> text (str/split #"Plugin totals under \.vim/pack/bundles/start" 2) second)]
-    (when-not rows (b/fail! "Archived startup profile has no inclusive plugin totals" {}))
-    (reduce + 0.0 (keep #(some-> (re-find #"^\s*([\d.]+)\s+\d+ files" %) second Double/parseDouble)
-                        (str/split-lines (first (str/split rows #"Tip:" 2)))))))
