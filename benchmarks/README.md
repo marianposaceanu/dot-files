@@ -4,12 +4,13 @@ All benchmark logic runs in Babashka/Clojure. Run the `.clj` entry points from t
 repository root. Babashka includes the filesystem, process, XML, JSON, HTTP, and
 WebSocket support used here; Python and Node.js are no longer required.
 
-The previous scripts, documentation, results, and regression harness are preserved
-in [archive/benchmarks-shell-20261004.tar.gz](archive/benchmarks-shell-20261004.tar.gz),
-with a checksum and [extraction instructions](archive/README.md).
+The legacy shell scripts, their README, and regression harness are preserved in
+[archive/benchmarks-shell-20261004.tar.gz](archive/benchmarks-shell-20261004.tar.gz),
+with a checksum and [extraction instructions](archive/README.md). Historical
+measurements are summarized in Markdown reports under `results/`; generated output
+files are not committed.
 
-Historical startup captures and the shell chart generator are preserved in the
-archive; no loose historical profile captures remain. The published chart values
+Historical startup captures are no longer tracked. The published chart values
 are retained in [the article](../docs/native-apple-silicon-builds.html) and the
 [M1 Pro run report](results/m1-pro-20261004/README.md).
 
@@ -55,12 +56,12 @@ samples. Reports are published atomically only after every workload succeeds.
 The new Vim corpus uses a seeded Clojure generator and structured Ruby source.
 Its bytes differ from the earlier awk-generated corpus. Reuse the same corpus
 for both candidates and rerun both baselines; historical Vim workload timings are
-not directly comparable. Reports record corpus SHA-256 hashes and binary metadata.
-Historical measurements and raw JSON remain unchanged.
+not directly comparable. Generated reports record corpus SHA-256 hashes and binary
+metadata; the historical measurement summaries remain in Markdown.
 
 The [4 October 2026 Apple M1 Pro run](results/m1-pro-20261004/README.md) records
-all ten entry-point attempts, exact commands, workload results, and four fresh
-same-version Vim bottle/native baselines. Eight entry points completed; the two
+all ten entry-point attempts, exact commands, workload results, and two pairs of
+same-version Vim bottle/native measurements. Eight entry points completed; the two
 battery benchmarks required disconnecting AC power. The report also records an
 unexplained delay between Speedometer page completion and process exit.
 
@@ -153,6 +154,7 @@ self-time accounting, alternating comparisons, battery state, fragmented WebSock
 messages, disconnects, and deadlines. They do not reinstall packages, change power
 settings, or run a full browser benchmark. Configuration checks include them.
 
-Generated corpora and text reports are ignored by Git. New telemetry JSON is not
-ignored: review its environment and measurements before committing it. For an
-absolute entry-point path outside this repository, pass `--config /path/to/dot-files/bb.edn`.
+Generated corpora and result files (including JSON telemetry and text baselines)
+are ignored by Git. Review their environment and measurements before sharing them.
+For an absolute entry-point path outside this repository, pass
+`--config /path/to/dot-files/bb.edn`.

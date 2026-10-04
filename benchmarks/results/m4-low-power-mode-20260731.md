@@ -131,10 +131,9 @@ verified before each run and restored to **Only on Battery** afterward.
 | Capacity-counter cross-check | 0.5016 Wh | 0.1975 Wh |
 | SHA-256 throughput | 3,305,470.67 kB/s | 1,568,375.53 kB/s |
 
-The corrected raw captures are gzip-compressed JSON (read with `gzip -cd`):
-
-- [Normal mode](m4-power-normal-20260731T100310Z.json.gz)
-- [Low Power Mode](m4-power-low-20260731T095511Z.json.gz)
+The corrected raw telemetry captures are no longer committed; the measured
+summary and derived comparisons remain here. Future runs produce fresh JSON
+captures under `benchmarks/results/`, ignored by Git.
 
 An exploratory pair without loaded warmup exposed delayed, stepwise battery-gauge
 updates and was excluded. The 60-second warmup was added before collecting the

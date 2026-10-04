@@ -2,7 +2,7 @@
 
 All ten Clojure entry points were attempted on the local Mac: eight completed and two were blocked by the battery-power requirement. Benchmarks ran sequentially; no installed package or power setting was changed. The benchmark implementations were at commit `fe66aa7`.
 
-The commands recorded below are the original commands used for this run. The current battery and Speedometer entry points live under `benchmarks/low_power/`; see [the benchmark guide](../../README.md) for runnable commands. The historical chart command is no longer a live entry point; its output is preserved here, and its original shell generator and inputs are in the archive.
+The commands recorded below are the original commands used for this run. The current battery and Speedometer entry points live under `benchmarks/low_power/`; see [the benchmark guide](../../README.md) for runnable commands. The historical chart command is no longer a live entry point; its output is preserved here. Intermediate results are no longer committed, and the legacy archive retains scripts rather than their generated outputs.
 
 ## Artifact review and cleanup
 
@@ -14,9 +14,9 @@ Only five unused loose startup captures were removed, after confirming that each
 - `benchmarks/vim_startup_profile_latest.txt`
 - `benchmarks/vim_startup_profile_lightline_trial.txt`
 
-At the time of this run, the six `.txt` chart inputs still remained; they have since been removed after verification against the archive. The `.tar.gz` archive and checksum remain because they preserve the legacy implementations, original regression harness, historical captures, and results used by existing documentation. All 28 members were byte-verified against commit `b8aad75`, and the archive checksum was verified. Historical M4 reports and telemetry JSON were retained (the JSON captures are now gzip-compressed). `docs/robots.txt` is an active website file and was retained.
+At the time of this run, the six `.txt` chart inputs still remained; they were later removed after verification against the original archive. That archive's 28 members were byte-verified against commit `b8aad75` during this run. The current archive retains only legacy scripts and their README; the original full archive and generated results remain recoverable from Git history. `docs/robots.txt` is an active website file and was retained.
 
-Proof of preserved bytes and hashes: [cleanup-audit.json](cleanup-audit.json). The fresh Vim reports below are needed baselines and were retained. Generated corpora and raw process logs remain local; they are not included in the commit.
+The run's five-file cleanup audit and four Vim baseline reports were intermediate artifacts; the measurements and comparisons they supported remain below. Generated corpora and raw process logs are not committed.
 
 ## Environment and measurement protocol
 
@@ -29,13 +29,13 @@ Proof of preserved bytes and hashes: [cleanup-audit.json](cleanup-audit.json). T
 - ripgrep/Ctags measure process wall time; Git reports aggregate CPU time; startup profiles use Vim log timings. Defaults for their sample counts and warmups were retained. `caffeinate -i` prevented idle sleep during the sequential run.
 - Ordinary background activity was not otherwise controlled. No battery-mode comparison is available from this run.
 
-Detailed build metadata and hashes: [vim-builds.json](vim-builds.json). Runtime versions and power-state snapshots: [environment.json](environment.json).
+The original bottle SHA-256 was `1714ffe420e510f8e9ed57d848c8ad5220286dd6966dacab6d0aefa2f6d9397c`; the native Vim binary SHA-256 was `ac9702fff0777046185805e289399347a0f7921a031c1ec874ec5f1a4274e7aa`.
 
 ## All ten entry points
 
 | Entry point | Status | Result / reason |
 | --- | --- | --- |
-| `profile_vim_plugins.clj` | Passed | Full startup capture retained in startup-raw.log; plugin/file self-time report in results.json. |
+| `profile_vim_plugins.clj` | Passed | Startup profiling completed; median startup and plugin self-time appear below. |
 | `profile_vim_plugins_median.clj` | Passed | 7 runs; median total startup 24.529 ms; plugin self-time total 4.272 ms. |
 | `generate_vim_startup_chart.clj` | Passed | Historical inclusive totals 36.079 → 3.325 ms. This renders archived captures; it is not a fresh M1 Pro performance result. |
 | `benchmark_ripgrep_native.clj` | Passed | 9 workloads, 9 samples after 2 warmups; median range 8.94–503.32 ms. |
@@ -70,12 +70,8 @@ Each row below is a median of 30 measurements. Speedup is bottle time / native t
 | Vimscript while loop (500k iterations) | 0.644997 | 0.601875 | 1.07x |
 | Regex on Ruby source (complex alternation) | 0.023622 | 0.019220 | 1.23x |
 
-Canonical baseline reports:
-
-- [vim-bottle-a_20261003T224328234Z.txt](vim-baselines/vim-bottle-a_20261003T224328234Z.txt)
-- [vim-bottle-b_20261003T224507866Z.txt](vim-baselines/vim-bottle-b_20261003T224507866Z.txt)
-- [vim-native-a_20261003T224400427Z.txt](vim-baselines/vim-native-a_20261003T224400427Z.txt)
-- [vim-native-b_20261003T224432646Z.txt](vim-baselines/vim-native-b_20261003T224432646Z.txt)
+The four individual baseline files were generated for this run but are no longer
+committed; the two comparison tables above retain their measured medians.
 
 ## Native binary workload results
 
@@ -121,7 +117,7 @@ HOMEBREW_NO_AUTO_UPDATE=1 brew info --json=v2 homebrew/core/vim
 HOMEBREW_NO_AUTO_UPDATE=1 brew fetch --bottle-tag=arm64_golden_gate homebrew/core/vim
 ```
 
-The download was verified against Homebrew SHA-256 `1714ffe420e510f8e9ed57d848c8ad5220286dd6966dacab6d0aefa2f6d9397c` and extracted outside the repository. Exact relocation commands and the original/relocated executable hashes are recorded in [vim-builds.json](vim-builds.json). Recovered setup errors are recorded in [preparation.json](preparation.json): mutually exclusive fetch options, a `brew --cache` tag error, and the unrelocated bottle’s initial `dyld` `_BC` error. All were resolved before the measured runs.
+The download was verified against the Homebrew SHA-256 above and extracted outside the repository. Its library-prefix placeholders were relocated to `/opt/homebrew` in the temporary copy, then ad-hoc signed. The original bottle executable SHA-256 was `b1f5c812698e3bae5a690e82e9b0683b6709276aad122aa59bc32004ba49b8a2`; the relocated executable SHA-256 was `b27dd0cd3e2d32e96639f601f6599fe6b4081e55d0d9140cfac0332166b98968`. Mutually exclusive fetch options, a `brew --cache` tag error, and the unrelocated bottle's initial `dyld` `_BC` error were resolved before the measured runs.
 
 Actual benchmark invocations, in order (from the repository root):
 
@@ -215,7 +211,7 @@ VIM_BENCH_CORPUS=/Users/marian/dot-files/benchmarks/corpus/vim-v2 VIM_BENCH_RESU
 /opt/homebrew/bin/bb benchmarks/speedometer_runner.clj 5
 ```
 
-The exact command vectors, environment overrides, start/finish times, exit codes, and process wall times are also preserved in [commands.json](commands.json). The original raw stdout/stderr remains locally under ignored `raw/`; durable benchmark output is in [results.json](results.json). The transient DevTools WebSocket endpoint was omitted from durable results.
+The commands, observed exit codes, and process wall times above are the published record. Structured JSON, individual baseline files, and raw stdout/stderr were intermediate outputs and are no longer committed.
 
 ## Verification
 
@@ -228,7 +224,7 @@ git diff --check
 - 43 tests, 268 assertions, zero failures or errors.
 - All configuration checks passed. Existing Homebrew Ruby missing-extension warnings were collected at the end; they are environment issues, independent of these measurements.
 - The historical chart ran successfully after cleanup, and all four new Vim reports share both corpus hashes.
-- Archive checksum and all original archive members verified. No source data or baseline was discarded.
+- At the time of this run, the full archive checksum and all original archive members were verified. The archive was later trimmed to legacy sources, and intermediate results were removed from the current checkout.
 - Eight benchmark entry points completed; two could not run on AC. No battery energy/throughput numbers were inferred or substituted.
 
-Verification summary: [verification.json](verification.json). Complete fresh startup source: [startup-raw.log](startup-raw.log).
+Verification outcomes and benchmark measurements are summarized above; fresh runs can be made with the current scripts.

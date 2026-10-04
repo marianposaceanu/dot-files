@@ -1,9 +1,10 @@
 # Legacy benchmarks archive
 
-`benchmarks-shell-20261004.tar.gz` preserves all 27 tracked benchmark files plus
-the Bash/Python regression harness (28 files) at dot-files commit `b8aad75`,
-before the Clojure rewrite. Files were compared byte for byte against the archive
-before replacing the scripts. Generated or ignored corpora are excluded.
+`benchmarks-shell-20261004.tar.gz` preserves the legacy shell scripts, their README,
+and the regression harness from dot-files commit `b8aad75`, before the Clojure
+rewrite. Historical profiles, telemetry, and other generated results are excluded;
+their published measurements remain in Markdown reports under `../results/`.
+The original full archive remains recoverable from Git history.
 
 Verify the archive from this directory:
 

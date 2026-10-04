@@ -1,2 +1,5 @@
 corpus/
-results/*.txt
+results/**/*.json
+results/**/*.json.gz
+results/**/*.log
+results/**/*.txt
