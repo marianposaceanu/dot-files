@@ -32,6 +32,12 @@ Zsh and Vim submodules, and links the configs. It is safe to rerun: valid links
 and installations are retained, while conflicts are moved to timestamped
 `.backup.<timestamp>` paths.
 
+Setup also upgrades Amp, Claude Code, and Codex when found on `PATH`.
+It uses `amp update`, `claude update`, or Homebrew for Claude/Codex cask
+installations. npm-installed Codex is upgraded in its existing global prefix.
+Missing tools are not installed; unrecognized Codex installations are skipped
+with a warning to upgrade manually. Failed upgrades stop setup.
+
 On a new Mac, the first `git` command may prompt for Apple Command Line Tools.
 Finish that installation, then rerun the command.
 

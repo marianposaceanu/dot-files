@@ -50,6 +50,9 @@ case "${1:-}" in
   list)
     [ "${2:-}" = '--cask' ] && [ "${3:-}" = 'ghostty' ] && [ -f "$state" ]
     ;;
+  upgrade)
+    printf 'brew %s\n' "$*" >> "$log"
+    ;;
   install)
     printf 'brew %s\n' "$*" >> "$log"
     if [ "${2:-}" = 'borkdude/brew/babashka' ]; then

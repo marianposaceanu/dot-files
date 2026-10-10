@@ -54,6 +54,44 @@
      (is (zero? exit) (str "installer failed:\n" out err))
      out)))
 
+(deftest upgrades-only-installed-ai-tools-test
+  (let [output (run-installer!)]
+    (doseq [tool ["amp" "claude" "codex"]]
+      (is (str/includes? output (str "Skipping " tool ": not installed on PATH.")))))
+  (doseq [tool ["amp" "claude" "npm"]]
+    (support/executable!
+     (support/path "bin" tool)
+     (str "#!/bin/sh\nprintf '" tool " %s\\n' \"$*\" >> \"$INSTALLER_TEST_LOG\"\n")))
+  (let [prefix (support/path "npm-prefix")
+        codex (support/executable! (str prefix "/lib/node_modules/@openai/codex/bin/codex.js")
+                                   "#!/bin/sh\nexit 99\n")]
+    (fs/create-sym-link (support/path "bin/codex") codex)
+    (run-installer!)
+    (is (some #{"amp update"} (log-lines)))
+    (is (some #{"claude update"} (log-lines)))
+    (is (some #{(str "npm install --global --prefix " (fs/canonicalize prefix)
+                    " @openai/codex@latest")} (log-lines))))
+  (testing "Homebrew installs keep their package manager and Claude release channel"
+    (doseq [[tool cask] [["claude" "claude-code@latest"] ["codex" "codex"]]]
+      (fs/delete (support/path "bin" tool))
+      (fs/create-sym-link
+       (support/path "bin" tool)
+       (support/executable! (support/path "homebrew/Caskroom" cask "1.0" tool)
+                            "#!/bin/sh\nexit 99\n")))
+    (run-installer!)
+    (doseq [command ["brew upgrade --cask claude-code@latest" "brew upgrade --cask codex"]]
+      (is (some #{command} (log-lines)))))
+  (testing "Unknown Codex installations are not replaced"
+    (fs/delete (support/path "bin/codex"))
+    (support/executable! (support/path "bin/codex") "#!/bin/sh\nexit 99\n")
+    (is (str/includes? (run-installer!) "Skipping codex: unrecognized installation")))
+  (testing "An upgrade failure stops setup"
+    (support/executable! (support/path "bin/amp") "#!/bin/sh\necho 'upgrade failed' >&2\nexit 42\n")
+    (let [{:keys [exit out err]} (invoke-installer)]
+      (is (not (zero? exit)))
+      (is (str/includes? (str out err) "upgrade failed"))
+      (is (not (str/includes? out "SETUP COMPLETE"))))))
+
 (deftest two-runs-install-once-and-do-not-create-duplicate-backups-test
   (testing "Repeated setup preserves user configuration and avoids duplicate installations or backups"
     (let [claude-path (home-path ".claude.json")

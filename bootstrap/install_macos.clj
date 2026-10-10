@@ -1,5 +1,6 @@
 (require '[babashka.classpath :as classpath]
-         '[babashka.fs :as fs])
+         '[babashka.fs :as fs]
+         '[clojure.string :as str])
 
 (def ^:private script-repo-root
   (-> *file* fs/parent fs/parent fs/canonicalize str))
@@ -199,6 +200,32 @@
       (throw (ex-info (str formula " is missing from " binary) {})))
     [formula prefix]))
 
+(defn- upgrade-ai-tools! [{:keys [brew child-env] :as state}]
+  (let [paths (str/split (get child-env "PATH") #":")]
+    (doseq [tool ["amp" "claude" "codex"]]
+      (if-let [binary (fs/which tool {:paths paths})]
+        (let [resolved (str (fs/canonicalize binary))
+              cask (second (re-find #"/Caskroom/(claude-code(?:@latest)?|codex)/" resolved))
+              npm-prefix (when (= tool "codex")
+                           (second (re-find #"^(.*)/lib/node_modules/@openai/codex/" resolved)))
+              command (cond
+                        cask [brew "upgrade" "--cask" cask]
+                        (= tool "amp") [(str binary) "update"]
+                        (= tool "claude") [(str binary) "update"]
+                        npm-prefix [(or (some-> (fs/which "npm" {:paths paths}) str)
+                                        (throw (ex-info "npm is required to upgrade Codex." {})))
+                                    "install" "--global" "--prefix" npm-prefix "@openai/codex@latest"])]
+          (if command
+            (do
+              (common/info (str "Upgrading " tool "..."))
+              (run-command! state command)
+              (common/success (str tool " is up to date.")))
+            (common/warning
+             (str "Skipping " tool ": unrecognized installation at " resolved
+                  "; upgrade it manually."))))
+        (common/info (str "Skipping " tool ": not installed on PATH.")))))
+  state)
+
 (defn- install-dependencies! [{:keys [brew repo-root] :as state}]
   (let [brewfile (fs/path repo-root "Brewfile")]
     (common/info "Updating Homebrew metadata...")
@@ -220,7 +247,8 @@
       (common/success "Verified mextdisplay, Ruby, and Vim executables.")
       (-> state
           (assoc :bb installed-bb)
-          (assoc-in [:child-env "PATH"] path)))))
+          (assoc-in [:child-env "PATH"] path)
+          upgrade-ai-tools!))))
 
 (defn- install-ghostty! [{:keys [brew ghostty-app] :as state}]
   (if-let [ghostty (find-ghostty state)]
