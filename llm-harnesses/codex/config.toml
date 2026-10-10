@@ -66,7 +66,7 @@ trust_level = "trusted"
 
 [features]
 apps = false
-fast_mode = false
+fast_mode = true
 memories = false
 plugins = false
 remote_plugin = false
