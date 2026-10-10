@@ -166,7 +166,7 @@
   (when-let [path (System/getenv "DOT_FILES_PROGRESS_FILE")]
     (let [pending (str path ".pending")]
       (spit pending (pr-str [completed total]))
-      (fs/move pending path {:replace-existing true}))))
+      (fs/move pending path {:replace-existing true :atomic-move true}))))
 
 (defn- read-report [path]
   (when (fs/exists? path)
