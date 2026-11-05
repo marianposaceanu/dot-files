@@ -3,7 +3,7 @@
 # ==============================================================================
 
 # Primary macOS CoreText font and comfortable HiDPI size.
-font-family = "Berkeley Mono Trial Regular"
+font-family = "Berkeley Mono Regular"
 font-size = 16
 
 # Disable contextual alternates such as programming ligature substitutions.
@@ -23,8 +23,8 @@ shell-integration-features = no-cursor
 # Copy a mouse selection directly to the macOS system clipboard.
 copy-on-select = clipboard
 
-# Keep up to 20 MB of in-memory history per terminal surface.
-scrollback-limit = 20000000
+# Keep up to 10 MB of in-memory history per terminal surface.
+scrollback-limit-bytes = 10000000
 
 # Remove the pointer while typing and allow prompt-aware cursor placement.
 mouse-hide-while-typing = true
@@ -73,7 +73,7 @@ window-step-resize = false
 undo-timeout = 15s
 
 # Merge the tab strip into the macOS titlebar to save vertical space.
-# macos-titlebar-style = tabs
+macos-titlebar-style = tabs
 
 # Treat both Option keys as terminal Alt keys instead of macOS character composers.
 macos-option-as-alt = true
@@ -129,3 +129,6 @@ keybind = navigate/s=new_split:down
 
 # Open the focused terminal's complete scrollback in the default text editor.
 keybind = super+shift+e=write_scrollback_file:open
+
+# Updates: check and notify, never install unattended (overrides the Sparkle preference).
+auto-update = check
