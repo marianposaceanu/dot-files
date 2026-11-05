@@ -128,6 +128,7 @@
    {:source ".bashrc" :target ".bashrc" :label "~/.bashrc"}
    {:source "llm-harnesses/codex/config.toml" :target ".codex/config.toml" :label "Codex config"}
    {:source "llm-harnesses/claude/settings.json" :target ".claude/settings.json" :label "Claude Code settings"}
+   {:source "bin/caffeinate" :target "bin/caffeinate" :label "caffeinate shim (no-op when Claude Code is the parent)"}
    {:source "llm-harnesses/claude/output-styles/amp.md"
     :target ".claude/output-styles/amp.md"
     :label "Claude Code Amp output style"}

@@ -130,7 +130,7 @@
           (doseq [message ["Repository path is ready" "Ghostty is already installed" "Oh My Zsh is already installed"
                            "╭─ [05/10] RVM Ruby versions" "RVM Ruby 4.0.7 is already installed."
                            "╭─ [08/10] Pinned Vim plugins" "✓ Pinned Vim plugins are ready."
-                           "╭─ [09/10] Configuration links" "✓ Configuration links: 17 unchanged, 0 updated, 0 backups."
+                           "╭─ [09/10] Configuration links" "✓ Configuration links: 18 unchanged, 0 updated, 0 backups."
                            "╭─ [10/10] Validation"]]
             (is (str/includes? second-output message)))
           (is (not (str/includes? second-output "Already linked:")))
