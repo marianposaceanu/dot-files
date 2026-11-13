@@ -79,9 +79,11 @@ Use `--timings` to report stage durations. Use `--skip-checks` only when you
 will run the checks manually afterward. Licensed fonts,
 credentials, keyboard preferences, and optional native builds remain manual.
 
-`rvm/config.edn` lists required Ruby versions and the default. Setup installs RVM
-stable when missing, installs required Rubies, and sets the default to Ruby
-4.0.7. Existing Ruby versions and gemsets are retained. RVM's installer leaves
+`rvm/config.edn` lists required Ruby versions and the default; `"latest"` means
+the newest stable release listed on ruby-lang.org, looked up on each run. Setup
+installs RVM stable when missing, installs required Rubies, and sets the default
+to the latest Ruby. Without network access the newest installed RVM Ruby stands
+in. Existing Ruby versions and gemsets are retained. RVM's installer leaves
 shell configs alone because the dotfiles already initialize it.
 
 To check or install just the RVM requirements:

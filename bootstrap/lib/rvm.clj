@@ -5,14 +5,16 @@
             [clojure.edn :as edn]
             [clojure.string :as str]))
 
+(def ^:private releases-url "https://cache.ruby-lang.org/pub/ruby/index.txt")
+
 (defn read-config [path]
   (let [{:keys [rubies default-ruby] :as config} (edn/read-string (slurp (str path)))]
     (when-not (and (vector? rubies)
                    (seq rubies)
-                   (every? #(and (string? %) (re-matches #"\d+\.\d+\.\d+" %)) rubies)
+                   (every? #(and (string? %) (re-matches #"latest|\d+\.\d+\.\d+" %)) rubies)
                    (= (count rubies) (count (distinct rubies)))
                    (some #{default-ruby} rubies))
-      (throw (ex-info "RVM config requires unique, exact Ruby versions and a default from that list."
+      (throw (ex-info "RVM config requires unique Ruby versions, exact or \"latest\", and a default from that list."
                       {:path (str path)})))
     config))
 
@@ -32,6 +34,36 @@
 
 (defn- default-version [rvm-root]
   (ruby-version (fs/path rvm-root "rubies/default/bin/ruby")))
+
+(defn- newest [versions]
+  (last (sort-by #(mapv parse-long (str/split % #"\.")) versions)))
+
+(defn- latest-release []
+  (let [{:keys [exit out]} (try
+                             (common/result ["curl" "-fsSL" "--max-time" "20" releases-url])
+                             (catch Exception _ nil))]
+    (when (and exit (zero? exit))
+      (newest (map second (re-seq #"(?m)^ruby-(\d+\.\d+\.\d+)\t" out))))))
+
+(defn- newest-installed [rvm-root]
+  (newest (keep #(second (re-matches #"ruby-(\d+\.\d+\.\d+)" (fs/file-name %)))
+                (fs/glob (fs/path rvm-root "rubies") "ruby-*"))))
+
+(defn resolve-config
+  "Replaces \"latest\" with the newest stable release from ruby-lang.org."
+  [{:keys [rubies default-ruby] :as config}]
+  (if-not (some #{"latest"} rubies)
+    config
+    (let [latest (or (latest-release)
+                     (when-let [installed (newest-installed (root))]
+                       (common/warning (str "Could not look up the latest Ruby release; using installed Ruby "
+                                            installed "."))
+                       installed)
+                     (throw (ex-info "Could not look up the latest Ruby release and no RVM Ruby is installed." {})))
+          resolved #(if (= "latest" %) latest %)]
+      (assoc config
+             :rubies (vec (distinct (map resolved rubies)))
+             :default-ruby (resolved default-ruby)))))
 
 (defn- command [rvm-root & args]
   (let [path (->> (str/split (or (System/getenv "PATH") "") #":")

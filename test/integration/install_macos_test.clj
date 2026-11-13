@@ -128,7 +128,7 @@
         (is (= "original zsh config\n" (slurp (first zsh-backups))))
         (let [second-output (run-installer!)]
           (doseq [message ["Repository path is ready" "Ghostty is already installed" "Oh My Zsh is already installed"
-                           "╭─ [05/10] RVM Ruby versions" "RVM Ruby 4.0.7 is already installed."
+                           "╭─ [05/10] RVM Ruby versions" "RVM Ruby 4.0.9 is already installed."
                            "╭─ [08/10] Pinned Vim plugins" "✓ Pinned Vim plugins are ready."
                            "╭─ [09/10] Configuration links" "✓ Configuration links: 17 unchanged, 0 updated, 0 backups."
                            "╭─ [10/10] Validation"]]
@@ -141,8 +141,8 @@
           (doseq [[command expected] [["brew install --cask ghostty" 1] ["brew update" 2]
                                       ["git submodule --quiet sync --recursive" 2]
                                       ["git submodule --quiet update --init --recursive" 2]
-                                      ["rvm installer" 1] ["rvm install ruby-4.0.7" 1]
-                                      ["rvm --default use ruby-4.0.7" 1]]]
+                                      ["rvm installer" 1] ["rvm install ruby-4.0.9" 1]
+                                      ["rvm --default use ruby-4.0.9" 1]]]
             (is (= expected (get counts command 0)) command))
           (is (= 1 (count (filter #(str/starts-with? % "git clone ") commands))))
           (is (= 2 (count (filter #(str/starts-with? % "brew bundle --file ") commands)))))))))
@@ -164,9 +164,23 @@
                                         "PATH" (str/join ":" [(support/path "bin") "/usr/bin" "/bin"])}}
                            [support/bb (str support/repo-root "/bootstrap/setup/install_rvm.clj") "--check"])]
       (is (not (zero? exit)))
-      (is (str/includes? (str out err) "RVM Ruby 4.0.7 is missing or does not run correctly."))
+      (is (str/includes? (str out err) "RVM Ruby 4.0.9 is missing or does not run correctly."))
       (is (not (fs/exists? (home-path ".rvm"))))
       (is (not (fs/exists? (support/path "commands.log")))))))
+
+(deftest rvm-check-uses-newest-installed-ruby-when-release-lookup-fails-test
+  (testing "A failed release lookup falls back to the newest installed Ruby"
+    (support/executable! (support/path "bin/curl") "#!/bin/sh\nexit 6\n")
+    (doseq [version ["3.4.7" "4.0.8"]]
+      (support/executable! (home-path ".rvm/rubies" (str "ruby-" version) "bin/ruby")
+                           (str "#!/bin/sh\nprintf " version "\n")))
+    (let [{:keys [out err]}
+          (support/capture {:extra-env {"HOME" (home-path)
+                                        "PATH" (str/join ":" [(support/path "bin") "/usr/bin" "/bin"])}}
+                           [support/bb (str support/repo-root "/bootstrap/setup/install_rvm.clj") "--check"])
+          output (str out err)]
+      (is (str/includes? output "Could not look up the latest Ruby release; using installed Ruby 4.0.8."))
+      (is (str/includes? output "RVM Ruby 4.0.8 is installed and runs.")))))
 
 (deftest repairs-rvm-default-without-reinstalling-or-removing-old-rubies-test
   (testing "Repairing the RVM default preserves installed Ruby versions"
@@ -176,11 +190,11 @@
       (fs/delete default)
       (fs/create-sym-link default (home-path ".rvm/rubies/ruby-3.4.7"))
       (run-installer!)
-      (is (= (fs/canonicalize (home-path ".rvm/rubies/ruby-4.0.7")) (fs/canonicalize default)))
+      (is (= (fs/canonicalize (home-path ".rvm/rubies/ruby-4.0.9")) (fs/canonicalize default)))
       (is (fs/executable? old-ruby))
       (let [counts (frequencies (log-lines))]
-        (is (= 1 (get counts "rvm install ruby-4.0.7")))
-        (is (= 2 (get counts "rvm --default use ruby-4.0.7")))))))
+        (is (= 1 (get counts "rvm install ruby-4.0.9")))
+        (is (= 2 (get counts "rvm --default use ruby-4.0.9")))))))
 
 (deftest rvm-install-failure-stops-setup-test
   (testing "A failed Ruby installation prevents setup from reporting completion"

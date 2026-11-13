@@ -11,7 +11,7 @@
 (defn -main [& args]
   (when-not (contains? #{[] ["--check"]} (vec args))
     (common/usage-error! "Usage: bb bootstrap/setup/install_rvm.clj [--check]"))
-  (let [config (rvm/read-config (fs/path repo-root "rvm/config.edn"))]
+  (let [config (rvm/resolve-config (rvm/read-config (fs/path repo-root "rvm/config.edn")))]
     (common/start-panel "RVM RUBIES" "Checking repository Ruby requirements")
     (if (seq args)
       (let [results (rvm/status config)]

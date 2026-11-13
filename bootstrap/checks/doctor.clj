@@ -191,6 +191,7 @@
     (let [brew-warnings (report! (brew-results))]
       (common/heading "RVM RUBIES")
       (finish! (+ link-warnings brew-warnings
-                  (report! (rvm/status (rvm/read-config (fs/path repo-root "rvm/config.edn")))))))))
+                  (report! (rvm/status (rvm/resolve-config
+                                         (rvm/read-config (fs/path repo-root "rvm/config.edn"))))))))))
 
 (common/run-script! -main *command-line-args*)

@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+if [ "${!#}" = 'https://cache.ruby-lang.org/pub/ruby/index.txt' ]; then
+  printf 'name\turl\tsha1\tsha256\tsha512\n'
+  for release in 3.4.7 4.0.9 4.0.10-rc1 4.0.8 4.1.0-preview1; do
+    printf 'ruby-%s\thttps://cache.ruby-lang.org/pub/ruby/ruby-%s.tar.gz\tsha1\tsha256\tsha512\n' "$release" "$release"
+  done
+  exit 0
+fi
 [ "${!#}" = 'https://get.rvm.io' ] || exit 1
 cat <<'INSTALLER'
 printf 'rvm installer\n' >> "${INSTALLER_TEST_LOG:?}"
