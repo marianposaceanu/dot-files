@@ -29,7 +29,8 @@ for _path_candidate in \
   /opt/homebrew/opt/curl/bin \
   /opt/homebrew/sbin \
   /opt/homebrew/bin \
-  "$HOME/bin"; do
+  "$HOME/bin" \
+  "$HOME/.local/bin"; do
   if [[ -d "$_path_candidate" && ":$PATH:" != *":$_path_candidate:"* ]]; then
     path=("$_path_candidate" "${path[@]}")
   fi
@@ -127,4 +128,3 @@ for _zsh_highlighting in \
   fi
 done
 unset _zsh_highlighting
-export PATH="$HOME/.local/bin:$PATH"
